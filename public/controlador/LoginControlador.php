@@ -12,12 +12,11 @@ class LoginControlador {
         if ($_POST) {
             $username = $_POST['username'] ?? '';
             $password = $_POST['password'] ?? '';
-            $tipo_usuario = $_POST['tipo_usuario'] ?? ''; // ¡FALTABA ESTA LÍNEA!
-
+            $tipo_usuario = $_POST['tipo_usuario'] ?? 'usuario'; 
             if (!empty($username) && !empty($password) && !empty($tipo_usuario)) {
                 if ($tipo_usuario === 'personal') {
                     $user = $this->LoginModelo->loginPersonal($username, $password);
-                    $redirect = '../vista/personalVista/Dashboard.php'; // Ruta corregida
+                    $redirect = '../vista/personalVista/dashboard.php'; // Ruta corregida
                 } else {
                     $user = $this->LoginModelo->login($username, $password);
                     $redirect = '../vista/usuarioVista/dashboard.php'; // Ruta  corregida

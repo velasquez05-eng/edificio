@@ -237,3 +237,8 @@ VALUES (
 
 INSERT INTO edificio (nombre, direccion)
 VALUES ('Bilbao', 'Av. Principal 123, Zona Centro');
+
+
+-- ========================================================
+-- CREAR FUNCIONES
+-- ========================================================

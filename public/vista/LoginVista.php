@@ -2,9 +2,9 @@
 session_start();
 if (isset($_SESSION['id_usuario'])) {
     if ($_SESSION['tipo_usuario'] === 'personal') {
-        header("Location: ../vista/personalVista/Dashboard.php");
+        header("Location: ../vista/personalVista/dashboard.php");
     } else {
-        header("Location: ../vista/usuarioVista/Dashboard.php");
+        header("Location: ../vista/usuarioVista/dashboard.php");
     }
     exit();
 }
