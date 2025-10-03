@@ -1,0 +1,18 @@
+edificio/
+├── config/
+│   └── database.php
+├── includes/
+│   ├── css/
+│   │   └── bootstrap.min.css
+│   ├── js/
+│   │   └── bootstrap.bundle.min.js
+│   ├── header.php
+│   └── footer.php
+├── public/
+│   ├── modelo/
+│   │   └── UsuarioModel.php
+│   ├── vista/
+│   │   └── login.php
+│   └── controlador/
+│       └── AuthController.php
+└── index.php
