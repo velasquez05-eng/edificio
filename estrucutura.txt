@@ -1,18 +1,49 @@
-edificio/
-├── config/
-│   └── database.php
-├── includes/
-│   ├── css/
-│   │   └── bootstrap.min.css
-│   ├── js/
-│   │   └── bootstrap.bundle.min.js
-│   ├── header.php
-│   └── footer.php
-├── public/
-│   ├── modelo/
-│   │   └── UsuarioModel.php
-│   ├── vista/
-│   │   └── login.php
-│   └── controlador/
-│       └── AuthController.php
-└── index.php
+│   Consultas.sql
+│   estrucutura.txt
+│   index.php
+│
+├───config
+│       database.php
+│
+├───includes
+│   │   footer.php
+│   │   header.php
+│   │
+│   ├───css
+│   │       bootstrap.css
+│   │       bootstrap.min.css
+│   │       dashboard.css
+│   │
+│   └───js
+│           bootstrap.bundle.js
+│           bootstrap.bundle.min.js
+│           bootstrap.js
+│           bootstrap.min.js
+│           dashboard.js
+│           dashboard_backup.js
+│
+└───public
+    ├───controlador
+    │   │   LoginControlador.php
+    │   │   RecuperarControlador.php
+    │   │   RegistroControlador.php
+    │   │
+    │   ├───personalControlador
+    │   └───usuarioControlador
+    ├───modelo
+    │   │   LoginModelo.php
+    │   │   RecuperarModelo.php
+    │   │   RegistroModelo.php
+    │   │
+    │   ├───personalModelo
+    │   └───usuarioModelo
+    └───vista
+        │   LoginVista.php
+        │   RecuperarVista.php
+        │   RegistroVista.php
+        │
+        ├───personalVista
+        │       dashboard.php
+        │
+        └───usuarioVista
+                dashboard.php
