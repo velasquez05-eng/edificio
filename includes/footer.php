@@ -14,7 +14,7 @@
     
 
       <!-- Vincular el archivo JavaScript -->
-  <script src="../../../includes/js/dashboard.js"></script>
+  <script src="../../includes/js/dashboard.js"></script>
 
 </body>
 </html>

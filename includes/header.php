@@ -22,7 +22,7 @@ if (!isset($_SESSION['id_usuario'])) {
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <!-- Google Fonts -->
-       <link rel="stylesheet" href="../../../includes/css/dashboard.css">
+       <link rel="stylesheet" href="../../includes/css/dashboard.css">
     <!-- Estilos CSS dashboard -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Chart.js -->
@@ -98,7 +98,7 @@ if (!isset($_SESSION['id_usuario'])) {
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                     <i class="fas fa-times me-2"></i>Cancelar
                 </button>
-                <form method="POST" action="../../controlador/LoginControlador.php" class="d-inline">
+                <form method="POST" action="../controlador/LoginControlador.php" class="d-inline">
                     <input type="hidden" name="action" value="logout">
                     <button type="submit" class="btn btn-warning">
                         <i class="fas fa-sign-out-alt me-2"></i>Sí, Cerrar Sesión
