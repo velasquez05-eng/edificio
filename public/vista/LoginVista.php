@@ -1,12 +1,8 @@
 <?php
 session_start();
 if (isset($_SESSION['id_usuario'])) {
-    if ($_SESSION['tipo_usuario'] === 'personal') {
-        header("Location: ../vista/personalVista/dashboard.php");
-    } else {
-        header("Location: ../vista/usuarioVista/dashboard.php");
-    }
-    exit();
+        header("Location: ../vista/DashboardVista.php");
+
 }
 ?>
 
@@ -151,6 +147,16 @@ if (isset($_SESSION['id_usuario'])) {
                 display: none;
             }
         }
+        .toggle {
+            color: var(--azul-oscuro);
+        }
+        
+        .toggle::before {
+            content: 'Usuario';
+        }
+        .toggle.on::before {
+            content: 'Personal';
+        }
     </style>
 </head>
 <body>
@@ -181,22 +187,17 @@ if (isset($_SESSION['id_usuario'])) {
                     </div>
                 </div>
                 <div class="col-md-6 login-right">
-                    <h3 class="text-center mb-4">Iniciar Sesión</h3>
-                    
+                  
                     <?php if (isset($_SESSION['error'])): ?>
                         <div class="alert alert-danger"><?php echo $_SESSION['error']; unset($_SESSION['error']); ?></div>
                     <?php endif; ?>
                     
                     <form method="POST" action="../controlador/LoginControlador.php">
                         <input type="hidden" name="action" value="login">
-                        
-                        <div class="mb-3">
-                            <label for="tipo_usuario" class="form-label">Tipo de Usuario</label>
-                            <select class="form-select" id="tipo_usuario" name="tipo_usuario" required>
-                                <option value="usuario">Usuario</option>
-                                <option value="personal">Personal</option>
-                            </select>
-                        </div>
+                          <h3 class="text-center mb-4 fw-bold">
+                        <div class="toggle" onclick="toggleSwitch()"></div>
+                        <input type="hidden" id="tipo_usuario" name="tipo_usuario" value="usuario">
+                    </h3>
 
                         <div class="mb-3">
                             <label for="username" class="form-label">Usuario</label>
@@ -242,6 +243,14 @@ if (isset($_SESSION['id_usuario'])) {
                 icon.classList.add('fa-eye');
             }
         });
+
+        function toggleSwitch() {
+            const toggle = document.querySelector('.toggle');
+            const input = document.getElementById('tipo_usuario');
+            
+            toggle.classList.toggle('on');
+            input.value = toggle.classList.contains('on') ? 'personal' : 'usuario';
+        }
     </script>
 </body>
 </html>
