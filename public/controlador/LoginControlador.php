@@ -16,12 +16,10 @@ class LoginControlador {
             if (!empty($username) && !empty($password) && !empty($tipo_usuario)) {
                 if ($tipo_usuario === 'personal') {
                     $user = $this->LoginModelo->loginPersonal($username, $password);
-                    $redirect = '../vista/personalVista/dashboard.php'; // Ruta corregida
                 } else {
                     $user = $this->LoginModelo->login($username, $password);
-                    $redirect = '../vista/usuarioVista/dashboard.php'; // Ruta  corregida
                 }
-
+                    $redirect = '../vista/DashboardVista.php';
                 if ($user) {
                     $_SESSION['id_usuario'] = $user['id_usuario'] ?? $user['id_personal'];
                     $_SESSION['username'] = $user['username'];
