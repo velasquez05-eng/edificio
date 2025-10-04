@@ -1,12 +1,7 @@
 <?php
 session_start();
 if (isset($_SESSION['id_usuario'])) {
-    if ($_SESSION['tipo_usuario'] === 'personal') {
-        header("Location: ../vista/personalVista/Dashboard.php");
-    } else {
-        header("Location: ../vista/usuarioVista/Dashboard.php");
-    }
-    exit();
+   header("Location: ../vista/DashboardVista.php");
 }
 
 $etapa = $_GET['etapa'] ?? 'solicitud'; // solicitud, codigo, nueva_contrasena
