@@ -143,7 +143,7 @@
                         <div class="content-box-header">
                             <h5>Incidentes Recientes</h5>
                             <div class="box-actions">
-                                <button class="btn btn-sm btn-outline-primary">Ver Todos</button>
+                                <button class="btn btn-sm btn-outline-success">Ver Todos</button>
                             </div>
                         </div>
                         <div class="content-box-body">
