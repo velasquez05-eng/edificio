@@ -21,14 +21,30 @@ class LoginControlador {
                 }
                     $redirect = '../vista/DashboardVista.php';
                 if ($user) {
+                    //ids y tipo de personal
                     $_SESSION['id_usuario'] = $user['id_usuario'] ?? $user['id_personal'];
-                    $_SESSION['username'] = $user['username'];
-                    $_SESSION['nombre'] = $user['nombre'] . ' ' . $user['appaterno']. ' ' . $user['apmaterno'];
+                    $_SESSION['id_persona'] = $user['id_persona'];
                     $_SESSION['tipo_usuario'] = $tipo_usuario;
+                    //creacion del avatar
+                    $_SESSION['avatar'] = strtoupper(substr($user['nombre'], 0, 1) . substr($user['appaterno'], 0, 1));
+                    //datos de persona generales
+                    $_SESSION['username'] = $user['username'];
+                    $_SESSION['nombre'] = $user['nombre']; 
+                    $_SESSION['appaterno'] = $user['appaterno'];
+                    $_SESSION['apmaterno'] = $user['apmaterno'];
+                    $_SESSION['fecha_naci'] = $user['fecha_naci'];
+                    $_SESSION['ci'] = $user['ci'];
+                    $_SESSION['telefono'] = $user['telefono'];
+                    $_SESSION['email'] = $user['email'];
 
+                    
                     if ($tipo_usuario === 'Personal') {
-                        $_SESSION['cargo'] = $user['cargo'];
+                        $_SESSION['id_rol'] = $user['id_rol']; 
                         $_SESSION['rol'] = $user['nombre_rol'];
+                        $_SESSION['descripcion_rol'] = $user['descripcion'];
+                        $_SESSION['cargo'] = $user['cargo'];
+                        $_SESSION['fecha_contratacion'] = $user['fecha_contratacion'];
+
                     }
 
                     header("Location: " . $redirect);

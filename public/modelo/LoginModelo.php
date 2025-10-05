@@ -8,7 +8,7 @@ class LoginModelo {
     }
 
     public function login($username, $password) {
-        $query = "SELECT u.id_usuario, u.username, u.password_hash, p.nombre, p.appaterno, p.apmaterno
+        $query = "SELECT *
                   FROM " . $this->table_name . " u
                   INNER JOIN persona p ON u.id_persona = p.id_persona
                   WHERE u.username = :username";
@@ -29,11 +29,10 @@ class LoginModelo {
     }
 
     public function loginPersonal($username, $password) {
-        $query = "SELECT p.id_personal, p.username, p.password_hash, p.cargo, 
-                         per.nombre,per.appaterno, per.apmaterno, r.nombre_rol
-                  FROM personal p
-                  INNER JOIN persona per ON p.id_persona = per.id_persona
-                  INNER JOIN roles r ON p.id_rol = r.id_rol
+        $query = "SELECT *
+                    FROM personal p
+                    INNER JOIN persona per ON p.id_persona = per.id_persona
+                    INNER JOIN roles r ON p.id_rol = r.id_rol
                   WHERE p.username = :username";
 
         $stmt = $this->conn->prepare($query);
