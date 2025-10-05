@@ -53,7 +53,7 @@ if (!isset($_SESSION['id_usuario'])) {
         <div class="user-profile">
             <div class="user-avatar">FL</div>
             <div class="user-info">
-                <div class="user-name"><?php echo $_SESSION['nombre'];?></div>
+                <div class="user-name"><?php echo $_SESSION['nombre']." ".$_SESSION['appaterno']." ".$_SESSION['apmaterno'];?></div>
                 <?php if($_SESSION['tipo_usuario'] == 'Personal'): ?>
                 <div class="user-role"><?php echo $_SESSION['rol']; ?></div>
                 <?php endif; ?>
