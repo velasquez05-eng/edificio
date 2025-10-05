@@ -60,7 +60,7 @@ if (!isset($_SESSION['id_usuario'])) {
             </div>
             <i class="fas fa-chevron-down ms-2" style="font-size: 0.9rem;"></i>
             <div class="user-dropdown">
-                <a href="<?php echo '../vista/PerfilVista'.$_SESSION['tipo_usuario'].'.php'?>" class="user-dropdown-item">
+                <a href="../vista/PerfilVista.php" class="user-dropdown-item">
                     <i class="fas fa-user"></i>
                     <span>Mi Perfil</span>
                 </a>

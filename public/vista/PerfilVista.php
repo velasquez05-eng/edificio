@@ -6,20 +6,17 @@
             <!-- Page Header -->
             <div class="page-header fade-in">
                 <div class="page-title">
-                    <h1>Panel de Administración</h1>
+                    <h1>Perfil Administrativo</h1>
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="#"><i class="fas fa-home"></i> Inicio</a></li>
-                            <li class="breadcrumb-item active" aria-current="page">Administración</li>
+                            <li class="breadcrumb-item active" aria-current="page">Perfil</li>
                         </ol>
                     </nav>
                 </div>
                 <div class="page-actions">
                     <button class="btn btn-primary me-2" style="background: var(--verde); border: none;" data-bs-toggle="modal" data-bs-target="#editarPerfilModal">
                         <i class="fas fa-edit me-2"></i> Editar Perfil
-                    </button>
-                    <button class="btn btn-warning" style="background: var(--azul); border: none;" data-bs-toggle="modal" data-bs-target="#gestionSistemaModal">
-                        <i class="fas fa-cog me-2"></i> Gestión del Sistema
                     </button>
                 </div>
             </div>
@@ -36,62 +33,101 @@
                             <div class="user-avatar-large mb-3 mx-auto">
                                 <i class="fas fa-user-shield"></i>
                             </div>
-                            <h4 class="mb-2" id="nombreCompletoAdmin">Máximo Decimo Meridio</h4>
-                            <p class="text-muted mb-3">Administrador del Sistema</p>
+                            <h4 class="mb-2" id="nombreCompletoAdmin"><?php echo $_SESSION['nombre']." ".$_SESSION['appaterno']." ".$_SESSION['apmaterno'];?></h4>
+                            <p class="text-muted mb-3"><?php echo $_SESSION['rol'];?></p>
+                            <p class="text-muted mb-3"><?php echo $_SESSION['descripcion_rol'];?></p>
+                            
+
+                            <?php if($_SESSION['tipo_usuario'] == 'Personal'): ?>
                             
                             <div class="admin-stats">
                                 <div class="row text-center">
                                     <div class="col-6">
-                                        <h5 class="mb-1">5</h5>
+                                        <h5 class="mb-1"><?php echo date('Y', time()) - date('Y', strtotime($_SESSION['fecha_contratacion'])); ?></h5>
                                         <small class="text-muted">Años de Servicio</small>
                                     </div>
                                     <div class="col-6">
-                                        <h5 class="mb-1">Admin</h5>
-                                        <small class="text-muted">Rol</small>
+                                        <h5 class="mb-1"><?php echo $_SESSION['cargo'];?></h5>
+                                        <small class="text-muted">Cargo</small>
                                     </div>
                                 </div>
                             </div>
+                            <?php endif; ?>
+                
+                             <?php if($_SESSION['tipo_usuario'] == 'Usuario'): ?>
+
+                            <div class="admin-stats">
+                                <div class="row text-center">
+                                    <div class="col-6">
+                                        <h5 class="mb-1">5</h5>
+                                        <small class="text-muted">Pagos realizados</small>
+                                    </div>
+                                    <div class="col-6">
+                                        <h5 class="mb-1">3</h5>
+                                        <small class="text-muted">Servicios Activos</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                        <?php endif; ?>
+                
                         </div>
                     </div>
 
-                    <!-- System Overview -->
+
+                    <!-- Contact Information -->
                     <div class="content-box mt-4">
                         <div class="content-box-header">
-                            <h5>Resumen del Sistema</h5>
+                            <h5>Información de Contacto</h5>
                         </div>
                         <div class="content-box-body">
-                            <div class="system-overview">
-                                <div class="system-item mb-3">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <span>Usuarios Registrados</span>
-                                        <strong class="text-primary">142</strong>
+                            <div class="contact-info">
+                                <div class="contact-item mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-envelope me-3 text-primary"></i>
+                                        <div>
+                                            <small class="text-muted">Email</small>
+                                            <p class="mb-0" id="emailUsuario"><?php echo $_SESSION['email'];?></p>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="system-item mb-3">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <span>Departamentos Activos</span>
-                                        <strong class="text-success">85</strong>
+                                <div class="contact-item mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-phone me-3 text-success"></i>
+                                        <div>
+                                            <small class="text-muted">Teléfono</small>
+                                            <p class="mb-0" id="telefonoUsuario"><?php echo $_SESSION['telefono'];?></p>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="system-item mb-3">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <span>Incidentes Pendientes</span>
-                                        <strong class="text-warning">12</strong>
+                                <div class="contact-item mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-id-card me-3 text-warning"></i>
+                                        <div>
+                                            <small class="text-muted">Carnet de Identidad</small>
+                                            <p class="mb-0" id="ciUsuario"><?php echo $_SESSION['ci'];?></p>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="system-item">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <span>Facturas del Mes</span>
-                                        <strong class="text-info">245</strong>
+                                <div class="contact-item">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-birthday-cake me-3 text-info"></i>
+                                        <div>
+                                            <small class="text-muted">Fecha de Nacimiento</small>
+                                            <p class="mb-0" id="fechaNacimiento"><?php echo $_SESSION['fecha_naci'];?></p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                  
                 </div>
 
                 <!-- System Management -->
                 <div class="col-lg-8">
+                                        <?php if($_SESSION['tipo_usuario'] == 'Personal'): ?>
+                            
                     <!-- All Departments -->
                     <div class="content-box">
                         <div class="content-box-header d-flex justify-content-between align-items-center">
@@ -229,7 +265,7 @@
                             </div>
                         </div>
                     </div>
-
+                
                     <!-- System Statistics -->
                     <div class="row mt-4">
                         <div class="col-md-3">
@@ -269,68 +305,45 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Users Management -->
-            <div class="row mt-4 fade-in">
-                <div class="col-12">
+                    <?php endif; ?>
+                                        <?php if($_SESSION['tipo_usuario'] == 'Usuario'): ?>
+                            
+                    <!-- My Departments -->
                     <div class="content-box">
-                        <div class="content-box-header d-flex justify-content-between align-items-center">
-                            <h5>Gestión de Usuarios</h5>
-                            <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#agregarUsuarioModal">
-                                <i class="fas fa-user-plus me-1"></i> Nuevo Usuario
-                            </button>
+                        <div class="content-box-header">
+                            <h5>Mis Departamentos</h5>
                         </div>
                         <div class="content-box-body">
                             <div class="table-responsive">
                                 <table class="table table-hover">
                                     <thead>
                                         <tr>
-                                            <th>#</th>
-                                            <th>Usuario</th>
-                                            <th>Nombre Completo</th>
-                                            <th>Email</th>
-                                            <th>Departamentos</th>
+                                            <th>Departamento</th>
+                                            <th>Edificio</th>
                                             <th>Estado</th>
+                                            <th>Fecha Inicio</th>
                                             <th>Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td>1</td>
-                                            <td>juan.perez</td>
-                                            <td>Juan Pérez García</td>
-                                            <td>juan.perez@email.com</td>
-                                            <td>2</td>
+                                            <td>Departamento 302</td>
+                                            <td>Bilbao</td>
                                             <td><span class="status-badge badge-success">Activo</span></td>
+                                            <td>01/01/2023</td>
                                             <td>
-                                                <button class="btn btn-sm btn-outline-primary me-1">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                                <button class="btn btn-sm btn-outline-danger me-1">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                                <button class="btn btn-sm btn-outline-info">
+                                                <button class="btn btn-sm btn-outline-primary">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td>2</td>
-                                            <td>ana.garcia</td>
-                                            <td>Ana García López</td>
-                                            <td>ana.garcia@email.com</td>
-                                            <td>1</td>
+                                            <td>Departamento 105</td>
+                                            <td>Bilbao</td>
                                             <td><span class="status-badge badge-success">Activo</span></td>
+                                            <td>15/06/2023</td>
                                             <td>
-                                                <button class="btn btn-sm btn-outline-primary me-1">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                                <button class="btn btn-sm btn-outline-danger me-1">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                                <button class="btn btn-sm btn-outline-info">
+                                                <button class="btn btn-sm btn-outline-primary">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
                                             </td>
@@ -340,8 +353,42 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Recent Activity -->
+                    <div class="content-box mt-4">
+                        <div class="content-box-header">
+                            <h5>Mi Actividad Reciente</h5>
+                        </div>
+                        <div class="content-box-body">
+                            <div class="activity-timeline">
+                                <div class="timeline-item">
+                                    <div class="timeline-time">Hace 2 horas</div>
+                                    <div class="timeline-content">
+                                        <strong>Pago realizado</strong>
+                                        <p>Factura #FAC-7842 - Agua</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-time">Ayer</div>
+                                    <div class="timeline-content">
+                                        <strong>Incidente reportado</strong>
+                                        <p>Problema eléctrico en departamento 302</p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-time">Hace 3 días</div>
+                                    <div class="timeline-content">
+                                        <strong>Perfil actualizado</strong>
+                                        <p>Información de contacto modificada</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
                 </div>
             </div>
+
         </div>
     </main>
 
@@ -416,51 +463,7 @@
         </div>
     </div>
 
-    <!-- Modal Gestión del Sistema -->
-    <div class="modal fade" id="gestionSistemaModal" tabindex="-1" aria-labelledby="gestionSistemaModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="gestionSistemaModalLabel">Gestión del Sistema</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6 class="border-bottom pb-2">Configuración General</h6>
-                            <div class="mb-3">
-                                <label class="form-label">Nombre del Sistema</label>
-                                <input type="text" class="form-control" value="Sistema de Gestión de Edificios">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Moneda</label>
-                                <select class="form-select">
-                                    <option>Bolivianos (Bs.)</option>
-                                    <option>Dólares ($)</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <h6 class="border-bottom pb-2">Opciones de Seguridad</h6>
-                            <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" id="twoFactorAuth" checked>
-                                <label class="form-check-label" for="twoFactorAuth">Autenticación de dos factores</label>
-                            </div>
-                            <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" id="sessionTimeout" checked>
-                                <label class="form-check-label" for="sessionTimeout">Timeout de sesión automático</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" style="background: var(--azul); border: none;">Guardar Configuración</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
+   
     <style>
         .user-avatar-large {
             width: 120px;
