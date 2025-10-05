@@ -12,9 +12,9 @@ class LoginControlador {
         if ($_POST) {
             $username = $_POST['username'] ?? '';
             $password = $_POST['password'] ?? '';
-            $tipo_usuario = $_POST['tipo_usuario'] ?? 'usuario'; 
+            $tipo_usuario = $_POST['tipo_usuario'] ?? 'Usuario'; 
             if (!empty($username) && !empty($password) && !empty($tipo_usuario)) {
-                if ($tipo_usuario === 'personal') {
+                if ($tipo_usuario === 'Personal') {
                     $user = $this->LoginModelo->loginPersonal($username, $password);
                 } else {
                     $user = $this->LoginModelo->login($username, $password);
@@ -26,7 +26,7 @@ class LoginControlador {
                     $_SESSION['nombre'] = $user['nombre'] . ' ' . $user['appaterno']. ' ' . $user['apmaterno'];
                     $_SESSION['tipo_usuario'] = $tipo_usuario;
 
-                    if ($tipo_usuario === 'personal') {
+                    if ($tipo_usuario === 'Personal') {
                         $_SESSION['cargo'] = $user['cargo'];
                         $_SESSION['rol'] = $user['nombre_rol'];
                     }
