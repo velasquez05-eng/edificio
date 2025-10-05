@@ -561,11 +561,11 @@
         
         /* Tables */
         .table thead th {
-            background: linear-gradient(to right, var(--azul-oscuro), var(--azul));
-            color: white;
-            border: none;
+            color:var(--verde);
+            border-color: #0d3d47;
             font-weight: 600;
             padding: 15px;
+            border-radius: 4%;
         }
         
         .table tbody tr {
