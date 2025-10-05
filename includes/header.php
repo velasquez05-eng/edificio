@@ -39,7 +39,7 @@ if (!isset($_SESSION['id_usuario'])) {
         <button class="mobile-menu-toggle me-3">
             <i class="fas fa-bars"></i>
         </button>
-        <a href="#" class="navbar-brand">
+        <a href="../vista/DashboardVista.php" class="navbar-brand">
             <i class="fas fa-building"></i>
             <span class="d-none d-sm-inline">Clarity Systems</span>
         </a>
@@ -54,13 +54,13 @@ if (!isset($_SESSION['id_usuario'])) {
             <div class="user-avatar">FL</div>
             <div class="user-info">
                 <div class="user-name"><?php echo $_SESSION['nombre'];?></div>
-                <?php if($_SESSION['tipo_usuario'] == 'personal'): ?>
+                <?php if($_SESSION['tipo_usuario'] == 'Personal'): ?>
                 <div class="user-role"><?php echo $_SESSION['rol']; ?></div>
                 <?php endif; ?>
             </div>
             <i class="fas fa-chevron-down ms-2" style="font-size: 0.9rem;"></i>
             <div class="user-dropdown">
-                <a href="#" class="user-dropdown-item">
+                <a href="<?php echo '../vista/PerfilVista'.$_SESSION['tipo_usuario'].'.php'?>" class="user-dropdown-item">
                     <i class="fas fa-user"></i>
                     <span>Mi Perfil</span>
                 </a>
@@ -130,25 +130,25 @@ if (!isset($_SESSION['id_usuario'])) {
                         </a>
                         <ul class="nav nav-treeview show">
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
+                                <a href="../vista/GestionIncidentesVista.php" class="nav-link">
                                     <i class="fas fa-tools"></i>
                                     <p>Gestionar Incidentes</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
+                                <a href="../vista/VerFacturasVista.php" class="nav-link">
                                     <i class="fas fa-file-invoice-dollar"></i>
                                     <p>Ver Facturas</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
+                                <a href="../vista/GenerarReporteVista.php" class="nav-link">
                                     <i class="fas fa-chart-bar"></i>
                                     <p>Generar Reporte</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
+                                <a href="../vista/NotificacionesVista.php" class="nav-link">
                                     <i class="fas fa-bell"></i>
                                     <p>Notificaciones</p>
                                 </a>
@@ -168,7 +168,7 @@ if (!isset($_SESSION['id_usuario'])) {
                         </a>
                         <ul class="nav nav-treeview">
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
+                                <a href="../vista/EdificioVista.php" class="nav-link">
                                     <i class="fas fa-eye"></i>
                                     <p>Mostrar Edificio</p>
                                 </a>
