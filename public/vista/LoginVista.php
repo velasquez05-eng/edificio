@@ -53,7 +53,7 @@ if (isset($_SESSION['id_usuario'])) {
                         <input type="hidden" name="action" value="login">
                           <h3 class="text-center mb-4 fw-bold">
                         <div class="toggle" onclick="toggleSwitch()"></div>
-                        <input type="hidden" id="tipo_usuario" name="tipo_usuario" value="usuario">
+                        <input type="hidden" id="tipo_usuario" name="tipo_usuario" value="Usuario">
                     </h3>
 
                         <div class="mb-3">
@@ -106,7 +106,7 @@ if (isset($_SESSION['id_usuario'])) {
             const input = document.getElementById('tipo_usuario');
             
             toggle.classList.toggle('on');
-            input.value = toggle.classList.contains('on') ? 'personal' : 'usuario';
+            input.value = toggle.classList.contains('on') ? 'Personal' : 'Usuario';
         }
     </script>
 </body>
