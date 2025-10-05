@@ -1,49 +1,47 @@
-│   Consultas.sql
-│   estrucutura.txt
-│   index.php
-│
-├───config
-│       database.php
-│
-├───includes
-│   │   footer.php
-│   │   header.php
-│   │
-│   ├───css
-│   │       bootstrap.css
-│   │       bootstrap.min.css
-│   │       dashboard.css
-│   │
-│   └───js
-│           bootstrap.bundle.js
-│           bootstrap.bundle.min.js
-│           bootstrap.js
-│           bootstrap.min.js
-│           dashboard.js
-│           dashboard_backup.js
-│
-└───public
-    ├───controlador
-    │   │   LoginControlador.php
-    │   │   RecuperarControlador.php
-    │   │   RegistroControlador.php
-    │   │
-    │   ├───personalControlador
-    │   └───usuarioControlador
-    ├───modelo
-    │   │   LoginModelo.php
-    │   │   RecuperarModelo.php
-    │   │   RegistroModelo.php
-    │   │
-    │   ├───personalModelo
-    │   └───usuarioModelo
-    └───vista
-        │   LoginVista.php
-        │   RecuperarVista.php
-        │   RegistroVista.php
-        │
-        ├───personalVista
-        │       dashboard.php
-        │
-        └───usuarioVista
-                dashboard.php
+.
+├── config
+│   └── database.php
+├── Consultas.sql
+├── db_edificio (1).sql
+├── DB_FINAL_CARDINALIDAD.drawio
+├── DB_FINAL_CARDINALIDAD.drawio.png
+├── estrucutura.txt
+├── includes
+│   ├── css
+│   │   ├── bootstrap.css
+│   │   ├── bootstrap.min.css
+│   │   ├── dashboard.css
+│   │   └── login.css
+│   ├── footer.php
+│   ├── header.php
+│   └── js
+│       ├── bootstrap.bundle.js
+│       ├── bootstrap.bundle.min.js
+│       ├── bootstrap.js
+│       ├── bootstrap.min.js
+│       ├── dashboard_backup.js
+│       └── dashboard.js
+├── index.php
+└── public
+    ├── controlador
+    │   ├── LoginControlador.php
+    │   ├── RecuperarControlador.php
+    │   └── RegistroControlador.php
+    ├── modelo
+    │   ├── LoginModelo.php
+    │   ├── RecuperarModelo.php
+    │   └── RegistroModelo.php
+    └── vista
+        ├── DashboardVista.php
+        ├── EdificioVista.php
+        ├── GenerarReporteVista.php
+        ├── GestionIncidentesVista.php
+        ├── LoginVista.php
+        ├── NotificacionesVista.php
+        ├── PerfilVistaPersonal.php
+        ├── PerfilVistaUsuario.php
+        ├── RecuperarVista.php
+        ├── RegistroVista.php
+        └── VerFacturasVista.php
+
+9 directories, 36 files
