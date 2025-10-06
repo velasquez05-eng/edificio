@@ -186,13 +186,13 @@ if (!isset($_SESSION['id_usuario'])) {
                         </a>
                         <ul class="nav nav-treeview">
                             <li class="nav-item">
-                                <a href="../vista/DepartamentoVista.php" class="nav-link">
+                                <a href="../controlador/DepartamentoControlador.php?accion=listar" class="nav-link">
                                     <i class="fas fa-list"></i>
                                     <p>Listar Departamentos</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
+                                <a href="../vista/RegistrarDepartamentoVista.php" class="nav-link">
                                     <i class="fas fa-plus-circle"></i>
                                     <p>Registrar Departamento</p>
                                 </a>
