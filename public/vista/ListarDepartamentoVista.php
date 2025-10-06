@@ -130,7 +130,7 @@
                                             <i class="fas fa-hashtag text-verde me-2"></i># Departamento
                                         </label>
                                         <input type="text" class="form-control" id="numero" name="numero" required 
-                                               placeholder="Ej: 101, 202..." maxlength="10">
+                                                maxlength="10">
                                         <div class="form-text">Número identificador único</div>
                                     </div>
                                 </div>
@@ -140,7 +140,7 @@
                                             <i class="fas fa-building text-azul me-2"></i>Piso
                                         </label>
                                         <input type="number" class="form-control" id="piso" name="piso" required 
-                                               min="0" max="50" placeholder="Ej: 1, 2, 3...">
+                                               min="0" max="50" >
                                         <div class="form-text">Nivel donde se encuentra (0-50)</div>
                                     </div>
                                 </div>

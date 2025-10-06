@@ -33,15 +33,9 @@
                                     <div class="col-md-6">
                                         <div class="form-group mb-3">
                                             <label for="numero" class="form-label">
-                                                <i class="fas fa-hashtag text-verde me-2"></i>Número de Departamento *
+                                                <i class="fas fa-building text-verde me-2"></i>Departamento *
                                             </label>
-                                            <input type="text" 
-                                                   class="form-control" 
-                                                   id="numero" 
-                                                   name="numero" 
-                                                   required 
-                                                   maxlength="10"
-                                                   placeholder="Ej: 101, 202, 301">
+                                            <input type="text"    class="form-control"    id="numero"    name="numero"    required    maxlength="10"   placeholder="DEP - 000">
                                             <div class="form-text">Número único identificador del departamento</div>
                                         </div>
                                     </div>
@@ -58,7 +52,7 @@
                                                    required 
                                                    min="0" 
                                                    max="50"
-                                                   placeholder="Ej: 1, 2, 3">
+                                                   placeholder="Ingrese el numero de piso">
                                             <div class="form-text">Nivel donde se encuentra (0-50)</div>
                                         </div>
                                     </div>
@@ -90,7 +84,7 @@
                                     <li>Todos los campos marcados con (*) son obligatorios</li>
                                     <li>El número de departamento debe ser único</li>
                                     <li>Verifique que el departamento no exista previamente</li>
-                                    <li>El piso 0 corresponde a la planta baja</li>
+                                    <li>El piso 0 corresponde a la planta baja area comun</li>
                                 </ul>
                             </div>
                             
