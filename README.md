@@ -28,18 +28,20 @@ Un sistema web moderno y responsive para la gestión integral de edificios intel
 ## 📦 Estructura del Proyecto
 
 ```
-edificio/
-├── index.html              # Página principal / Dashboard
-├── apartamentos.html       # Gestión de apartamentos
-├── reservas.html          # Sistema de reservas
-├── visitantes.html        # Control de visitantes
-├── pagos.html            # Gestión de pagos
-├── css/
-│   └── styles.css        # Estilos principales
-├── js/
-│   └── script.js         # JavaScript principal
-└── assets/
-    └── images/           # Recursos gráficos
+
+├── config/
+├── includes/
+│   ├── css/
+│   ├── js/
+│   ├── img/
+│   ├── header.php
+│   └── footer.php
+├── public/
+│   ├── controlador/
+│   ├── modelo/
+│   └── vista/
+├── index.php
+└── Consultas.sql
 ```
 
 ## 🛠️ Instalación y Uso
