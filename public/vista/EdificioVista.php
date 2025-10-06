@@ -1,203 +1,151 @@
 <?php include("../../includes/header.php");?>
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <div class="container-fluid">
-            <!-- Page Header -->
-            <div class="page-header fade-in">
-                <div class="page-title">
-                    <h1>Lista de Edificios</h1>
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="#"><i class="fas fa-home"></i> Inicio</a></li>
-                            <li class="breadcrumb-item active" aria-current="page">Edificios</li>
-                        </ol>
-                    </nav>
-                </div>
-                <div class="page-actions">
-                    <span class="text-muted">Vista General</span>
-                </div>
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Jumbotron Principal -->
+    <div class="jumbotron jumbotron-custom text-center">
+        <div class="container">
+            <div class="logo-container">
+                <!-- Logo del edificio -->
+                <img src="../../includes/img/logo.png" alt="Logo Torres del Parque" class="logo">
             </div>
-
-            <!-- Info Card -->
-            <div class="row fade-in">
-                <div class="col-12">
-                    <div class="info-card bg-gradient-verde">
-                        <div>
-                            <h3>5</h3>
-                            <p>Edificios Registrados en el Sistema</p>
-                        </div>
-                        <div class="card-progress">
-                            <div class="card-progress-bar" style="width: 100%"></div>
-                        </div>
-                        <i class="fas fa-building icon"></i>
+            <h1 class="building-name"><?php echo htmlspecialchars($edificio['nombre'] ?? 'Torres del Parque'); ?></h1>
+            <p class="location">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-geo-alt-fill location-icon" viewBox="0 0 16 16">
+                    <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
+                </svg>
+                <?php echo htmlspecialchars($edificio['direccion'] ?? 'Avenida Principal 123, Ciudad Central'); ?>
+            </p>
+            <a href="#" class="btn btn-custom">Conoce más</a>
+        </div>
+    </div>
+    
+    <!-- Sección de características -->
+    <section id="features" class="features-section">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-md-4 mb-4">
+                    <div class="feature-icon">
+                        <i class="fas fa-building"></i>
                     </div>
+                    <h3 class="feature-title">Diseño Moderno</h3>
+                    <p>Arquitectura contemporánea con acabados de primera calidad y espacios optimizados.</p>
                 </div>
-            </div>
-
-            <!-- Tabla de Edificios -->
-            <div class="row fade-in">
-                <div class="col-12">
-                    <div class="content-box">
-                        <div class="content-box-header">
-                            <h5>Información de Edificios</h5>
-                            <div class="box-actions">
-                                <input type="text" class="form-control form-control-sm" placeholder="Buscar edificio..." id="buscarEdificio">
-                            </div>
-                        </div>
-                        <div class="content-box-body">
-                            <div class="table-responsive">
-                                <table class="table table-hover" id="tablaEdificios">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Nombre del Edificio</th>
-                                            <th>Dirección</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td><strong>1</strong></td>
-                                            <td>
-                                                <i class="fas fa-building text-primary me-2"></i>
-                                                Edificio Principal
-                                            </td>
-                                            <td>
-                                                <i class="fas fa-map-marker-alt text-danger me-2"></i>
-                                                Av. Principal #123, Ciudad
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>2</strong></td>
-                                            <td>
-                                                <i class="fas fa-building text-primary me-2"></i>
-                                                Torre Norte
-                                            </td>
-                                            <td>
-                                                <i class="fas fa-map-marker-alt text-danger me-2"></i>
-                                                Calle Secundaria #456, Ciudad
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>3</strong></td>
-                                            <td>
-                                                <i class="fas fa-building text-primary me-2"></i>
-                                                Complejo Residencial Sur
-                                            </td>
-                                            <td>
-                                                <i class="fas fa-map-marker-alt text-danger me-2"></i>
-                                                Av. Los Álamos #789, Ciudad
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>4</strong></td>
-                                            <td>
-                                                <i class="fas fa-building text-primary me-2"></i>
-                                                Edificio Corporativo
-                                            </td>
-                                            <td>
-                                                <i class="fas fa-map-marker-alt text-danger me-2"></i>
-                                                Zona Comercial #321, Ciudad
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>5</strong></td>
-                                            <td>
-                                                <i class="fas fa-building text-primary me-2"></i>
-                                                Residencial Las Flores
-                                            </td>
-                                            <td>
-                                                <i class="fas fa-map-marker-alt text-danger me-2"></i>
-                                                Urbanización Jardín #654, Ciudad
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                <div class="col-md-4 mb-4">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
                     </div>
+                    <h3 class="feature-title">Seguridad 24/7</h3>
+                    <p>Sistema de vigilancia avanzado con control de acceso y personal de seguridad las 24 horas.</p>
                 </div>
-            </div>
-
-            <!-- Estadísticas Adicionales -->
-            <div class="row fade-in">
-                <div class="col-md-4">
-                    <div class="content-box">
-                        <div class="content-box-header">
-                            <h6>Resumen</h6>
-                        </div>
-                        <div class="content-box-body">
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Total de Edificios:</span>
-                                <strong>5</strong>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Registrados este mes:</span>
-                                <strong>1</strong>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                                <span>Activos:</span>
-                                <strong>5</strong>
-                            </div>
-                        </div>
+                <div class="col-md-4 mb-4">
+                    <div class="feature-icon">
+                        <i class="fas fa-users"></i>
                     </div>
-                </div>
-                <div class="col-md-8">
-                    <div class="content-box">
-                        <div class="content-box-header">
-                            <h6>Distribución por Zonas</h6>
-                        </div>
-                        <div class="content-box-body">
-                            <div class="chart-container">
-                                <canvas id="zonasChart" height="100"></canvas>
-                            </div>
-                        </div>
-                    </div>
+                    <h3 class="feature-title">Áreas Comunes</h3>
+                    <p>Amplias zonas ajardinadas y áreas de recreación para disfrutar del entorno natural.</p>
                 </div>
             </div>
         </div>
-    </main>
+    </section>
+</main>
 
-    <!-- Script para búsqueda -->
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Buscar edificios
-        document.getElementById('buscarEdificio').addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            const rows = document.querySelectorAll('#tablaEdificios tbody tr');
-            
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(searchTerm) ? '' : 'none';
-            });
-        });
-
-        // Gráfico simple de distribución
-        const ctx = document.getElementById('zonasChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Zona Norte', 'Zona Sur', 'Zona Centro', 'Zona Este'],
-                datasets: [{
-                    data: [2, 1, 1, 1],
-                    backgroundColor: [
-                        '#4e73df',
-                        '#1cc88a',
-                        '#36b9cc',
-                        '#f6c23e'
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    }
-                }
-            }
-        });
-    });
-    </script>
+<style>
+    .jumbotron-custom {
+        background: linear-gradient(rgba(13, 61, 71, 0.8), rgba(42, 117, 149, 0.8)), 
+                    url('../../includes/img/edificio.jpeg');
+        background-size: cover;
+        background-position: center;
+        color: white;
+        padding: 6rem 2rem;
+        border-radius: 0;
+        margin-bottom: 0;
+    }
+    
+    .logo-container {
+        background-color: rgba(175, 239, 206, 0.9);
+        border-radius: 50%;
+        width: 150px;
+        height: 150px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 2rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .logo {
+        max-width: 200px;
+        max-height: 200px;
+        border-radius: 50%;
+    }
+    
+    .building-name {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        font-size: 3.5rem;
+        margin-bottom: 0rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    
+    .location {
+        font-size: 1.5rem;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .location-icon {
+        margin-right: 10px;
+        color: var(--celeste);
+    }
+    
+    .btn-custom {
+        background: linear-gradient(135deg, var(--celeste) 0%, var(--verde) 100%);
+        border: none;
+        padding: 12px 30px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 30px;
+        transition: all 0.3s ease;
+        color: var(--azul-oscuro);
+    }
+    
+    .btn-custom:hover {
+        background: linear-gradient(135deg, var(--verde) 0%, var(--azul) 100%);
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        color: white;
+    }
+    
+    .features-section {
+        padding: 4rem 0;
+        background-color: white;
+    }
+    
+    .feature-icon {
+        font-size: 2.5rem;
+        color: var(--azul);
+        margin-bottom: 1rem;
+    }
+    
+    .feature-title {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--azul-oscuro);
+    }
+    
+    @media (max-width: 768px) {
+        .building-name {
+            font-size: 2.5rem;
+        }
+        
+        .location {
+            font-size: 1.2rem;
+        }
+    }
+</style>
 
 <?php include("../../includes/footer.php");?>

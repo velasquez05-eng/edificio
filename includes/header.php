@@ -168,7 +168,7 @@ if (!isset($_SESSION['id_usuario'])) {
                         </a>
                         <ul class="nav nav-treeview">
                             <li class="nav-item">
-                                <a href="../vista/EdificioVista.php" class="nav-link">
+                                <a href="../controlador/EdificioControlador.php?action=mostrar&id_edificio=1" class="nav-link">
                                     <i class="fas fa-eye"></i>
                                     <p>Mostrar Edificio</p>
                                 </a>

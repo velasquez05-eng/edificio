@@ -14,6 +14,9 @@
 │   │   └── login.css
 │   ├── footer.php
 │   ├── header.php
+│   ├── img
+│   │   ├── edificio.jpeg
+│   │   └── logo.png
 │   └── js
 │       ├── bootstrap.bundle.js
 │       ├── bootstrap.bundle.min.js
@@ -24,10 +27,12 @@
 ├── index.php
 └── public
     ├── controlador
+    │   ├── EdificioControlador.php
     │   ├── LoginControlador.php
     │   ├── RecuperarControlador.php
     │   └── RegistroControlador.php
     ├── modelo
+    │   ├── EdificioModelo.php
     │   ├── LoginModelo.php
     │   ├── RecuperarModelo.php
     │   └── RegistroModelo.php
@@ -38,10 +43,9 @@
         ├── GestionIncidentesVista.php
         ├── LoginVista.php
         ├── NotificacionesVista.php
-        ├── PerfilVistaPersonal.php
-        ├── PerfilVistaUsuario.php
+        ├── PerfilVista.php
         ├── RecuperarVista.php
         ├── RegistroVista.php
         └── VerFacturasVista.php
 
-9 directories, 36 files
+10 directories, 39 files
