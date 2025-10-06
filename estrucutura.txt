@@ -27,11 +27,13 @@
 ├── index.php
 └── public
     ├── controlador
+    │   ├── DepartamentoControlador.php
     │   ├── EdificioControlador.php
     │   ├── LoginControlador.php
     │   ├── RecuperarControlador.php
     │   └── RegistroControlador.php
     ├── modelo
+    │   ├── DepartamentoModelo.php
     │   ├── EdificioModelo.php
     │   ├── LoginModelo.php
     │   ├── RecuperarModelo.php
@@ -41,11 +43,13 @@
         ├── EdificioVista.php
         ├── GenerarReporteVista.php
         ├── GestionIncidentesVista.php
+        ├── ListarDepartamentoVista.php
         ├── LoginVista.php
         ├── NotificacionesVista.php
         ├── PerfilVista.php
         ├── RecuperarVista.php
+        ├── RegistrarDepartamentoVista.php
         ├── RegistroVista.php
         └── VerFacturasVista.php
 
-10 directories, 39 files
+10 directories, 43 files
