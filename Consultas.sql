@@ -62,6 +62,25 @@ CREATE TABLE departamento (
   FOREIGN KEY (id_edificio) REFERENCES edificio(id_edificio)
 );
 
+CREATE TABLE area_comun (
+  id_area_comun int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  nombre varchar(100) NOT NULL,
+  descripcion text DEFAULT NULL,
+  capacidad int(11) DEFAULT NULL,
+  id_edificio int(11) NOT NULL,
+  FOREIGN KEY (id_edificio) REFERENCES edificio(id_edificio)
+);
+
+CREATE TABLE reserva (
+  id_usuario int(11) NOT NULL,
+  id_area_comun int(11) NOT NULL,
+  fecha_inicio datetime NOT NULL,
+  fecha_fin datetime NOT NULL,
+  FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario),
+  FOREIGN KEY (id_area_comun) REFERENCES area_comun(id_area_comun)
+);
+
+
 CREATE TABLE pertenece_dep (
   id_usuario INT(11) NOT NULL,
   id_departamento INT(11) NOT NULL,
@@ -205,6 +224,8 @@ CREATE TABLE historial_incidentes (
   FOREIGN KEY (id_incidente) REFERENCES incidente(id_incidente),
   FOREIGN KEY (id_personal) REFERENCES personal(id_personal)
 );
+
+
 
 -- ========================================================
 -- CREAR ADMINISTRADOR POR DEFECTO (CORREGIDO)
