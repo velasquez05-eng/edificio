@@ -17,6 +17,18 @@ class RolModelo
         }
         return [];
     }
+    public function obtenerRol($id_rol)
+    {
+        $query = "SELECT * FROM ".$this->table_name." WHERE id_rol = :id_rol";
+        $stmt = $this->db->prepare($query);
+        $stmt->bindParam(":id_rol", $id_rol);
+        $stmt->execute();
+        if($stmt->rowCount() > 0){
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        }else{
+            return [];
+        }
+    }
 
     public function registrarRol($rol, $descripcion){
         // Validar que los datos no estén vacíos

@@ -50,8 +50,12 @@
                                 <div class="text-center py-4">
                                     <i class="fas fa-user-tag fa-3x text-muted mb-3"></i>
                                     <p class="text-muted">No hay roles registrados</p>
+                                    <a href="../vista/RegistrarRolVista.php" class="btn btn-success">
+                                        <i class="fas fa-user-plus me-2"></i>Registrar Primer Rol
+                                    </a>
                                 </div>
                             <?php else: ?>
+
                                 <div class="table-responsive">
                                     <table class="table table-hover table-striped">
                                         <thead>

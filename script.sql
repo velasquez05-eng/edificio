@@ -1,3 +1,5 @@
+
+
 CREATE TABLE persona (
                          id_persona INT AUTO_INCREMENT PRIMARY KEY,
                          nombre VARBINARY(255) NOT NULL,

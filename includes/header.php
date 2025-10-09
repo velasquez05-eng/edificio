@@ -172,7 +172,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
+                                <a href="../controlador/PersonaControlador.php?action=listarResidente" class="nav-link">
                                     <i class="fas fa-user-plus"></i>
                                     <p>Listar Residente</p>
                                 </a>
