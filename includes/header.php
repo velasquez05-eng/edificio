@@ -1,12 +1,11 @@
 
 <?php
-session_start();
+// session_start();
 
-// Verificar si está logueado
-if (!isset($_SESSION['id_usuario'])) {
-    header("Location: ../../public/vista/LoginVista.php");
-    exit();
-}
+//if (!isset($_SESSION['id_usuario'])) {
+  //  header("Location: ../../public/vista/LoginVista.php");
+   // exit();
+//}
 ?>
 
 <!DOCTYPE html>
@@ -51,16 +50,16 @@ if (!isset($_SESSION['id_usuario'])) {
         </button>
         
         <div class="user-profile">
-            <div class="user-avatar"><?php echo $_SESSION['avatar']; ?></div>
+            <div class="user-avatar">AD</div>
             <div class="user-info">
-                <div class="user-name"><?php echo $_SESSION['nombre']." ".$_SESSION['appaterno']." ".$_SESSION['apmaterno'];?></div>
-                <?php if($_SESSION['tipo_usuario'] == 'Personal'): ?>
-                <div class="user-role"><?php echo $_SESSION['rol']; ?></div>
-                <?php endif; ?>
+                <div class="user-name">ADMINISTRADOR</div>
+                <?php //if($_SESSION['tipo_usuario'] == 'Personal'): ?>
+                <div class="user-role"><?php echo "rol"//echo $_SESSION['rol']; ?></div>
+                <?php // endif; ?>
             </div>
             <i class="fas fa-chevron-down ms-2" style="font-size: 0.9rem;"></i>
             <div class="user-dropdown">
-                <a href="../vista/PerfilVista.php" class="user-dropdown-item">
+                <a href="#" class="user-dropdown-item">
                     <i class="fas fa-user"></i>
                     <span>Mi Perfil</span>
                 </a>
@@ -130,25 +129,25 @@ if (!isset($_SESSION['id_usuario'])) {
                         </a>
                         <ul class="nav nav-treeview show">
                             <li class="nav-item">
-                                <a href="../vista/GestionIncidentesVista.php" class="nav-link">
+                                <a href="#" class="nav-link">
                                     <i class="fas fa-tools"></i>
                                     <p>Gestionar Incidentes</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="../vista/VerFacturasVista.php" class="nav-link">
+                                <a href="#" class="nav-link">
                                     <i class="fas fa-file-invoice-dollar"></i>
                                     <p>Ver Facturas</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="../vista/GenerarReporteVista.php" class="nav-link">
+                                <a href="#" class="nav-link">
                                     <i class="fas fa-chart-bar"></i>
                                     <p>Generar Reporte</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="../vista/NotificacionesVista.php" class="nav-link">
+                                <a href="#" class="nav-link">
                                     <i class="fas fa-bell"></i>
                                     <p>Notificaciones</p>
                                 </a>
@@ -157,7 +156,47 @@ if (!isset($_SESSION['id_usuario'])) {
                     </li>
                     
                     <li class="nav-header">OPCIONES</li>
-                    
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-user-tie"></i>
+                            <p>
+                                Persona
+                                <i class="nav-arrow fas fa-chevron-right float-end"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="../controlador/PersonaControlador.php?action=listarPersonal" class="nav-link">
+                                    <i class="fas fa-list"></i>
+                                    <p>Listar Personal</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" class="nav-link">
+                                    <i class="fas fa-user-plus"></i>
+                                    <p>Listar Residente</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../vista/RegistrarPersonaVista.php" class="nav-link">
+                                    <i class="fas fa-user-tag"></i>
+                                    <p>Registrar Persona</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../controlador/RolControlador.php?action=listar" class="nav-link">
+                                    <i class="fas fa-plus-circle"></i>
+                                    <p>Listar Roles</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../vista/RegistrarRolVista.php" class="nav-link">
+                                    <i class="fas fa-plus-circle"></i>
+                                    <p>Crear Rol</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
                     <li class="nav-item">
                         <a href="#" class="nav-link">
                             <i class="fas fa-building"></i>
@@ -168,7 +207,7 @@ if (!isset($_SESSION['id_usuario'])) {
                         </a>
                         <ul class="nav nav-treeview">
                             <li class="nav-item">
-                                <a href="../controlador/EdificioControlador.php?action=mostrar&id_edificio=1" class="nav-link">
+                                <a href="#" class="nav-link">
                                     <i class="fas fa-eye"></i>
                                     <p>Mostrar Edificio</p>
                                 </a>
@@ -186,13 +225,13 @@ if (!isset($_SESSION['id_usuario'])) {
                         </a>
                         <ul class="nav nav-treeview">
                             <li class="nav-item">
-                                <a href="../controlador/DepartamentoControlador.php?accion=listar" class="nav-link">
+                                <a href="#" class="nav-link">
                                     <i class="fas fa-list"></i>
                                     <p>Listar Departamentos</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="../vista/RegistrarDepartamentoVista.php" class="nav-link">
+                                <a href="#" class="nav-link">
                                     <i class="fas fa-plus-circle"></i>
                                     <p>Registrar Departamento</p>
                                 </a>
@@ -200,41 +239,7 @@ if (!isset($_SESSION['id_usuario'])) {
                         </ul>
                     </li>
                     
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <i class="fas fa-user-tie"></i>
-                            <p>
-                                Personal
-                                <i class="nav-arrow fas fa-chevron-right float-end"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            <li class="nav-item">
-                                <a href="#" class="nav-link">
-                                    <i class="fas fa-list"></i>
-                                    <p>Listar Personal</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="#" class="nav-link">
-                                    <i class="fas fa-user-plus"></i>
-                                    <p>Registrar Personal</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="#" class="nav-link">
-                                    <i class="fas fa-user-tag"></i>
-                                    <p>Listar Roles</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="#" class="nav-link">
-                                    <i class="fas fa-plus-circle"></i>
-                                    <p>Crear Rol</p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
+
                     
                     <li class="nav-item">
                         <a href="#" class="nav-link">
@@ -395,4 +400,6 @@ if (!isset($_SESSION['id_usuario'])) {
             </nav>
         </div>
     </aside>
-
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container-fluid">

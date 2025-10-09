@@ -74,7 +74,6 @@ if (isset($_SESSION['id_usuario'])) {
                         <button type="submit" class="btn btn-primary w-100 btn-login">Iniciar Sesión</button>
                         
                         <div class="login-links">
-                            <a href="RegistroVista.php" class="register-link">Registrarse</a>
                             <a href="RecuperarVista.php" class="forgot-password-link">¿Olvidaste tu contraseña?</a>
                         </div>
                     </form>

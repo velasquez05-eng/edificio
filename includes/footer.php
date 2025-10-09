@@ -1,4 +1,6 @@
 
+            </div>
+        </main>
 <!-- Footer Minimalista -->
 <footer class="footer mt-auto py-2 bg-dark border-top">
     <div class="container-fluid text-center">

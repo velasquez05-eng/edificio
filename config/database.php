@@ -1,25 +1,27 @@
 <?php
-class Database {
+
+class Database
+{
     private $host = 'localhost';
-    private $db_name = 'db_edificio';
+    private $db_name = 'db_edificio_v1';
     private $username = 'root';
     private $password = '';
     public $conn;
 
-    public function getConnection() {
+    public function getConnection()
+    {
         $this->conn = null;
         try {
             $this->conn = new PDO(
-                "mysql:host=" . $this->host . ";dbname=" . $this->db_name, 
-                $this->username, 
+                "mysql:host=" . $this->host . ";dbname=" . $this->db_name,
+                $this->username,
                 $this->password
             );
             $this->conn->exec("set names utf8");
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        } catch(PDOException $exception) {
+        } catch (PDOException $exception) {
             echo "Error de conexión: " . $exception->getMessage();
         }
         return $this->conn;
     }
 }
-?>

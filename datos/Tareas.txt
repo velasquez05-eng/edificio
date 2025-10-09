@@ -1,0 +1,3 @@
+crud de persona
+,login_historial
+,carea comun y incidentes
