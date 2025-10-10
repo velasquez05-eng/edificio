@@ -7,6 +7,7 @@ class LoginModelo {
         $this->conn = $db;
     }
 
+    //se debe colocar el insert en el histo login si logro iniciar sesion
     public function login($username, $password) {
         $query = "SELECT *
                   FROM " . $this->table_name . " u
