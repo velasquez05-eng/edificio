@@ -5,23 +5,6 @@ class RegistroModelo {
     public function __construct($conn) {
         $this->conn = $conn;
     }
-
-    // Verificar si el CI ya existe
-    public function verificarCIExistente($ci) {
-        $sql = "SELECT id_persona FROM persona WHERE ci = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute([$ci]);
-        return $stmt->rowCount() > 0;
-    }
-
-    // Verificar si el email ya existe
-    public function verificarEmailExistente($email) {
-        $sql = "SELECT id_persona FROM persona WHERE email = ?";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute([$email]);
-        return $stmt->rowCount() > 0;
-    }
-
     // Verificar si el usuario ya existe
     public function verificarUsuarioExistente($usuario) {
         $sql = "SELECT id_usuario FROM usuario WHERE username = ?";
