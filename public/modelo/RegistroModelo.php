@@ -12,11 +12,7 @@ class RegistroModelo {
         $stmt->execute([$usuario]);
         return $stmt->rowCount() > 0;
     }
-
-    // Validar formato de email (Gmail o Hotmail)
-    public function validarFormatoEmail($email) {
-        return preg_match('/@(gmail|hotmail)\.com$/', $email);
-    }
+    
 
     // Validar fortaleza de contraseña
     public function validarFortalezaPassword($password) {
