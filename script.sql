@@ -37,7 +37,6 @@ CREATE TABLE historial_login (
                              id_historial_login INT AUTO_INCREMENT PRIMARY KEY,
                              id_login INT NOT NULL,
                              fecha DATETIME NOT NULL,
-                             ip VARCHAR(50),
                              estado ENUM('exitoso', 'fallido') NOT NULL,
                              FOREIGN KEY (id_login) REFERENCES login(id_login)
 );
