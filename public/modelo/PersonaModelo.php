@@ -125,7 +125,6 @@ class PersonaModelo
                 $fila['apellido_materno'] = $this->decrypt($fila['apellido_materno']);
                 $fila['ci'] = $this->decrypt($fila['ci']);
             }
-
             return $resultados;
         }
         return [];
@@ -133,7 +132,7 @@ class PersonaModelo
 
     public function listarResidente(){
         $query = "SELECT * FROM " . $this->table_name . " p, rol r 
-                 WHERE p.id_rol = r.id_rol AND r.rol = 'Residente'";
+                 WHERE p.id_rol = r.id_rol AND r.rol = 'Residente' and estado = 'activo'";
         $stmt = $this->db->prepare($query);
         $stmt->execute();
 

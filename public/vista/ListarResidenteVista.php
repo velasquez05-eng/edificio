@@ -60,10 +60,11 @@
                                     <th># ID</th>
                                     <th>Nombre Completo</th>
                                     <th>CI</th>
+                                    <th>Username</th>
                                     <th>Teléfono</th>
                                     <th>Email</th>
                                     <th>Rol</th>
-                                    <th>Estado</th>
+                                    <th>Verificado</th>
                                     <th>Opciones</th>
                                 </tr>
                                 </thead>
@@ -77,6 +78,10 @@
                                         </td>
                                         <td>
                                             <?php echo htmlspecialchars($residente['ci']); ?>
+                                        </td>
+                                        <td>
+                                            <i class="fas fa-user-circle text-info me-2"></i>
+                                            <?php echo htmlspecialchars($residente['username']); ?>
                                         </td>
                                         <td>
                                             <i class="fas fa-phone text-success me-2"></i>
@@ -93,9 +98,15 @@
                                         </span>
                                         </td>
                                         <td>
-                                        <span class="badge bg-success">
-                                            <i class="fas fa-check me-1"></i>Activo
-                                        </span>
+                                            <?php if ($residente['verificado']): ?>
+                                                <span class="badge bg-success">
+                                                <i class="fas fa-check me-1"></i>Verificado
+                                            </span>
+                                            <?php else: ?>
+                                                <span class="badge bg-warning">
+                                                <i class="fas fa-clock me-1"></i>Pendiente
+                                            </span>
+                                            <?php endif; ?>
                                         </td>
                                         <td>
                                             <div class="btn-group" role="group">
@@ -109,15 +120,47 @@
                                                         data-ci="<?php echo htmlspecialchars($residente['ci']); ?>"
                                                         data-telefono="<?php echo htmlspecialchars($residente['telefono']); ?>"
                                                         data-email="<?php echo htmlspecialchars($residente['email']); ?>"
+                                                        data-username="<?php echo htmlspecialchars($residente['username']); ?>"
                                                         data-id_rol="<?php echo htmlspecialchars($residente['id_rol']); ?>"
-                                                        title="Editar residente">
+                                                        title="Editar datos personales">
                                                     <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-info btn-sm"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#editarPasswordModal"
+                                                        data-id="<?php echo htmlspecialchars($residente['id_persona']); ?>"
+                                                        data-nombre="<?php echo htmlspecialchars($residente['nombre'] . ' ' . $residente['apellido_paterno']); ?>"
+                                                        data-email="<?php echo htmlspecialchars($residente['email']); ?>"
+                                                        data-id-rol="<?php echo htmlspecialchars($residente['id_rol']); ?>"
+                                                        data-ci="<?php echo htmlspecialchars($residente['ci']); ?>"
+                                                        title="Cambiar contraseña">
+                                                    <i class="fas fa-key"></i>
+                                                </button>
+                                                <?php if (!$residente['verificado']): ?>
+                                                    <button class="btn btn-secondary btn-sm"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#ampliarVerificacionModal"
+                                                            data-id="<?php echo htmlspecialchars($residente['id_persona']); ?>"
+                                                            data-nombre="<?php echo htmlspecialchars($residente['nombre'] . ' ' . $residente['apellido_paterno']); ?>"
+                                                            data-id-rol="<?php echo htmlspecialchars($residente['id_rol']); ?>"
+                                                            title="Ampliar tiempo de verificación">
+                                                        <i class="fas fa-clock"></i>
+                                                    </button>
+                                                <?php endif; ?>
+                                                <button class="btn btn-primary btn-sm"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#departamentosModal"
+                                                        data-id="<?php echo htmlspecialchars($residente['id_persona']); ?>"
+                                                        data-nombre="<?php echo htmlspecialchars($residente['nombre'] . ' ' . $residente['apellido_paterno']); ?>"
+                                                        title="Ver departamentos">
+                                                    <i class="fas fa-building"></i>
                                                 </button>
                                                 <button class="btn btn-danger btn-sm"
                                                         data-bs-toggle="modal"
                                                         data-bs-target="#eliminarResidenteModal"
                                                         data-id="<?php echo htmlspecialchars($residente['id_persona']); ?>"
                                                         data-nombre="<?php echo htmlspecialchars($residente['nombre'] . ' ' . $residente['apellido_paterno']); ?>"
+                                                        data-id-rol="<?php echo htmlspecialchars($residente['id_rol']); ?>"
                                                         title="Eliminar residente">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
@@ -140,12 +183,12 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="editarResidenteModalLabel">
-                        <i class="fas fa-edit me-2"></i>Editar Residente
+                        <i class="fas fa-edit me-2"></i>Editar Datos del Residente
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form method="POST" action="PersonaControlador.php?action=editar" id="formEditarResidente">
-                    <input type="hidden" name="action" value="editar">
+                <form method="POST" action="PersonaControlador.php?action=editarPersona" id="formEditarResidente">
+                    <input type="hidden" name="action" value="editarPersona">
                     <input type="hidden" id="id_persona" name="id_persona">
 
                     <div class="modal-body">
@@ -173,8 +216,8 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
-                                        <label for="ci" class="form-label">CI</label>
-                                        <input type="text" class="form-control" id="ci" name="ci" required>
+                                        <label for="email" class="form-label">Email</label>
+                                        <input type="email" class="form-control" id="email" name="email" required>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -187,15 +230,39 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
-                                        <label for="email" class="form-label">Email</label>
-                                        <input type="email" class="form-control" id="email" name="email" required>
+                                        <label for="ci" class="form-label">CI</label>
+                                        <input type="text" class="form-control" id="ci" name="ci" readonly>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
+                                        <label for="username" class="form-label">Username</label>
+                                        <input type="text" class="form-control" id="username" name="username" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group mb-3">
                                         <label for="id_rol" class="form-label">Rol</label>
                                         <select class="form-control" id="id_rol" name="id_rol" required>
-                                            <!-- Las opciones se cargarán dinámicamente -->
+                                            <option value="">Seleccione un rol</option>
+                                            <?php
+                                            // Incluir y cargar los roles disponibles
+                                            require_once '../../config/database.php';
+                                            require_once '../modelo/RolModelo.php';
+                                            try {
+                                                $database = new Database();
+                                                $db = $database->getConnection();
+                                                $rolModelo = new RolModelo($db);
+                                                $roles = $rolModelo->listarRoles();
+                                                foreach ($roles as $rol) {
+                                                    echo '<option value="' . htmlspecialchars($rol['id_rol']) . '">'. htmlspecialchars($rol['rol']). '</option>';
+                                                }
+                                            } catch (Exception $e) {
+                                                echo '<option value="">Error al cargar roles</option>';
+                                            }
+                                            ?>
                                         </select>
                                     </div>
                                 </div>
@@ -215,12 +282,166 @@
         </div>
     </div>
 
-    <!-- Script para cargar datos en el modal -->
+    <!-- Modal Cambiar Contraseña -->
+    <div class="modal fade" id="editarPasswordModal" tabindex="-1" aria-labelledby="editarPasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editarPasswordModalLabel">
+                        <i class="fas fa-key me-2"></i>Cambiar Contraseña
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="PersonaControlador.php?action=restablecerPassword" id="formEditarPassword">
+                    <input type="hidden" name="action" value="restablecerPassword">
+                    <input type="hidden" id="id_persona_password" name="id_persona">
+                    <input type="hidden" id="nombrepassword" name="nombrepassword">
+                    <input type="hidden" id="id_rol_password" name="id_rol">
+                    <input type="hidden" id="email_password" name="email_password">
+                    <input type="hidden" class="form-control" id="ci_password" name="ci_password" required>
+
+                    <div class="modal-body">
+                        <div class="container-fluid">
+                            <div class="mb-3">
+                                <p>Cambiando contraseña para: <strong id="nombrePersonaPassword"></strong></p>
+                                <p>La nueva contraseña sera su: <strong id="numeroci"> </strong></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-info">
+                            <i class="fas fa-save me-2"></i>Cambiar Contraseña
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ampliar Verificación -->
+    <div class="modal fade" id="ampliarVerificacionModal" tabindex="-1" aria-labelledby="ampliarVerificacionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ampliarVerificacionModalLabel">
+                        <i class="fas fa-clock me-2"></i>Ampliar Tiempo de Verificación
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="PersonaControlador.php?action=ampliarTiempoVerificacion" id="formAmpliarVerificacion">
+                    <input type="hidden" name="action" value="ampliarTiempoVerificacion">
+                    <input type="hidden" id="id_persona_verificacion" name="id_persona">
+                    <input type="hidden" id="id_rol_tiempo" name="id_rol_tiempo">
+
+                    <div class="modal-body">
+                        <div class="container-fluid">
+                            <div class="mb-3">
+                                <p>Ampliando tiempo de verificación para: <strong id="nombrePersonaVerificacion"></strong></p>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label for="tiempo_verificacion" class="form-label">Días de ampliación</label>
+                                <select class="form-control" id="tiempo_verificacion" name="tiempo_verificacion" required>
+                                    <option value="1">1 día</option>
+                                    <option value="3">3 días</option>
+                                    <option value="7">7 días</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-secondary">
+                            <i class="fas fa-clock me-2"></i>Ampliar Verificación
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ver Departamentos -->
+    <div class="modal fade" id="departamentosModal" tabindex="-1" aria-labelledby="departamentosModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="departamentosModalLabel">
+                        <i class="fas fa-building me-2"></i>Departamentos del Residente
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <div class="mb-3">
+                            <p>Departamentos asignados a: <strong id="nombrePersonaDepartamentos"></strong></p>
+                        </div>
+                        <div id="listaDepartamentos">
+                            <!-- Los departamentos se cargarán dinámicamente -->
+                            <div class="text-center py-3">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Cargando...</span>
+                                </div>
+                                <p class="mt-2">Cargando departamentos...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Eliminar Residente -->
+    <div class="modal fade" id="eliminarResidenteModal" tabindex="-1" aria-labelledby="eliminarResidenteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="eliminarResidenteModalLabel">
+                        <i class="fas fa-trash me-2"></i>Eliminar Residente
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="PersonaControlador.php?action=eliminarPersona" id="formEliminarResidente">
+                    <input type="hidden" name="action" value="eliminarPersona">
+                    <input type="hidden" id="id_persona_eliminar" name="id_persona">
+                    <input type="hidden" id="id_rol_eliminar" name="id_rol">
+
+                    <div class="modal-body">
+                        <div class="container-fluid">
+                            <div class="text-center mb-3">
+                                <i class="fas fa-exclamation-triangle fa-3x text-warning"></i>
+                            </div>
+                            <p class="text-center">¿Está seguro que desea eliminar al siguiente residente?</p>
+                            <p class="text-center fw-bold" id="nombrePersonaEliminar"></p>
+                            <p class="text-center text-danger">Esta acción no se puede deshacer.</p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i>Eliminar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script para cargar datos en los modales -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const editarModal = document.getElementById('editarResidenteModal');
-
             // Cargar datos en el modal de editar
+            const editarModal = document.getElementById('editarResidenteModal');
             editarModal.addEventListener('show.bs.modal', function(event) {
                 const button = event.relatedTarget;
 
@@ -231,10 +452,87 @@
                 document.getElementById('ci').value = button.getAttribute('data-ci');
                 document.getElementById('telefono').value = button.getAttribute('data-telefono');
                 document.getElementById('email').value = button.getAttribute('data-email');
-
-                // Aquí deberías cargar los roles disponibles en el select
-                // Por ahora, simplemente establecemos el valor
+                document.getElementById('username').value = button.getAttribute('data-username');
                 document.getElementById('id_rol').value = button.getAttribute('data-id_rol');
+            });
+
+            // Cargar datos en el modal de cambiar contraseña
+            const passwordModal = document.getElementById('editarPasswordModal');
+            passwordModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+
+                document.getElementById('id_persona_password').value = button.getAttribute('data-id');
+                document.getElementById('nombrePersonaPassword').textContent = button.getAttribute('data-nombre');
+                document.getElementById('nombrepassword').value = button.getAttribute('data-nombre');
+                document.getElementById('email_password').value = button.getAttribute('data-email');
+                document.getElementById('id_rol_password').value = button.getAttribute('data-id-rol');
+                document.getElementById('numeroci').textContent = button.getAttribute('data-ci');
+                document.getElementById('ci_password').value = button.getAttribute('data-ci');
+            });
+
+            // Cargar datos en el modal de ampliar verificación
+            const verificacionModal = document.getElementById('ampliarVerificacionModal');
+            verificacionModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+
+                document.getElementById('id_persona_verificacion').value = button.getAttribute('data-id');
+                document.getElementById('nombrePersonaVerificacion').textContent = button.getAttribute('data-nombre');
+                document.getElementById('id_rol_tiempo').value = button.getAttribute('data-id-rol');
+            });
+
+            // Cargar datos en el modal de departamentos
+            const departamentosModal = document.getElementById('departamentosModal');
+            departamentosModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const idPersona = button.getAttribute('data-id');
+
+                document.getElementById('nombrePersonaDepartamentos').textContent = button.getAttribute('data-nombre');
+
+                // Aquí deberías cargar los departamentos del residente desde el servidor
+                // Por ahora, simulamos una carga
+                setTimeout(function() {
+                    document.getElementById('listaDepartamentos').innerHTML = `
+                    <div class="list-group">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            Departamento de Ventas
+                            <span class="badge bg-primary">Principal</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            Departamento de Marketing
+                            <span class="badge bg-secondary">Secundario</span>
+                        </div>
+                    </div>
+                `;
+                }, 1000);
+            });
+
+            // Cargar datos en el modal de eliminar
+            const eliminarModal = document.getElementById('eliminarResidenteModal');
+            eliminarModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+
+                document.getElementById('id_persona_eliminar').value = button.getAttribute('data-id');
+                document.getElementById('nombrePersonaEliminar').textContent = button.getAttribute('data-nombre');
+                document.getElementById('id_rol_eliminar').value = button.getAttribute('data-id-rol');
+            });
+
+            // Validación de contraseñas coincidentes
+            const formPassword = document.getElementById('formEditarPassword');
+            formPassword.addEventListener('submit', function(event) {
+                const nuevaPassword = document.getElementById('nueva_password').value;
+                const confirmarPassword = document.getElementById('confirmar_password').value;
+
+                if (nuevaPassword !== confirmarPassword) {
+                    event.preventDefault();
+                    alert('Las contraseñas no coinciden. Por favor, inténtelo de nuevo.');
+                    return false;
+                }
+
+                if (nuevaPassword.length < 6) {
+                    event.preventDefault();
+                    alert('La contraseña debe tener al menos 6 caracteres.');
+                    return false;
+                }
             });
 
             // Auto-ocultar alertas después de 5 segundos
@@ -267,6 +565,11 @@
         }
 
         .badge {
+            font-size: 0.75rem;
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
             font-size: 0.75rem;
         }
     </style>
