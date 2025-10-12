@@ -25,6 +25,7 @@ CREATE TABLE persona (
                          codigo_recuperacion VARCHAR(6) DEFAULT NULL,
                          tiempo_codigo_recuperacion DATETIME DEFAULT NULL,
                          tiempo_bloqueo DATETIME DEFAULT NULL,
+                         fecha_eliminado DATETIME DEFAULT NULL,
                          estado ENUM('activo', 'inactivo') DEFAULT 'activo',
                          id_rol INT,
                          FOREIGN KEY (id_rol) REFERENCES rol(id_rol)
