@@ -44,9 +44,7 @@
                         <div class="text-center py-4">
                             <i class="fas fa-users-slash fa-3x text-muted mb-3"></i>
                             <p class="text-muted">No hay personas eliminadas</p>
-                            <a href="../vista/ListarPersonalVista.php" class="btn btn-primary">
-                                <i class="fas fa-arrow-left me-2"></i>Volver al Listado
-                            </a>
+
                         </div>
                     <?php else: ?>
                         <div class="table-container">
