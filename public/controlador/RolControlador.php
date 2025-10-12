@@ -10,6 +10,9 @@
             $roles=$this->rolmodelo->listarRoles();
             include_once "../vista/ListarRolVista.php";
         }
+        public function formularioRol(){
+            include_once "../vista/RegistrarRolVista.php";
+        }
 
         public function registrarRol(){
             if($_POST['action']=="registrar"){
@@ -67,33 +70,49 @@
         }
     }
 
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'listar') {
+
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     include_once "../../config/database.php";
     include_once "../modelo/RolModelo.php";
     $database = new Database();
     $db = $database->getConnection();
     $controlador = new RolControlador($db);
-    $controlador->listarRol();
+
+    switch ($_GET['action'] ?? '') {
+        case 'listar':
+            $controlador->listarRol();
+            break;
+        case 'formularioRol':
+            $controlador->formularioRol();
+            break;
+
+        default:
+            header('Location: ../vista/DashboardVista.php?error=Acción no válida');
+            exit;
+    }
     exit;
 }
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'registrar') {
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_once '../../config/database.php';
     require_once '../modelo/RolModelo.php';
 
     $database = new Database();
     $db = $database->getConnection();
     $controlador = new RolControlador($db);
-    $controlador->registrarRol();
-    exit;
-}
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'editar') {
-    require_once '../../config/database.php';
-    require_once '../modelo/RolModelo.php';
-    $database = new Database();
-    $db = $database->getConnection();
-    $controlador = new RolControlador($db);
-    $controlador->editarRol();
+    switch ($_POST['action'] ?? '') {
+        case 'registrar':
+            $controlador->registrarRol();
+            break;
+
+        case 'editar':
+            $controlador->editarRol();
+            break;
+
+        default:
+            header('Location: ../vista/DashboardVista.php?error=Acción no válida');
+            exit;
+    }
     exit;
 }

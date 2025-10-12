@@ -190,7 +190,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="../vista/RegistrarRolVista.php" class="nav-link">
+                                <a href="../controlador/RolControlador.php?action=formularioRol" class="nav-link">
                                     <i class="fas fa-plus-circle"></i>
                                     <p>Crear Rol</p>
                                 </a>
