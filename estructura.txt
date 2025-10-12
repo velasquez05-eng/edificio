@@ -1,0 +1,62 @@
+.
+├── config
+│   └── database.php
+├── datos
+│   ├── db_final.drawio
+│   ├── estrucutura.txt
+│   ├── Tareas.txt
+│   └── universo del discuros.md
+├── db_edificio_v1.sql
+├── estructura.txt
+├── includes
+│   ├── css
+│   │   ├── bootstrap.css
+│   │   ├── bootstrap.min.css
+│   │   ├── dashboard.css
+│   │   └── login.css
+│   ├── footer.php
+│   ├── header.php
+│   ├── img
+│   │   ├── edificio.jpeg
+│   │   └── logo.png
+│   ├── js
+│   │   ├── bootstrap.bundle.js
+│   │   ├── bootstrap.bundle.min.js
+│   │   ├── bootstrap.js
+│   │   ├── bootstrap.min.js
+│   │   ├── dashboard_backup.js
+│   │   └── dashboard.js
+│   └── phpmailer
+│       ├── Exception.php
+│       ├── PHPMailer.php
+│       └── SMTP.php
+├── index.php
+├── public
+│   ├── controlador
+│   │   ├── DashboardControlador.php
+│   │   ├── LoginControlador.php
+│   │   ├── PersonaControlador.php
+│   │   ├── RecuperarControlador.php
+│   │   ├── RegistroControlador.php
+│   │   └── RolControlador.php
+│   ├── modelo
+│   │   ├── DashboardModelo.php
+│   │   ├── LoginModelo.php
+│   │   ├── PersonaModelo.php
+│   │   ├── RecuperarModelo.php
+│   │   ├── RegistroModelo.php
+│   │   └── RolModelo.php
+│   └── vista
+│       ├── DashboardVista.php
+│       ├── ListarPersonalVista.php
+│       ├── ListarResidenteVista.php
+│       ├── ListarRolVista.php
+│       ├── LoginVista.php
+│       ├── RecuperarVista.php
+│       ├── RegistrarPersonaVista.php
+│       ├── RegistrarRolVista.php
+│       └── RegistroVista.php
+├── README.md
+└── script.sql
+
+12 directories, 48 files

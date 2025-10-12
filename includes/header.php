@@ -13,7 +13,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clarity Systems</title>
+    <title>SEInt</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
@@ -40,7 +40,7 @@
         </button>
         <a href="../vista/DashboardVista.php" class="navbar-brand">
             <i class="fas fa-building"></i>
-            <span class="d-none d-sm-inline">Clarity Systems</span>
+            <span class="d-none d-sm-inline">SEInt</span>
         </a>
     </div>
     <div class="header-controls">
@@ -178,7 +178,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="../vista/RegistrarPersonaVista.php" class="nav-link">
+                                <a href="../controlador/PersonaControlador.php?action=formularioPersona" class="nav-link">
                                     <i class="fas fa-user-tag"></i>
                                     <p>Registrar Persona</p>
                                 </a>
