@@ -86,10 +86,6 @@
                                                     $badge_class = 'bg-warning';
                                                     $icon = 'fa-user';
                                                     break;
-                                                case 'mantenimiento':
-                                                    $badge_class = 'bg-danger';
-                                                    $icon = 'fa-tools';
-                                                    break;
                                                 default:
                                                     $badge_class = 'bg-secondary';
                                                     $icon = 'fa-question-circle';
@@ -186,7 +182,7 @@
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form id="formEditarDepartamento" method="POST" action="DepartamentoControlador.php?action=editarDepartamento">
+                <form id="formEditarDepartamento" method="POST" action="DepartamentoControlador.php">
                     <div class="modal-body">
                         <input type="hidden" name="action" value="editarDepartamento">
                         <input type="hidden" name="id_departamento" id="editIdDepartamento">
@@ -205,18 +201,6 @@
                             </label>
                             <input type="number" class="form-control" id="editPiso" name="piso" min="1" max="50" required>
                             <div class="form-text">Número de piso donde se encuentra</div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="editEstado" class="form-label">
-                                <i class="fas fa-circle text-success me-2"></i>Estado
-                            </label>
-                            <select class="form-select" id="editEstado" name="estado" required>
-                                <option value="disponible">Disponible</option>
-                                <option value="ocupado">Ocupado</option>
-                                <option value="mantenimiento">En Mantenimiento</option>
-                            </select>
-                            <div class="form-text">Estado actual del departamento</div>
                         </div>
                     </div>
                     <div class="modal-footer">

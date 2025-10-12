@@ -203,23 +203,6 @@
                             </li>
                         </ul>
                     </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link">
-                            <i class="fas fa-building"></i>
-                            <p>
-                                Edificio
-                                <i class="nav-arrow fas fa-chevron-right float-end"></i>
-                            </p>
-                        </a>
-                        <ul class="nav nav-treeview">
-                            <li class="nav-item">
-                                <a href="#" class="nav-link">
-                                    <i class="fas fa-eye"></i>
-                                    <p>Mostrar Edificio</p>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
                     
                     <li class="nav-item">
                         <a href="#" class="nav-link">
@@ -231,13 +214,19 @@
                         </a>
                         <ul class="nav nav-treeview">
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
+                                <a href="../controlador/DepartamentoControlador.php?action=listarDepartamentos" class="nav-link">
                                     <i class="fas fa-list"></i>
                                     <p>Listar Departamentos</p>
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a href="#" class="nav-link">
+                                    <i class="fas fa-plus-circle"></i>
+                                    <p>Asignar Departamento</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../controlador/DepartamentoControlador.php?action=formularioDepartamento" class="nav-link">
                                     <i class="fas fa-plus-circle"></i>
                                     <p>Registrar Departamento</p>
                                 </a>
