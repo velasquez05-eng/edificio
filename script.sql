@@ -53,7 +53,6 @@ CREATE TABLE departamento (
                               id_departamento INT AUTO_INCREMENT PRIMARY KEY,
                               numero VARCHAR(10) NOT NULL,
                               piso INT NOT NULL,
-                              metros_cuadrados DECIMAL(6,2) DEFAULT NULL,
                               estado ENUM('ocupado', 'disponible', 'mantenimiento') DEFAULT 'disponible'
 );
 

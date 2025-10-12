@@ -238,11 +238,16 @@ class PersonaModelo
     }
 
     // sirve para actualizar la contraseña
-    public function actualizarPassword($id_persona, $password){
+    public function restablecerPassword($id_persona, $password){
         try {
             // Validar parámetros de entrada
             if (empty($id_persona) || empty($password)) {
                 throw new InvalidArgumentException("ID de persona o contraseña vacíos");
+            }
+
+            // Validar que id_persona sea numérico
+            if (!is_numeric($id_persona)) {
+                throw new InvalidArgumentException("ID de persona no válido");
             }
 
             // Hash de la contraseña
@@ -251,9 +256,12 @@ class PersonaModelo
                 throw new Exception("Error al generar el hash de la contraseña");
             }
 
+            // CORRECCIÓN: Cambiar el punto por coma después de :password_hash
             $query = "UPDATE " . $this->table_name . " 
-                 SET password_hash = :password_hash
-                 WHERE id_persona = :id_persona";
+             SET password_hash = :password_hash,
+             tiempo_verificacion = DATE_ADD(NOW(), INTERVAL 1 DAY),
+             verificado = false
+             WHERE id_persona = :id_persona";
 
             $stmt = $this->db->prepare($query);
             $stmt->bindParam(":password_hash", $password_hash);
@@ -273,11 +281,50 @@ class PersonaModelo
             }
 
         } catch (InvalidArgumentException $e) {
-            error_log("Error de validación en actualizarPassword: " . $e->getMessage());
+            error_log("Error de validación en restablecerPassword: " . $e->getMessage()); // Corregido el nombre del método
             return false;
         } catch (Exception $e) {
-            error_log("Error en actualizarPassword: " . $e->getMessage());
+            error_log("Error en restablecerPassword: " . $e->getMessage()); // Corregido el nombre del método
             return false;
         }
     }
+
+    public function ampliarTiempoVerificacion($id_persona, $tiempo)
+    {
+        try {
+            if (empty($id_persona) || empty($tiempo)) {
+                throw new InvalidArgumentException("ID de persona o tiempo vacíos");
+            }
+            $query = "UPDATE {$this->table_name}
+                  SET tiempo_verificacion = DATE_ADD(NOW(), INTERVAL $tiempo DAY)
+                  WHERE id_persona = :id_persona";
+
+            $stmt = $this->db->prepare($query);
+            $stmt->bindParam(":id_persona", $id_persona);
+            return $stmt->execute();
+
+        } catch (Exception $e) {
+            error_log("Error en ampliarTiempoVerificacion: " . $e->getMessage());
+            return false;
+        }
+    }
+    public function eliminarPersona($id_persona){
+        try {
+            if (empty($id_persona)) {
+                throw new InvalidArgumentException("ID de persona o tiempo vacíos");
+            }
+            $query = "UPDATE {$this->table_name}
+                  SET estado = 'inactivo'
+                  WHERE id_persona = :id_persona";
+
+            $stmt = $this->db->prepare($query);
+            $stmt->bindParam(":id_persona", $id_persona);
+            return $stmt->execute();
+
+        } catch (Exception $e) {
+            error_log("Error en ampliarTiempoVerificacion: " . $e->getMessage());
+            return false;
+        }
+    }
+
 }

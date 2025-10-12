@@ -159,10 +159,10 @@ class PersonaControlador{
     }
 
     //actualizar contraseña
-    public function actualizarPasswordOpcion(){
-        if ($_POST['action']=="actualizarPasswordOpcion") {
+    public function restablecerPassword(){
+        if ($_POST['action']=="restablecerPassword") {
 
-            $camposRequeridos = ['id_persona','ci_password','id_rol'];
+            $camposRequeridos = ['id_persona',"nombrepassword","email_password",'ci_password','id_rol'];
             $id_rol = intval($_POST['id_rol']);
 
             foreach($camposRequeridos as $campo) {
@@ -173,15 +173,45 @@ class PersonaControlador{
 
             // Sanitizar datos
             $id_persona = intval($_POST['id_persona']);
+            $nombre= htmlspecialchars(trim($_POST['nombrepassword']));
+            $email = htmlspecialchars(trim($_POST['email_password']));
             $password = $_POST['ci_password'];
 
             try {
-                $resultado = $this->personamodelo->actualizarPassword($id_persona, $password);
+                $resultado = $this->personamodelo->restablecerPassword($id_persona, $password);
                 if($resultado){
-                    $rol = $this->rolmodelo->obtenerRol($id_rol); // Obtener el rol para el mensaje
-                    $this->redirigirEdicionConExito("Contraseña actualizada exitosamente para el rol de ".$rol['rol'], $id_rol);
+                    $this->correomodelo->notificarRestablecimientoPassword($email, $nombre);
+                    $rol = $this->rolmodelo->obtenerRol($id_rol);
+                    $this->redirigirEdicionConExito("Contraseña restablecida exitosamente", $id_rol);
                 } else {
-                    $this->redirigirEdicionConError("Error al actualizar contraseña - No se pudo ejecutar la consulta", $id_rol);
+                    $this->redirigirEdicionConError("Error al restablecer contraseña - No se pudo ejecutar la consulta", $id_rol);
+                }
+            } catch (Exception $e) {
+                $this->redirigirEdicionConError("Error en base de datos: ".$e->getMessage(), $id_rol);
+            }
+        }
+    }
+    public function ampliarTiempoVerificacion()
+    {
+        if ($_POST['action']=="ampliarTiempoVerificacion") {
+
+            $camposRequeridos = ['id_persona','tiempo_verificacion','id_rol_tiempo'];
+            $id_rol = intval($_POST['id_rol_tiempo']);
+            foreach($camposRequeridos as $campo) {
+                if(!isset($_POST[$campo]) || empty(trim($_POST[$campo]))) {
+                    $this->redirigirEdicionConError("El campo $campo es obligatorio", $id_rol);
+                }
+            }
+            $id_persona = intval($_POST['id_persona']);
+            $tiempo_verificacion = intval($_POST['tiempo_verificacion']);
+
+            try {
+                $resultado = $this->personamodelo->ampliarTiempoVerificacion($id_persona, $tiempo_verificacion);
+                if($resultado){
+                    $rol = $this->rolmodelo->obtenerRol($id_rol);
+                    $this->redirigirEdicionConExito("Ampliacion de tiempo de verificacion realizada exitosamente", $id_rol);
+                } else {
+                    $this->redirigirEdicionConError("Error ampliacion de tiempo de verificacion - No se pudo ejecutar la consulta", $id_rol);
                 }
             } catch (Exception $e) {
                 $this->redirigirEdicionConError("Error en base de datos: ".$e->getMessage(), $id_rol);
@@ -189,6 +219,31 @@ class PersonaControlador{
         }
     }
 
+    public function eliminarPersona()
+    {
+        if ($_POST['action']=="eliminarPersona") {
+
+            $camposRequeridos = ['id_persona','id_rol'];
+            $id_rol = intval($_POST['id_rol']);
+            foreach($camposRequeridos as $campo) {
+                if(!isset($_POST[$campo]) || empty(trim($_POST[$campo]))) {
+                    $this->redirigirEdicionConError("El campo $campo es obligatorio", $id_rol);
+                }
+            }
+            $id_persona = intval($_POST['id_persona']);
+            try {
+                $resultado = $this->personamodelo->eliminarPersona($id_persona);
+                if($resultado){
+                    $rol = $this->rolmodelo->obtenerRol($id_rol);
+                    $this->redirigirEdicionConExito("Eliminacion realizada exitosamente", $id_rol);
+                } else {
+                    $this->redirigirEdicionConError("Error al eliminar - No se pudo ejecutar la consulta", $id_rol);
+                }
+            } catch (Exception $e) {
+                $this->redirigirEdicionConError("Error en base de datos: ".$e->getMessage(), $id_rol);
+            }
+        }
+    }
 }
 
 // Manejo de rutas
@@ -237,8 +292,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         case 'editarPersona':
             $controlador->editarPersona();
             break;
-        case 'actualizarPasswordOpcion':
-            $controlador->actualizarPasswordOpcion();
+        case 'restablecerPassword':
+            $controlador->restablecerPassword();
+            break;
+        case 'ampliarTiempoVerificacion':
+            $controlador->ampliarTiempoVerificacion();
+            break;
+        case 'eliminarPersona':
+            $controlador->eliminarPersona();
             break;
         default:
             header('Location: ../vista/DashboardVista.php?error=Acción no válida');

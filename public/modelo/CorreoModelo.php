@@ -300,7 +300,7 @@ class CorreoModelo {
         }
     }
 
-    public function notificarRestablecimientoPassword($email, $nombre, $username) {
+    public function notificarRestablecimientoPassword($email, $nombre) {
         try {
             $this->mailer->clearAddresses();
             $this->mailer->addAddress($email, $nombre);
@@ -313,13 +313,14 @@ class CorreoModelo {
             $fecha_envio = date('d/m/Y');
             $fecha_limite = date('d/m/Y', strtotime('+1 day'));
 
-            $mensaje = "
+            // Usar HEREDOC para mejor legibilidad y evitar problemas de comillas
+            $mensaje = <<<HTML
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset=\"UTF-8\">
-    <meta name=\"language\" content=\"es\">
-    <style type=\"text/css\">
+    <meta charset="UTF-8">
+    <meta name="language" content="es">
+    <style type="text/css">
         body {
             margin: 0;
             padding: 0;
@@ -465,44 +466,40 @@ class CorreoModelo {
     </style>
 </head>
 <body>
-    <div class=\"container\">
-        <div class=\"letterhead\">
+    <div class="container">
+        <div class="letterhead">
             <h1>SEInt</h1>
-            <div class=\"subtitle\">Sistema De Edificio Inteligente</div>
+            <div class="subtitle">Sistema De Edificio Inteligente</div>
         </div>
 
-        <div class=\"content\">
-            <div class=\"salutation\">
-                Estimado(a) <strong>" . htmlspecialchars($nombre) . "</strong>,
+        <div class="content">
+            <div class="salutation">
+                Estimado(a) <strong>{$nombre}</strong>,
             </div>
 
             <p>Por medio de la presente, le informamos que se ha restablecido su contraseña de acceso a <strong>SEInt</strong>. A continuación, encontrará las instrucciones para acceder a la plataforma.</p>
 
-            <div class=\"credentials-section\">
-                <div class=\"credentials-title\">🔐 INFORMACIÓN DE ACCESO TEMPORAL</div>
-                <div class=\"credential-row\">
-                    <span class=\"credential-label\">Usuario:</span>
-                    <span class=\"credential-value\">" . htmlspecialchars($username) . "</span>
-                </div>
-                <div class=\"credential-row\">
-                    <span class=\"credential-label\">Contraseña Temporal:</span>
-                    <span class=\"credential-value\">Su número de carnet</span>
+            <div class="credentials-section">
+                <div class="credentials-title">🔐 INFORMACIÓN DE ACCESO TEMPORAL</div>
+                <div class="credential-row">
+                    <span class="credential-label">Contraseña Temporal:</span>
+                    <span class="credential-value">Su número de carnet de identidad</span>
                 </div>
             </div>
 
-            <div class=\"timeline\">
-                <div class=\"timeline-item\">
-                    <div class=\"timeline-date\">" . $fecha_envio . "</div>
-                    <div class=\"timeline-label\">Fecha de Emisión</div>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-date">{$fecha_envio}</div>
+                    <div class="timeline-label">Fecha de Emisión</div>
                 </div>
-                <div class=\"timeline-item\">
-                    <div class=\"timeline-date\">" . $fecha_limite . "</div>
-                    <div class=\"timeline-label\">Fecha Límite de Activación</div>
+                <div class="timeline-item">
+                    <div class="timeline-date">{$fecha_limite}</div>
+                    <div class="timeline-label">Fecha Límite de Activación</div>
                 </div>
             </div>
 
-            <div class=\"important-notice\">
-                <h4 style=\"color: #856404;\">⚠️ INSTRUCCIONES IMPORTANTES</h4>
+            <div class="important-notice">
+                <h4 style="color: #856404;">⚠️ INSTRUCCIONES IMPORTANTES</h4>
                 <p>
                 • <strong>Tiene 1 día calendario para acceder a su cuenta</strong>, contados a partir de la fecha de emisión.<br>
                 • El sistema le pedirá cambiar su contraseña por motivos de seguridad.<br>
@@ -510,29 +507,29 @@ class CorreoModelo {
                 </p>
             </div>
 
-            <div class=\"instructions\">
-                <h4 style=\"color: #0c5460;\">📋 PROCEDIMIENTO DE ACCESO</h4>
-                <ol style=\"margin: 0; padding-left: 20px;\">
+            <div class="instructions">
+                <h4 style="color: #0c5460;">📋 PROCEDIMIENTO DE ACCESO</h4>
+                <ol style="margin: 0; padding-left: 20px;">
                     <li>Diríjase al portal del sistema.</li>
-                    <li>Ingrese su usuario y la contraseña temporal (su carnet).</li>
+                    <li>Ingrese su usuario y la contraseña temporal (su carnet de identidad).</li>
                     <li>Establezca una nueva contraseña de acceso.</li>
                 </ol>
             </div>
 
             <p>Para cualquier inconveniente o consulta relacionada con el acceso al sistema, puede contactar con el administrador del sistema.</p>
 
-            <div class=\"signature\">
+            <div class="signature">
                 <p>Atentamente,<br>
                 <strong>Departamento de Administración</strong><br>
                 SEInt</p>
-                <div class=\"contact-info\">
-                    📞 Teléfono: +(591) 76543210 | ✉️ Email: <a href=\"mailto:sys.codex.dev@gmail.com\">sys.codex.dev@gmail.com</a><br>
+                <div class="contact-info">
+                    📞 Teléfono: +(591) 76543210 | ✉️ Email: <a href="mailto:sys.codex.dev@gmail.com">sys.codex.dev@gmail.com</a><br>
                     🏢 Oficina: Av. Principal #123, Ciudad La Paz, Bolivia.
                 </div>
             </div>
         </div>
 
-        <div class=\"footer\">
+        <div class="footer">
             <p>
                 <em>Este es un mensaje automático generado por el sistema. Por favor no responda a este correo.</em><br>
                 <em>Si recibió este mensaje por error, favor eliminarlo y notificar al departamento de sistemas.</em>
@@ -540,10 +537,11 @@ class CorreoModelo {
         </div>
     </div>
 </body>
-</html>";
+</html>
+HTML;
 
             $this->mailer->Body = $mensaje;
-            $this->mailer->AltBody = "Hola $nombre,\n\nSe ha restablecido tu contraseña en el sistema.\nUsuario: $username\nContraseña temporal: Tu número de carnet\n\nTienes 1 día para acceder a tu cuenta y cambiar la contraseña.\n\nAccede al sistema con las credenciales proporcionadas.";
+            $this->mailer->AltBody = "Hola {$nombre},\n\nSe ha restablecido tu contraseña en el sistema.\nContraseña temporal: Tu número de carnet de identidad\n\nTienes 1 día para acceder a tu cuenta y cambiar la contraseña.\n\nAccede al sistema con las credenciales proporcionadas.";
 
             return $this->mailer->send();
 

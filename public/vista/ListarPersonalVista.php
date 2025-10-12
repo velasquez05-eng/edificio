@@ -130,6 +130,7 @@
                                                         data-bs-target="#editarPasswordModal"
                                                         data-id="<?php echo htmlspecialchars($persona['id_persona']); ?>"
                                                         data-nombre="<?php echo htmlspecialchars($persona['nombre'] . ' ' . $persona['apellido_paterno']); ?>"
+                                                        data-email="<?php echo htmlspecialchars($persona['email']); ?>"
                                                         data-id-rol="<?php echo htmlspecialchars($persona['id_rol']); ?>"
                                                         data-ci="<?php echo htmlspecialchars($persona['ci']); ?>"
                                                         title="Cambiar contraseña">
@@ -141,6 +142,7 @@
                                                             data-bs-target="#ampliarVerificacionModal"
                                                             data-id="<?php echo htmlspecialchars($persona['id_persona']); ?>"
                                                             data-nombre="<?php echo htmlspecialchars($persona['nombre'] . ' ' . $persona['apellido_paterno']); ?>"
+                                                            data-id-rol="<?php echo htmlspecialchars($persona['id_rol']); ?>"
                                                             title="Ampliar tiempo de verificación">
                                                         <i class="fas fa-clock"></i>
                                                     </button>
@@ -158,6 +160,7 @@
                                                         data-bs-target="#eliminarPersonaModal"
                                                         data-id="<?php echo htmlspecialchars($persona['id_persona']); ?>"
                                                         data-nombre="<?php echo htmlspecialchars($persona['nombre'] . ' ' . $persona['apellido_paterno']); ?>"
+                                                        data-id-rol="<?php echo htmlspecialchars($persona['id_rol']); ?>"
                                                         title="Eliminar persona">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
@@ -290,10 +293,12 @@
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form method="POST" action="PersonaControlador.php?action=actualizarPasswordOpcion" id="formEditarPassword">
-                    <input type="hidden" name="action" value="actualizarPasswordOpcion">
+                <form method="POST" action="PersonaControlador.php?action=restablecerPassword" id="formEditarPassword">
+                    <input type="hidden" name="action" value="restablecerPassword">
                     <input type="hidden" id="id_persona_password" name="id_persona">
+                    <input type="hidden" id="nombrepassword" name="nombrepassword">
                     <input type="hidden" id="id_rol_password" name="id_rol">
+                    <input type="hidden" id="email_password" name="email_password">
                     <input type="hidden" class="form-control" id="ci_password" name="ci_password" required>
 
                     <div class="modal-body">
@@ -327,9 +332,10 @@
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form method="POST" action="PersonaControlador.php?action=ampliarVerificacion" id="formAmpliarVerificacion">
-                    <input type="hidden" name="action" value="ampliarVerificacion">
+                <form method="POST" action="PersonaControlador.php?action=ampliarTiempoVerificacion" id="formAmpliarVerificacion">
+                    <input type="hidden" name="action" value="ampliarTiempoVerificacion">
                     <input type="hidden" id="id_persona_verificacion" name="id_persona">
+                    <input type="hidden" id="id_rol_tiempo" name="id_rol_tiempo">
 
                     <div class="modal-body">
                         <div class="container-fluid">
@@ -337,13 +343,11 @@
                                 <p>Ampliando tiempo de verificación para: <strong id="nombrePersonaVerificacion"></strong></p>
                             </div>
                             <div class="form-group mb-3">
-                                <label for="dias_ampliacion" class="form-label">Días de ampliación</label>
-                                <select class="form-control" id="dias_ampliacion" name="dias_ampliacion" required>
+                                <label for="tiempo_verificacion" class="form-label">Días de ampliación</label>
+                                <select class="form-control" id="tiempo_verificacion" name="tiempo_verificacion" required>
                                     <option value="1">1 día</option>
                                     <option value="3">3 días</option>
                                     <option value="7">7 días</option>
-                                    <option value="15">15 días</option>
-                                    <option value="30">30 días</option>
                                 </select>
                             </div>
                         </div>
@@ -406,9 +410,10 @@
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form method="POST" action="PersonaControlador.php?action=eliminar" id="formEliminarPersona">
-                    <input type="hidden" name="action" value="eliminar">
+                <form method="POST" action="PersonaControlador.php?action=eliminarPersona" id="formEliminarPersona">
+                    <input type="hidden" name="action" value="eliminarPersona">
                     <input type="hidden" id="id_persona_eliminar" name="id_persona">
+                    <input type="hidden" id="id_rol_eliminar" name="id_rol">
 
                     <div class="modal-body">
                         <div class="container-fluid">
@@ -459,6 +464,8 @@
 
                 document.getElementById('id_persona_password').value = button.getAttribute('data-id');
                 document.getElementById('nombrePersonaPassword').textContent = button.getAttribute('data-nombre');
+                document.getElementById('nombrepassword').value = button.getAttribute('data-nombre');
+                document.getElementById('email_password').value = button.getAttribute('data-email');
                 document.getElementById('id_rol_password').value = button.getAttribute('data-id-rol');
                 document.getElementById('numeroci').textContent = button.getAttribute('data-ci');
                 document.getElementById('ci_password').value = button.getAttribute('data-ci');
@@ -471,6 +478,7 @@
 
                 document.getElementById('id_persona_verificacion').value = button.getAttribute('data-id');
                 document.getElementById('nombrePersonaVerificacion').textContent = button.getAttribute('data-nombre');
+                document.getElementById('id_rol_tiempo').value = button.getAttribute('data-id-rol');
             });
 
             // Cargar datos en el modal de departamentos
@@ -506,6 +514,7 @@
 
                 document.getElementById('id_persona_eliminar').value = button.getAttribute('data-id');
                 document.getElementById('nombrePersonaEliminar').textContent = button.getAttribute('data-nombre');
+                document.getElementById('id_rol_eliminar').value = button.getAttribute('data-id-rol');
             });
 
             // Validación de contraseñas coincidentes
