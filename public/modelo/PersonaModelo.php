@@ -152,6 +152,27 @@ class PersonaModelo
         return [];
     }
 
+    public function listarEliminados(){
+        $query = "SELECT * FROM " . $this->table_name . " p, rol r 
+                 WHERE p.id_rol = r.id_rol and estado = 'inactivo'";
+        $stmt = $this->db->prepare($query);
+        $stmt->execute();
+
+        if ($stmt->rowCount() > 0){
+            $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Descifrar los datos sensibles
+            foreach ($resultados as &$fila) {
+                $fila['nombre'] = $this->decrypt($fila['nombre']);
+                $fila['apellido_paterno'] = $this->decrypt($fila['apellido_paterno']);
+                $fila['apellido_materno'] = $this->decrypt($fila['apellido_materno']);
+                $fila['ci'] = $this->decrypt($fila['ci']);
+            }
+
+            return $resultados;
+        }
+        return [];
+    }
     public function registrarPersona($nombre, $apellido_paterno, $apellido_materno, $ci, $telefono, $email, $username, $password, $id_rol){
         try {
             // Cifrar los datos sensibles
@@ -313,7 +334,29 @@ class PersonaModelo
                 throw new InvalidArgumentException("ID de persona o tiempo vacíos");
             }
             $query = "UPDATE {$this->table_name}
-                  SET estado = 'inactivo'
+                  SET estado = 'inactivo',
+                      fecha_eliminado = NOW()
+                  WHERE id_persona = :id_persona";
+
+            $stmt = $this->db->prepare($query);
+            $stmt->bindParam(":id_persona", $id_persona);
+            return $stmt->execute();
+
+        } catch (Exception $e) {
+            error_log("Error en ampliarTiempoVerificacion: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function restaurarPersona($id_persona)
+    {
+        try {
+            if (empty($id_persona)) {
+                throw new InvalidArgumentException("ID de persona o tiempo vacíos");
+            }
+            $query = "UPDATE {$this->table_name}
+                  SET estado = 'activo',
+                      fecha_eliminado = null
                   WHERE id_persona = :id_persona";
 
             $stmt = $this->db->prepare($query);

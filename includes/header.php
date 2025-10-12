@@ -173,20 +173,26 @@
                             </li>
                             <li class="nav-item">
                                 <a href="../controlador/PersonaControlador.php?action=listarResidente" class="nav-link">
-                                    <i class="fas fa-user-plus"></i>
+                                    <i class="fas fa-list"></i>
                                     <p>Listar Residente</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../controlador/PersonaControlador.php?action=listarEliminados" class="nav-link">
+                                    <i class="fas fa-list"></i>
+                                    <p>Listar Eliminados</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../controlador/RolControlador.php?action=listar" class="nav-link">
+                                    <i class="fas fa-list"></i>
+                                    <p>Listar Roles</p>
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a href="../controlador/PersonaControlador.php?action=formularioPersona" class="nav-link">
                                     <i class="fas fa-user-tag"></i>
                                     <p>Registrar Persona</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="../controlador/RolControlador.php?action=listar" class="nav-link">
-                                    <i class="fas fa-plus-circle"></i>
-                                    <p>Listar Roles</p>
                                 </a>
                             </li>
                             <li class="nav-item">

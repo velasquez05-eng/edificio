@@ -19,6 +19,10 @@ class PersonaControlador{
         $residentes = $this->personamodelo->listarResidente();
         include '../vista/ListarResidenteVista.php';
     }
+    public function listarEliminados(){
+        $personas = $this->personamodelo->listarEliminados();
+        include '../vista/ListarPersonasEliminadasVista.php';
+    }
     public function formularioPersona(){
         include '../vista/RegistrarPersonaVista.php';
     }
@@ -244,6 +248,28 @@ class PersonaControlador{
             }
         }
     }
+    public function restaurarPersona()
+    {
+        if ($_POST['action'] == "restaurarPersona") {
+
+            $camposRequeridos = ['id_persona', 'id_rol'];
+            $id_rol = intval($_POST['id_rol']);
+
+            $id_persona = intval($_POST['id_persona']);
+
+            try {
+                $resultado = $this->personamodelo->restaurarPersona($id_persona);
+
+                if ($resultado) {
+                    $this->redirigirEdicionConExito("Restauración realizada exitosamente", $id_rol);
+                } else {
+                    $this->redirigirEdicionConError("Error al restaurar - No se pudo ejecutar la consulta", $id_rol);
+                }
+            } catch (Exception $e) {
+                $this->redirigirEdicionConError("Error en base de datos: " . $e->getMessage(), $id_rol);
+            }
+        }
+    }
 }
 
 // Manejo de rutas
@@ -265,11 +291,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             case 'listarResidente':
                 $controlador->listarResidente();
                 break;
+            case 'listarEliminados':
+                $controlador->listarEliminados();
+                break;
             case 'formularioPersona':
                 $controlador->formularioPersona();
                 break;
             default:
-                header('Location: ../vista/RegistrarPersonaVista.php?error=Acción no válida');
+                header('Location: ../vista/DashboardVista.php?error=Acción no válida');
                 exit;
         }
     }
@@ -300,6 +329,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             break;
         case 'eliminarPersona':
             $controlador->eliminarPersona();
+            break;
+        case 'restaurarPersona':
+            $controlador->restaurarPersona();
             break;
         default:
             header('Location: ../vista/DashboardVista.php?error=Acción no válida');
