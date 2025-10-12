@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: localhost:3306
--- Tiempo de generación: 09-10-2025 a las 14:37:24
+-- Tiempo de generación: 12-10-2025 a las 22:25:25
 -- Versión del servidor: 11.8.3-MariaDB-0+deb13u1 from Debian
 -- Versión de PHP: 8.4.11
 
@@ -60,9 +60,15 @@ CREATE TABLE `departamento` (
   `id_departamento` int(11) NOT NULL,
   `numero` varchar(10) NOT NULL,
   `piso` int(11) NOT NULL,
-  `metros_cuadrados` decimal(6,2) DEFAULT NULL,
-  `estado` enum('ocupado','disponible','mantenimiento') DEFAULT 'disponible'
+  `estado` enum('ocupado','disponible') DEFAULT 'disponible'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+--
+-- Volcado de datos para la tabla `departamento`
+--
+
+INSERT INTO `departamento` (`id_departamento`, `numero`, `piso`, `estado`) VALUES
+(1, 'DEP-310', 1, 'disponible');
 
 -- --------------------------------------------------------
 
@@ -120,9 +126,8 @@ CREATE TABLE `historial_incidente` (
 
 CREATE TABLE `historial_login` (
   `id_historial_login` int(11) NOT NULL,
-  `id_login` int(11) NOT NULL,
+  `id_persona` int(11) NOT NULL,
   `fecha` datetime NOT NULL,
-  `ip` varchar(50) DEFAULT NULL,
   `estado` enum('exitoso','fallido') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
@@ -186,25 +191,6 @@ CREATE TABLE `lector_sensor_consumo` (
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `login`
---
-
-CREATE TABLE `login` (
-  `id_login` int(11) NOT NULL,
-  `username` varchar(50) NOT NULL,
-  `password_hash` varchar(255) NOT NULL,
-  `verificado` tinyint(1) DEFAULT 0,
-  `tiempo_verificacion` datetime DEFAULT NULL,
-  `codigo_recuperacion` varchar(6) DEFAULT NULL,
-  `tiempo_codigo_recuperacion` datetime DEFAULT NULL,
-  `tiempo_bloqueo` datetime DEFAULT NULL,
-  `estado` enum('activo','inactivo') DEFAULT 'activo',
-  `id_persona` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
-
--- --------------------------------------------------------
-
---
 -- Estructura de tabla para la tabla `medidor`
 --
 
@@ -246,16 +232,30 @@ CREATE TABLE `persona` (
   `ci` varbinary(255) NOT NULL,
   `telefono` varchar(50) DEFAULT NULL,
   `email` varchar(255) DEFAULT NULL,
+  `username` varchar(50) NOT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `verificado` tinyint(1) DEFAULT 0,
+  `tiempo_verificacion` datetime DEFAULT NULL,
+  `codigo_recuperacion` varchar(6) DEFAULT NULL,
+  `tiempo_codigo_recuperacion` datetime DEFAULT NULL,
+  `tiempo_bloqueo` datetime DEFAULT NULL,
+  `fecha_eliminado` datetime DEFAULT NULL,
   `estado` enum('activo','inactivo') DEFAULT 'activo',
   `id_rol` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
+-- --------------------------------------------------------
+
 --
--- Volcado de datos para la tabla `persona`
+-- Estructura de tabla para la tabla `persona_paga_factura`
 --
 
-INSERT INTO `persona` (`id_persona`, `nombre`, `apellido_paterno`, `apellido_materno`, `ci`, `telefono`, `email`, `estado`, `id_rol`) VALUES
-(1, 0x596d77746c394d6457746a47357a6f6149312b6b5a6a4e52553231366257354d526b7836576b5a4e4c3074705754526a5130453950513d3d, 0x4b32365035464162354c6d3378714c6d7a584577616d63355532646e53554a4e56326b30566c6855616d6c5a4e32706c4b31453950513d3d, 0x5a4f4e5a42655174617737367645726d626d5133723367344e335a6a5957314f51325a36524770316332706f5957564b536b453950513d3d, 0x4c7278513563304e497969776443526a576a7275536d457257455268536c6c775a54563361544e47646e4e58656e6c576148633950513d3d, '77238533', 'admin@gmail.com', 'activo', 1);
+CREATE TABLE `persona_paga_factura` (
+  `id_factura` int(11) NOT NULL,
+  `id_persona` int(11) NOT NULL,
+  `fecha_pago` datetime NOT NULL DEFAULT current_timestamp(),
+  `monto_pagado` decimal(10,2) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -283,15 +283,6 @@ CREATE TABLE `rol` (
   `rol` varchar(150) NOT NULL,
   `descripcion` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
-
---
--- Volcado de datos para la tabla `rol`
---
-
-INSERT INTO `rol` (`id_rol`, `rol`, `descripcion`) VALUES
-(1, 'Administrador', 'administra el sistema completo - gestion'),
-(2, 'Residente', 'es la persona que habita un departamento'),
-(3, 'Soporte', 'es el que le da mantenimiento y soporte a los departamentos');
 
 -- --------------------------------------------------------
 
@@ -373,7 +364,7 @@ ALTER TABLE `historial_incidente`
 --
 ALTER TABLE `historial_login`
   ADD PRIMARY KEY (`id_historial_login`),
-  ADD KEY `id_login` (`id_login`);
+  ADD KEY `id_persona` (`id_persona`);
 
 --
 -- Indices de la tabla `historial_pago`
@@ -407,14 +398,6 @@ ALTER TABLE `lector_sensor_consumo`
   ADD KEY `id_medidor` (`id_medidor`);
 
 --
--- Indices de la tabla `login`
---
-ALTER TABLE `login`
-  ADD PRIMARY KEY (`id_login`),
-  ADD UNIQUE KEY `username` (`username`),
-  ADD KEY `id_persona` (`id_persona`);
-
---
 -- Indices de la tabla `medidor`
 --
 ALTER TABLE `medidor`
@@ -435,7 +418,15 @@ ALTER TABLE `notificacion_persona`
 --
 ALTER TABLE `persona`
   ADD PRIMARY KEY (`id_persona`),
+  ADD UNIQUE KEY `username` (`username`),
   ADD KEY `id_rol` (`id_rol`);
+
+--
+-- Indices de la tabla `persona_paga_factura`
+--
+ALTER TABLE `persona_paga_factura`
+  ADD PRIMARY KEY (`id_factura`,`id_persona`),
+  ADD KEY `id_persona` (`id_persona`);
 
 --
 -- Indices de la tabla `reserva_area_comun`
@@ -485,7 +476,7 @@ ALTER TABLE `area_comun`
 -- AUTO_INCREMENT de la tabla `departamento`
 --
 ALTER TABLE `departamento`
-  MODIFY `id_departamento` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_departamento` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `factura`
@@ -536,12 +527,6 @@ ALTER TABLE `lector_sensor_consumo`
   MODIFY `id_lectura` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT de la tabla `login`
---
-ALTER TABLE `login`
-  MODIFY `id_login` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT de la tabla `medidor`
 --
 ALTER TABLE `medidor`
@@ -551,13 +536,13 @@ ALTER TABLE `medidor`
 -- AUTO_INCREMENT de la tabla `persona`
 --
 ALTER TABLE `persona`
-  MODIFY `id_persona` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_persona` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `rol`
 --
 ALTER TABLE `rol`
-  MODIFY `id_rol` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_rol` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `servicio`
@@ -607,7 +592,7 @@ ALTER TABLE `historial_incidente`
 -- Filtros para la tabla `historial_login`
 --
 ALTER TABLE `historial_login`
-  ADD CONSTRAINT `historial_login_ibfk_1` FOREIGN KEY (`id_login`) REFERENCES `login` (`id_login`);
+  ADD CONSTRAINT `historial_login_ibfk_1` FOREIGN KEY (`id_persona`) REFERENCES `persona` (`id_persona`);
 
 --
 -- Filtros para la tabla `historial_pago`
@@ -637,12 +622,6 @@ ALTER TABLE `lector_sensor_consumo`
   ADD CONSTRAINT `lector_sensor_consumo_ibfk_1` FOREIGN KEY (`id_medidor`) REFERENCES `medidor` (`id_medidor`);
 
 --
--- Filtros para la tabla `login`
---
-ALTER TABLE `login`
-  ADD CONSTRAINT `login_ibfk_1` FOREIGN KEY (`id_persona`) REFERENCES `persona` (`id_persona`);
-
---
 -- Filtros para la tabla `medidor`
 --
 ALTER TABLE `medidor`
@@ -661,6 +640,13 @@ ALTER TABLE `notificacion_persona`
 --
 ALTER TABLE `persona`
   ADD CONSTRAINT `persona_ibfk_1` FOREIGN KEY (`id_rol`) REFERENCES `rol` (`id_rol`);
+
+--
+-- Filtros para la tabla `persona_paga_factura`
+--
+ALTER TABLE `persona_paga_factura`
+  ADD CONSTRAINT `persona_paga_factura_ibfk_1` FOREIGN KEY (`id_factura`) REFERENCES `factura` (`id_factura`),
+  ADD CONSTRAINT `persona_paga_factura_ibfk_2` FOREIGN KEY (`id_persona`) REFERENCES `persona` (`id_persona`);
 
 --
 -- Filtros para la tabla `reserva_area_comun`

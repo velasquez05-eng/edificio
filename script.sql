@@ -54,7 +54,7 @@ CREATE TABLE departamento (
                               id_departamento INT AUTO_INCREMENT PRIMARY KEY,
                               numero VARCHAR(10) NOT NULL,
                               piso INT NOT NULL,
-                              estado ENUM('ocupado', 'disponible', 'mantenimiento') DEFAULT 'disponible'
+                              estado ENUM('ocupado', 'disponible') DEFAULT 'disponible'
 );
 
 -- 6️⃣ Tabla: reserva_area_comun
