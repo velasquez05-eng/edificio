@@ -221,6 +221,34 @@
         </div>
     </div>
 
+    <!-- Modal de Confirmación -->
+    <div class="modal fade" id="modalConfirmacion" tabindex="-1" aria-labelledby="modalConfirmacionLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalConfirmacionLabel">
+                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                        Confirmar Asignación
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="modalMensaje">
+                        <!-- El mensaje se insertará aquí dinámicamente -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-success" id="btnConfirmarAsignacion">
+                        <i class="fas fa-check me-2"></i>Confirmar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
 
@@ -449,7 +477,7 @@
                 }
             }
 
-            // Guardar asignación
+            // Guardar asignación - MODIFICADO PARA USAR MODAL
             $('#btnGuardar').on('click', function() {
                 if (!deptoSeleccionado) {
                     mostrarMensaje('Seleccione un departamento', 'error');
@@ -461,16 +489,27 @@
                     return;
                 }
 
-                const confirmacion = deptoSeleccionado.estado === 'ocupado' ?
-                    `ADVERTENCIA: El departamento ${deptoSeleccionado.numero} ya está ocupado. ¿Desea reemplazar a los ocupantes actuales?` :
-                    `¿Confirmar asignación de ${asignados.length} persona(s) al departamento ${deptoSeleccionado.numero}?`;
+                // Preparar mensaje del modal
+                const mensaje = deptoSeleccionado.estado === 'ocupado' ?
+                    `<div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>ADVERTENCIA:</strong> El departamento ${deptoSeleccionado.numero} ya está ocupado.
+                    </div>
+                    <p class="mb-0">¿Desea reemplazar a los ocupantes actuales?</p>` :
+                    `<p class="mb-0">¿Confirmar asignación de ${asignados.length} persona(s) al departamento ${deptoSeleccionado.numero}?</p>`;
 
-                if (!confirm(confirmacion)) {
-                    return;
-                }
+                // Mostrar modal
+                $('#modalMensaje').html(mensaje);
+                $('#modalConfirmacion').modal('show');
+            });
+
+            // Confirmar asignación desde el modal
+            $('#btnConfirmarAsignacion').on('click', function() {
+                // Cerrar modal
+                $('#modalConfirmacion').modal('hide');
 
                 // Mostrar loading
-                const btn = $(this);
+                const btn = $('#btnGuardar');
                 const originalText = btn.html();
                 btn.html('<i class="fas fa-spinner fa-spin me-2"></i>Guardando...');
                 btn.prop('disabled', true);
@@ -591,6 +630,7 @@
         table.dataTable {
             margin-bottom: 0 !important;
         }
+
     </style>
 
 <?php include("../../includes/footer.php"); ?>
