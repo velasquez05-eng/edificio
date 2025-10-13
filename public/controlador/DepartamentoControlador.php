@@ -3,9 +3,11 @@
 class DepartamentoControlador
 {
     private $departamentomodelo;
+    private $personamodelo;
 
     public function __construct($db){
         $this->departamentomodelo = new DepartamentoModelo($db);
+        $this->personamodelo = new PersonaModelo($db);
     }
 
     public function listarDepartamentos(){
@@ -15,6 +17,11 @@ class DepartamentoControlador
 
     public function formularioDepartamento(){
         include_once "../vista/RegistrarDepartamentoVista.php";
+    }
+    public function formularioAsignarPersonasDepartamento(){
+       $departamentos = $this->departamentomodelo->listarDepartamento();
+       $personas = $this->personamodelo->listarResidente();
+        include_once "../vista/AsignarPersonasDepartamentoVista.php";
     }
 
     public function registrarDepartamento(){
@@ -78,6 +85,28 @@ class DepartamentoControlador
         }
     }
 
+
+    public function asignarPersonasDepartamento()
+    {
+        if($_POST['action'] == "asignarPersonasDepartamento"){
+
+            $id_departamento = $_POST['id_departamento'] ?? null;
+            $personas_ids = json_decode($_POST['personas'] ?? '[]', true);
+            try {
+
+
+                $resultado = $this->departamentomodelo->asignarPersonasDepartamento($id_departamento, $personas_ids);
+                if ($resultado === true) {
+                    header('Location: DepartamentoControlador.php?action=formularioAsignarPersonasDepartamento&success=' . urlencode('Personas asignadas correctamente al departamento'));
+                } else {
+                    header('Location: DepartamentoControlador.php?action=formularioAsignarPersonasDepartamento&error= ' . urlencode('Error al asignar - No se pudo ejecutar la consulta'));
+                }
+            } catch (Exception $e) {
+                header('Location: DepartamentoControlador.php?action=formularioAsignarPersonasDepartamento&error= ' . $e->getMessage());
+            }
+        }
+
+    }
     private function redirigirEditarConExito($mensaje) {
         header('Location: ../controlador/DepartamentoControlador.php?action=listarDepartamentos&success=' . urlencode($mensaje));
         exit;
@@ -103,6 +132,7 @@ class DepartamentoControlador
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     include_once "../../config/database.php";
     include_once "../modelo/DepartamentoModelo.php";
+    require_once "../modelo/PersonaModelo.php";
 
     $database = new Database();
     $db = $database->getConnection();
@@ -116,6 +146,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             case 'formularioDepartamento':
                 $controlador->formularioDepartamento();
                 break;
+            case 'formularioAsignarPersonasDepartamento':
+                $controlador->formularioAsignarPersonasDepartamento();
+                break;
             default:
                 header('Location: ../vista/DashboardVista.php?error=Acción no válida');
                 exit;
@@ -126,6 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     require_once '../../config/database.php';
     require_once '../modelo/DepartamentoModelo.php';
+    require_once "../modelo/PersonaModelo.php";
 
     $database = new Database();
     $db = $database->getConnection();
@@ -137,6 +171,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             break;
         case 'editarDepartamento':
             $controlador->editarDepartamento();
+            break;
+        case 'asignarPersonasDepartamento':
+            $controlador->asignarPersonasDepartamento();
             break;
         default:
             header('Location: ../vista/DashboardVista.php?error=Acción no válida');

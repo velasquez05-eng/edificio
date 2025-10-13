@@ -114,6 +114,47 @@ class DepartamentoModelo{
         }
     }
 
+    //aisgnar persoan a departamento
+    public function asignarPersonasDepartamento($id_departamento, $personas_ids){
+        try {
+            $this->db->beginTransaction();
+
+            // 2. Insertar las nuevas asignaciones
+            $sql_insertar = "INSERT INTO " . $this->table_tiene_departamento . " 
+                        (id_departamento, id_persona, estado) 
+                        VALUES (:id_departamento, :id_persona, 'activo')";
+            $stmt_insertar = $this->db->prepare($sql_insertar);
+
+            foreach ($personas_ids as $id_persona) {
+                $stmt_insertar->bindParam(':id_departamento', $id_departamento, PDO::PARAM_INT);
+                $stmt_insertar->bindParam(':id_persona', $id_persona, PDO::PARAM_INT);
+
+                if (!$stmt_insertar->execute()) {
+                    throw new Exception("Error al asignar persona con ID: $id_persona");
+                }
+            }
+
+            // 3. Actualizar estado del departamento a "ocupado"
+            $sql_actualizar = "UPDATE " . $this->table_departamento . " 
+                          SET estado = 'ocupado' 
+                          WHERE id_departamento = :id_departamento";
+            $stmt_actualizar = $this->db->prepare($sql_actualizar);
+            $stmt_actualizar->bindParam(':id_departamento', $id_departamento, PDO::PARAM_INT);
+
+            if (!$stmt_actualizar->execute()) {
+                throw new Exception('Error al actualizar estado del departamento');
+            }
+
+            $this->db->commit();
+            return true;
+
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            error_log("Error en asignarPersonasMasivo: " . $e->getMessage());
+            return $e->getMessage();
+        }
+    }
+
     // Método adicional para verificar si existe un departamento
     public function existeDepartamento($id_departamento){
         $sql = "SELECT COUNT(*) FROM " . $this->table_departamento . " WHERE id_departamento = :id_departamento";
@@ -131,4 +172,5 @@ class DepartamentoModelo{
         $resultado->execute();
         return $resultado->fetch(PDO::FETCH_ASSOC);
     }
+
 }

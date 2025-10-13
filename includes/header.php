@@ -220,7 +220,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
+                                <a href="../controlador/DepartamentoControlador.php?action=formularioAsignarPersonasDepartamento" class="nav-link">
                                     <i class="fas fa-plus-circle"></i>
                                     <p>Asignar Departamento</p>
                                 </a>
