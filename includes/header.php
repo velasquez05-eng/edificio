@@ -240,21 +240,27 @@
                         <a href="#" class="nav-link">
                             <i class="fas fa-users"></i>
                             <p>
-                                Usuarios
+                                Area Común
                                 <i class="nav-arrow fas fa-chevron-right float-end"></i>
                             </p>
                         </a>
                         <ul class="nav nav-treeview">
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
+                                <a href="../controlador/AreaComunControlador.php?action=listarAreas" class="nav-link">
                                     <i class="fas fa-list"></i>
-                                    <p>Listar Usuarios</p>
+                                    <p>Listar Araes</p>
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a href="#" class="nav-link">
-                                    <i class="fas fa-user-plus"></i>
-                                    <p>Registrar Usuario</p>
+                                    <i class="fas fa-plus-circle"></i>
+                                    <p>Reservar Area</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../controlador/AreaComunControlador.php?action=formularioArea" class="nav-link">
+                                    <i class="fas fa-plus-circle"></i>
+                                    <p>Registrar Area</p>
                                 </a>
                             </li>
                         </ul>

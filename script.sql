@@ -46,7 +46,7 @@ CREATE TABLE area_comun (
                             nombre VARCHAR(100) NOT NULL,
                             descripcion TEXT DEFAULT NULL,
                             capacidad INT DEFAULT NULL,
-                            estado ENUM('disponible', 'mantenimiento', 'ocupada') DEFAULT 'disponible'
+                            estado ENUM('disponible', 'mantenimiento', 'no disponible','eliminado') DEFAULT 'disponible'
 );
 
 -- 5️⃣ Tabla: departamento
