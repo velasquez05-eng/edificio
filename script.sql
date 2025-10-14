@@ -64,6 +64,7 @@ CREATE TABLE reserva_area_comun (
                                     fecha_reserva DATE NOT NULL,
                                     hora_inicio TIME NOT NULL,
                                     hora_fin TIME NOT NULL,
+                                    motivo TEXT DEFAULT NULL,
                                     estado ENUM('pendiente', 'confirmada', 'cancelada') DEFAULT 'pendiente',
                                     FOREIGN KEY (id_persona) REFERENCES persona(id_persona),
                                     FOREIGN KEY (id_area) REFERENCES area_comun(id_area)

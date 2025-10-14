@@ -16,12 +16,14 @@ class AreaComunControlador
     public function formularioArea(){
         include_once "../vista/RegistrarAreaVista.php";
     }
-
+    public function formularioReservaArea(){
+        include_once "../vista/RegistrarReservaAreaVista.php";
+    }
     // Registrar nueva area comun
     public function registrarArea(){
         try {
             if (empty($_POST['nombre']) || empty($_POST['capacidad'])) {
-                header('Location: AreaComunControlador.php?action=listarAreas&error=Nombre+y+capacidad+son+obligatorios');
+                header('Location: AreaComunControlador.php?action=formularioArea&error=Nombre+y+capacidad+son+obligatorios');
                 exit;
             }
 
@@ -31,22 +33,22 @@ class AreaComunControlador
             $estado = $_POST['estado'] ?? 'disponible';
 
             if ($capacidad < 1) {
-                header('Location: AreaComunControlador.php?action=listarAreas&error=La+capacidad+debe+ser+mayor+a+0');
+                header('Location: AreaComunControlador.php?action=formularioArea&error=La+capacidad+debe+ser+mayor+a+0');
                 exit;
             }
 
             $resultado = $this->areamodelo->registrarArea($nombre, $descripcion, $capacidad, $estado);
 
             if ($resultado) {
-                header('Location: AreaComunControlador.php?action=listarAreas&success=Area+comun+registrada+correctamente');
+                header('Location: AreaComunControlador.php?action=formularioArea&success=Area+comun+registrada+correctamente');
             } else {
-                header('Location: AreaComunControlador.php?action=listarAreas&error=Error+al+registrar+el+area+comun');
+                header('Location: AreaComunControlador.php?action=formularioArea&error=Error+al+registrar+el+area+comun');
             }
             exit;
 
         } catch (Exception $e) {
             error_log("Error en registrarArea controlador: " . $e->getMessage());
-            header('Location: AreaComunControlador.php?action=listarAreas&error=Error+al+registrar+el+area+comun');
+            header('Location: AreaComunControlador.php?action=formularioArea&error=Error+al+registrar+el+area+comun');
             exit;
         }
     }
@@ -276,6 +278,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 break;
             case 'formularioArea':
                 $controlador->formularioArea();
+                break;
+            case 'formularioReservaArea':
+                $controlador->formularioReservaArea();
                 break;
             case 'eliminarArea':
                 $controlador->eliminarArea();

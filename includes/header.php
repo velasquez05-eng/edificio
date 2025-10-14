@@ -1,8 +1,9 @@
 
 <?php
-// session_start();
-
-//if (!isset($_SESSION['id_usuario'])) {
+//session_start();
+//$_SESSION['rol']='Residente';
+//if (!isset($_SESSION['id_persona'])) {
+    
   //  header("Location: ../../public/vista/LoginVista.php");
    // exit();
 //}
@@ -53,9 +54,9 @@
             <div class="user-avatar">AD</div>
             <div class="user-info">
                 <div class="user-name">ADMINISTRADOR</div>
-                <?php //if($_SESSION['tipo_usuario'] == 'Personal'): ?>
-                <div class="user-role"><?php echo "rol"//echo $_SESSION['rol']; ?></div>
-                <?php // endif; ?>
+                <?php if($_SESSION['rol'] != 'Residente'): ?>
+                <div class="user-role"><?php  echo $_SESSION['rol']; ?></div>
+                <?php  endif; ?>
             </div>
             <i class="fas fa-chevron-down ms-2" style="font-size: 0.9rem;"></i>
             <div class="user-dropdown">
@@ -248,11 +249,11 @@
                             <li class="nav-item">
                                 <a href="../controlador/AreaComunControlador.php?action=listarAreas" class="nav-link">
                                     <i class="fas fa-list"></i>
-                                    <p>Listar Araes</p>
+                                    <p>Listar Areas</p>
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
+                                <a href="../controlador/AreaComunControlador.php?action=formularioReservaArea" class="nav-link">
                                     <i class="fas fa-plus-circle"></i>
                                     <p>Reservar Area</p>
                                 </a>

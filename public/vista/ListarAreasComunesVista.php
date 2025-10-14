@@ -43,7 +43,7 @@
                 <div class="content-box-header d-flex justify-content-between align-items-center">
                     <h5>
                         <i class="fas fa-calendar-day text-primary me-2"></i>
-                        Reservas del Día - <?php echo date('d/m/Y'); ?>
+                        Reservas del Día - <?php  date_default_timezone_set('America/La_Paz'); echo date('d/m/Y'); ?>
                     </h5>
                     <div class="d-flex align-items-center">
                         <input type="date" id="fechaFiltro" class="form-control form-control-sm me-2"
