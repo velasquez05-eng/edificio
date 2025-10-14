@@ -39,7 +39,7 @@
         <button class="mobile-menu-toggle me-3">
             <i class="fas fa-bars"></i>
         </button>
-        <a href="../vista/DashboardVista.php" class="navbar-brand">
+        <a href="../controlador/DashboardControlador.php?action=mostrarDashboardPersonal" class="navbar-brand">
             <i class="fas fa-building"></i>
             <span class="d-none d-sm-inline">SEInt</span>
         </a>

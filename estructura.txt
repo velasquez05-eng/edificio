@@ -33,30 +33,43 @@
 ├── index.php
 ├── public
 │   ├── controlador
+│   │   ├── AreaComunControlador.php
 │   │   ├── DashboardControlador.php
+│   │   ├── DepartamentoControlador.php
 │   │   ├── LoginControlador.php
 │   │   ├── PersonaControlador.php
 │   │   ├── RecuperarControlador.php
 │   │   ├── RegistroControlador.php
 │   │   └── RolControlador.php
 │   ├── modelo
+│   │   ├── AreaComunModelo.php
+│   │   ├── CorreoModelo.php
 │   │   ├── DashboardModelo.php
+│   │   ├── DepartamentoModelo.php
 │   │   ├── LoginModelo.php
 │   │   ├── PersonaModelo.php
 │   │   ├── RecuperarModelo.php
 │   │   ├── RegistroModelo.php
 │   │   └── RolModelo.php
 │   └── vista
-│       ├── DashboardVista.php
+│       ├── AsignarPersonasDepartamentoVista.php
+│       ├── DashboardPersonalVista.php
+│       ├── DashboardResidenteVista.php
+│       ├── ListarAreasComunesVista.php
+│       ├── ListarDepartamentoVista.php
 │       ├── ListarPersonalVista.php
+│       ├── ListarPersonasEliminadasVista.php
 │       ├── ListarResidenteVista.php
 │       ├── ListarRolVista.php
 │       ├── LoginVista.php
 │       ├── RecuperarVista.php
+│       ├── RegistrarAreaVista.php
+│       ├── RegistrarDepartamentoVista.php
 │       ├── RegistrarPersonaVista.php
+│       ├── RegistrarReservaAreaVista.php
 │       ├── RegistrarRolVista.php
 │       └── RegistroVista.php
 ├── README.md
 └── script.sql
 
-12 directories, 48 files
+12 directories, 61 files
