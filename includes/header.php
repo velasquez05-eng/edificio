@@ -54,9 +54,8 @@
             <div class="user-avatar">AD</div>
             <div class="user-info">
                 <div class="user-name">ADMINISTRADOR</div>
-                <?php if($_SESSION['rol'] != 'Residente'): ?>
-                <div class="user-role"><?php  echo $_SESSION['rol']; ?></div>
-                <?php  endif; ?>
+
+                <div class="user-role">rol</div>
             </div>
             <i class="fas fa-chevron-down ms-2" style="font-size: 0.9rem;"></i>
             <div class="user-dropdown">

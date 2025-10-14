@@ -14,7 +14,7 @@ class DashboardControlador
     }
     public function mostrarDashboard()
     {
-        include '../vista/DashboardVista.php';
+        include '../vista/DashboardPersonalVista.php';
     }
 
 }
