@@ -1,5 +1,4 @@
 <?php
-
 class DashboardModelo
 {
     private $db;
@@ -302,6 +301,250 @@ class DashboardModelo
         } catch (Exception $e) {
             error_log("Error en obtenerEstadisticasGenerales: " . $e->getMessage());
             return [];
+        }
+    }
+
+    // MÉTODOS PARA DASHBOARD PERSONAL
+
+    public function obtenerComunicadosPersonal() {
+        try {
+            $sql = "SELECT 
+                        c.id_comunicado,
+                        c.titulo,
+                        c.contenido,
+                        c.fecha_publicacion,
+                        c.prioridad,
+                        c.tipo_audiencia,
+                        CONCAT(p.nombre, ' ', p.apellido_paterno) as autor
+                    FROM comunicado c
+                    INNER JOIN persona p ON c.id_persona = p.id_persona
+                    WHERE c.estado = 'publicado' 
+                    AND (c.tipo_audiencia = 'Todos' OR c.tipo_audiencia = 'Personal')
+                    AND (c.fecha_expiracion IS NULL OR c.fecha_expiracion >= CURDATE())
+                    ORDER BY 
+                        CASE c.prioridad
+                            WHEN 'urgente' THEN 1
+                            WHEN 'alta' THEN 2
+                            WHEN 'media' THEN 3
+                            WHEN 'baja' THEN 4
+                        END,
+                        c.fecha_publicacion DESC
+                    LIMIT 5";
+
+            $comunicados = $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+
+            // Descifrar los nombres de los autores
+            foreach ($comunicados as &$comunicado) {
+                $comunicado['autor'] = $this->decrypt($comunicado['autor']);
+            }
+
+            return $comunicados;
+        } catch (Exception $e) {
+            error_log("Error en obtenerComunicadosPersonal: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function obtenerIncidentesAsignados($id_personal) {
+        try {
+            $sql = "SELECT 
+                        i.id_incidente,
+                        i.descripcion,
+                        i.fecha_registro,
+                        i.estado,
+                        ia.fecha_asignacion,
+                        d.numero as departamento,
+                        CONCAT(p.nombre, ' ', p.apellido_paterno) as residente
+                    FROM incidente i
+                    INNER JOIN incidente_asignado ia ON i.id_incidente = ia.id_incidente
+                    INNER JOIN departamento d ON i.id_departamento = d.id_departamento
+                    INNER JOIN persona p ON i.id_residente = p.id_persona
+                    WHERE ia.id_personal = ?
+                    AND i.estado IN ('pendiente', 'en_proceso')
+                    ORDER BY 
+                        i.fecha_registro DESC,
+                        ia.fecha_asignacion DESC";
+
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([$id_personal]);
+            $incidentes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Descifrar nombres de residentes
+            foreach ($incidentes as &$incidente) {
+                $incidente['residente'] = $this->decrypt($incidente['residente']);
+            }
+
+            return $incidentes;
+        } catch (Exception $e) {
+            error_log("Error en obtenerIncidentesAsignados: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function obtenerEstadisticasIncidentesPersonal($id_personal) {
+        try {
+            $sql = "SELECT 
+                        i.estado,
+                        COUNT(*) as cantidad
+                    FROM incidente i
+                    INNER JOIN incidente_asignado ia ON i.id_incidente = ia.id_incidente
+                    WHERE ia.id_personal = ?
+                    GROUP BY i.estado";
+
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([$id_personal]);
+            $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $estadisticas = [
+                'pendientes' => 0,
+                'atendidos' => 0,
+                'total' => 0
+            ];
+
+            foreach ($resultados as $fila) {
+                $estadisticas['total'] += $fila['cantidad'];
+
+                if ($fila['estado'] == 'pendiente') {
+                    $estadisticas['pendientes'] = $fila['cantidad'];
+                } elseif ($fila['estado'] == 'resuelto') {
+                    $estadisticas['atendidos'] = $fila['cantidad'];
+                } elseif ($fila['estado'] == 'en_proceso') {
+                    $estadisticas['pendientes'] += $fila['cantidad'];
+                }
+            }
+
+            return $estadisticas;
+        } catch (Exception $e) {
+            error_log("Error en obtenerEstadisticasIncidentesPersonal: " . $e->getMessage());
+            return ['pendientes' => 0, 'atendidos' => 0, 'total' => 0];
+        }
+    }
+
+    public function obtenerReservasConfirmadas() {
+        try {
+            $sql = "SELECT 
+                        r.id_reserva,
+                        a.nombre as nombre_area,
+                        CONCAT(p.nombre, ' ', p.apellido_paterno) as nombre_residente,
+                        r.fecha_reserva,
+                        r.hora_inicio,
+                        r.hora_fin,
+                        r.estado
+                    FROM reserva_area_comun r
+                    INNER JOIN area_comun a ON r.id_area = a.id_area
+                    INNER JOIN persona p ON r.id_persona = p.id_persona
+                    WHERE r.estado = 'confirmada'
+                    AND r.fecha_reserva >= CURDATE()
+                    ORDER BY r.fecha_reserva, r.hora_inicio
+                    LIMIT 10";
+
+            $reservas = $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+
+            // Descifrar nombres de residentes
+            foreach ($reservas as &$reserva) {
+                $reserva['nombre_residente'] = $this->decrypt($reserva['nombre_residente']);
+            }
+
+            return $reservas;
+        } catch (Exception $e) {
+            error_log("Error en obtenerReservasConfirmadas: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function obtenerResidentesActivos() {
+        try {
+            $sql = "SELECT 
+                        p.id_persona,
+                        p.nombre,
+                        p.apellido_paterno,
+                        p.apellido_materno,
+                        p.email,
+                        p.telefono,
+                        p.ci,
+                        d.numero as departamento,
+                        p.estado
+                    FROM persona p
+                    INNER JOIN tiene_departamento td ON p.id_persona = td.id_persona
+                    INNER JOIN departamento d ON td.id_departamento = d.id_departamento
+                    INNER JOIN rol r ON p.id_rol = r.id_rol
+                    WHERE p.estado = 'activo'
+                    AND td.estado = 'activo'
+                    AND r.rol = 'Residente'
+                    ORDER BY p.nombre, p.apellido_paterno
+                    LIMIT 20";
+
+            $residentes = $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+
+            // Descifrar datos sensibles
+            foreach ($residentes as &$residente) {
+                $residente['nombre'] = $this->decrypt($residente['nombre']);
+                $residente['apellido_paterno'] = $this->decrypt($residente['apellido_paterno']);
+                $residente['apellido_materno'] = $this->decrypt($residente['apellido_materno']);
+                $residente['ci'] = $this->decrypt($residente['ci']);
+            }
+
+            return $residentes;
+        } catch (Exception $e) {
+            error_log("Error en obtenerResidentesActivos: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function obtenerConsumoServiciosMensual() {
+        try {
+            $sql = "SELECT 
+                        s.nombre as servicio,
+                        AVG(hc.consumo_total) as consumo,
+                        s.unidad_medida,
+                        MAX(hc.consumo_total) as consumo_max,
+                        AVG(hc.consumo_total) as consumo_promedio
+                    FROM historial_consumo hc
+                    INNER JOIN medidor m ON hc.id_medidor = m.id_medidor
+                    INNER JOIN servicio s ON m.id_servicio = s.id_servicio
+                    WHERE YEAR(hc.fecha_inicio) = YEAR(CURDATE())
+                    AND MONTH(hc.fecha_inicio) = MONTH(CURDATE())
+                    AND s.nombre IN ('agua', 'luz', 'gas')
+                    GROUP BY s.id_servicio
+                    ORDER BY s.nombre";
+
+            return $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            error_log("Error en obtenerConsumoServiciosMensual: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    // Método adicional para obtener información del personal logueado
+    public function obtenerInfoPersonal($id_personal) {
+        try {
+            $sql = "SELECT 
+                        p.id_persona,
+                        p.nombre,
+                        p.apellido_paterno,
+                        p.apellido_materno,
+                        p.email,
+                        p.telefono,
+                        r.rol
+                    FROM persona p
+                    INNER JOIN rol r ON p.id_rol = r.id_rol
+                    WHERE p.id_persona = ?";
+
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([$id_personal]);
+            $personal = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($personal) {
+                // Descifrar datos
+                $personal['nombre'] = $this->decrypt($personal['nombre']);
+                $personal['apellido_paterno'] = $this->decrypt($personal['apellido_paterno']);
+                $personal['apellido_materno'] = $this->decrypt($personal['apellido_materno']);
+            }
+
+            return $personal;
+        } catch (Exception $e) {
+            error_log("Error en obtenerInfoPersonal: " . $e->getMessage());
+            return null;
         }
     }
 }

@@ -9,6 +9,13 @@ class AreaComunControlador
     // Mostrar lista de areas comunes
     public function listarAreas(){
         $areascomunes = $this->areamodelo->listarAreas();
+        $numeroReservasPendientes = $this->areamodelo->contarReservasPendientes();
+        $numeroReservasMes = $this->areamodelo->contarReservasEsteMes();
+        $conteoArea =$this->areamodelo->contarAreasPorEstado();
+        $numeroDisponible =$conteoArea['disponible'];
+        $numeroMantenimiento =$conteoArea['mantenimiento'];
+        $numeroNoDisponible =$conteoArea['no disponible'];
+        $numeroTotalArea =$conteoArea['total'];
         include_once "../vista/ListarAreasComunesVista.php";
     }
 
@@ -18,6 +25,105 @@ class AreaComunControlador
     }
     public function formularioReservaArea(){
         include_once "../vista/RegistrarReservaAreaVista.php";
+    }
+
+    //validaciones de fechas
+    private function getListaFeriadosBolivia(int $year): array
+    {
+        $feriados = [];
+
+        // Feriados Fijos (clave: 'MM-DD')
+        $fijos = [
+            '01-01', // Año Nuevo
+            '01-22', // Día del Estado Plurinacional
+            '05-01', // Día del Trabajo
+            '06-21', // Año Nuevo Aymara
+            '08-06', // Día de la Independencia
+            '11-02', // Día de Todos los Difuntos
+            '12-25', // Navidad
+        ];
+        foreach ($fijos as $fecha_mm_dd) {
+            $feriados[] = $year . '-' . $fecha_mm_dd;
+        }
+
+        // Feriados Móviles (dependientes de Pascua)
+        $pascuaTimestamp = easter_date($year);
+        $pascuaDate = new DateTime('@' . $pascuaTimestamp);
+        // Ajuste de la zona horaria para asegurar la fecha correcta de Pascua
+        $pascuaDate->setTimezone(new DateTimeZone('America/La_Paz'));
+
+        // Lunes y Martes de Carnaval (48 y 47 días ANTES de Pascua)
+        $feriados[] = (clone $pascuaDate)->modify('-48 days')->format('Y-m-d');
+        $feriados[] = (clone $pascuaDate)->modify('-47 days')->format('Y-m-d');
+
+        // Viernes Santo (2 días ANTES de Pascua)
+        $feriados[] = (clone $pascuaDate)->modify('-2 days')->format('Y-m-d');
+
+        // Corpus Christi (60 días DESPUÉS de Pascua)
+        $feriados[] = (clone $pascuaDate)->modify('+60 days')->format('Y-m-d');
+
+        return $feriados;
+    }
+
+
+    private function esDiaFeriado(string $fecha): bool
+    {
+        try {
+            $fechaObj = new DateTime($fecha);
+            $year = (int)$fechaObj->format('Y');
+
+            $feriados = $this->getListaFeriadosBolivia($year);
+            $fechaFormateada = $fechaObj->format('Y-m-d');
+
+            // Retorna FALSE si la fecha está en la lista de feriados
+            if (in_array($fechaFormateada, $feriados)) {
+                return false;
+            }
+
+            // Retorna TRUE si no es feriado
+            return true;
+
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
+    public function esIntervaloLibreDeFeriados(string $fecha_inicio, string $fecha_fin): bool
+    {
+        try {
+            $inicio = new DateTime($fecha_inicio);
+            $fin = new DateTime($fecha_fin);
+
+            // Si la fecha de inicio es posterior a la de fin, devuelve error
+            if ($inicio > $fin) {
+                // Puedes manejar este error de forma más específica si es necesario
+                return false;
+            }
+
+            $fin->modify('+1 day'); // Para incluir la fecha de fin en la iteración
+
+            // Crea un período para iterar día a día
+            $periodo = new DatePeriod(
+                $inicio,
+                new DateInterval('P1D'),
+                $fin
+            );
+
+            foreach ($periodo as $fecha) {
+                $fecha_string = $fecha->format('Y-m-d');
+
+                // Si la función devuelve FALSE, significa que el día ES feriado.
+                if (!$this->esDiaFeriado($fecha_string)) {
+                    return false; // Se encontró un feriado, el intervalo NO es libre de feriados.
+                }
+            }
+
+            // Si el bucle termina, ningún día fue feriado.
+            return true;
+        } catch (Exception $e) {
+            // Error en el formato de las fechas
+            return false;
+        }
     }
     // Registrar nueva area comun
     public function registrarArea(){
@@ -65,6 +171,7 @@ class AreaComunControlador
             $nombre = trim($_POST['nombre']);
             $descripcion = trim($_POST['descripcion'] ?? '');
             $capacidad = intval($_POST['capacidad']);
+            $costo_reserva = floatval($_POST['costo_reserva']);
             $estado = $_POST['estado'] ?? 'disponible';
 
             if ($capacidad < 1) {
@@ -72,7 +179,7 @@ class AreaComunControlador
                 exit;
             }
 
-            $resultado = $this->areamodelo->editarArea($id_area, $nombre, $descripcion, $capacidad, $estado);
+            $resultado = $this->areamodelo->editarArea($id_area, $nombre, $descripcion, $capacidad,$costo_reserva, $estado);
 
             if ($resultado) {
                 header('Location: AreaComunControlador.php?action=listarAreas&success=Area+comun+actualizada+correctamente');
@@ -87,16 +194,118 @@ class AreaComunControlador
             exit;
         }
     }
+    // programar area en mantenimiento
+    public function programarMantenimiento(){
+        if (isset($_POST['action'])=="programarMantenimiento") {
+            $camposRequeridos = ['id_area','fecha_inicio','fecha_fin'];
+            foreach($camposRequeridos as $campo){
+                if (empty($_POST[$campo])||empty(trim($_POST[$campo]))) {
+                    header('Location: AreaComunControlador.php?action=listarAreas&error='.urldecode("Error ".$campo." es obligatorio"));
+                    exit;
+                }
+            }
 
-    // Eliminar area comun (eliminacion logica)
-    public function eliminarArea(){
+            $id_persona=intval($_POST['id_persona']);
+            $id_area = intval($_POST['id_area']);
+            $fecha_inicio = trim($_POST['fecha_inicio']);
+            $fecha_fin = trim($_POST['fecha_fin']);
+
+            if (!$this->esIntervaloLibreDeFeriados($fecha_inicio, $fecha_fin)) {
+                $mensaje = "Error: El intervalo de fechas del {$fecha_inicio} al {$fecha_fin} contiene días feriados";
+                header('Location: AreaComunControlador.php?action=listarAreas&error=' . urlencode($mensaje));
+                exit;
+            }
+            try{
+
+                $resultado=$this->areamodelo->programarMantenimiento($id_persona,$id_area, $fecha_inicio, $fecha_fin);
+                if ($resultado) {
+                    header('Location: AreaComunControlador.php?action=listarAreas&success='.urldecode("La programacion del mantenimiento del area fue exitosa"));
+                    exit;
+                }else{
+                    header('Location: AreaComunControlador.php?action=listarAreas&error='.urldecode("Error al programar la fecha de mantenimiento"));
+                    exit;
+                }
+            }catch(Exception $e){
+                header('Location: AreaComunControlador.php?action=listarAreas&error='.$e->getMessage());
+                exit;
+            }
+        }
+
+    }
+
+    public function finalizarMantenimiento()
+    {
+        if (isset($_POST['action'])=="finalizarMantenimiento") {
+            $camposRequeridos = ['id_area'];
+            foreach($camposRequeridos as $campo){
+                if (empty($_POST[$campo])||empty(trim($_POST[$campo]))) {
+                    header('Location: AreaComunControlador.php?action=listarAreas&error='.urldecode("Error ".$campo." es obligatorio"));
+                    exit;
+                }
+            }
+            $id_area = intval($_POST['id_area']);
+
+            try {
+                $resultado = $this->areamodelo->finalizarMantenimiento($id_area);
+                if ($resultado) {
+                    header('Location: AreaComunControlador.php?action=listarAreas&success='.urldecode("La programacion del mantenimiento del area fue exitosa"));
+                    exit;
+                }else{
+                    header('Location: AreaComunControlador.php?action=listarAreas&error='.urldecode("Error al programar la fecha de mantenimiento"));
+                    exit;
+                }
+
+            }catch(Exception $e) {
+                header('Location: AreaComunControlador.php?action=listarAreas&error='.$e->getMessage());
+                exit;
+            }
+
+        }
+    }
+    // ver las reservas que tiene un area
+    // En AreaComunControlador.php - CORREGIR esta función
+    public function verReservasArea(){
         try {
-            if (!isset($_GET['id_area'])) {
+            if (!isset($_GET['id_area']) || empty($_GET['id_area'])) {
                 header('Location: AreaComunControlador.php?action=listarAreas&error=ID+de+area+no+especificado');
                 exit;
             }
 
             $id_area = intval($_GET['id_area']);
+
+            // Obtener información del área
+            $area = $this->areamodelo->obtenerAreaPorId($id_area);
+            if (!$area) {
+                header('Location: AreaComunControlador.php?action=listarAreas&error=Area+no+encontrada');
+                exit;
+            }
+
+            // Obtener reservas específicas de esta área
+            $reservas = $this->areamodelo->obtenerReservasPorArea($id_area);
+            if ($reservas === false) {
+                $reservas = []; // Si hay error, mostrar lista vacía
+            }
+
+            include_once "../vista/verReservasAreaVista.php";
+
+        } catch (Exception $e) {
+            error_log("Error en verReservasArea: " . $e->getMessage());
+            header('Location: AreaComunControlador.php?action=listarAreas&error=Error+al+cargar+las+reservas');
+            exit;
+        }
+    }
+
+
+
+    // Eliminar area comun
+    public function eliminarArea(){
+        try {
+            if (!isset($_POST['id_area'])) {
+                header('Location: AreaComunControlador.php?action=listarAreas&error=ID+de+area+no+especificado');
+                exit;
+            }
+
+            $id_area = intval($_POST['id_area']);
             $resultado = $this->areamodelo->eliminarArea($id_area);
 
             if ($resultado) {
@@ -113,151 +322,98 @@ class AreaComunControlador
         }
     }
 
-    // Obtener reservas por fecha (para AJAX)
-    public function obtenerReservasPorFecha() {
+    // cambiar el estado de la reserva
+    public function cambiarEstadoReserva() {
         try {
-            if (!isset($_GET['fecha'])) {
-                header('Content-Type: application/json');
-                echo json_encode([]);
-                exit;
-            }
-
-            $fecha = $_GET['fecha'];
-
-            // Obtener todas las areas
-            $areas = $this->areamodelo->listarAreas();
-            $todasLasReservas = [];
-
-            // Para cada area, obtener sus reservas de la fecha
-            foreach ($areas as $area) {
-                $reservas = $this->areamodelo->obtenerReservasPorArea($area['id_area']);
-                foreach ($reservas as $reserva) {
-                    if ($reserva['fecha_reserva'] === $fecha) {
-                        $reserva['area_nombre'] = $area['nombre'];
-                        $todasLasReservas[] = $reserva;
-                    }
+            $camposRequeridos = ['id_persona', 'id_area', 'fecha_reserva', 'hora_inicio', 'nuevo_estado'];
+            foreach($camposRequeridos as $campo) {
+                if (empty($_POST[$campo])) {
+                    header('Location: AreaComunControlador.php?action=verReservasArea&id_area=' . $_POST['id_area'] . '&error=' . urlencode("Campo {$campo} es obligatorio"));
+                    exit;
                 }
             }
 
-            header('Content-Type: application/json');
-            echo json_encode($todasLasReservas);
-            exit;
-
-        } catch (Exception $e) {
-            error_log("Error en obtenerReservasPorFecha controlador: " . $e->getMessage());
-            header('Content-Type: application/json');
-            echo json_encode([]);
-            exit;
-        }
-    }
-
-    // Listar reservas de un area especifica (para AJAX)
-    public function listarReservasArea() {
-        try {
-            if (!isset($_GET['id_area'])) {
-                header('Content-Type: application/json');
-                echo json_encode([]);
-                exit;
-            }
-
-            $id_area = intval($_GET['id_area']);
-            $reservas = $this->areamodelo->obtenerReservasPorArea($id_area);
-
-            header('Content-Type: application/json');
-            echo json_encode($reservas);
-            exit;
-
-        } catch (Exception $e) {
-            error_log("Error en listarReservasArea controlador: " . $e->getMessage());
-            header('Content-Type: application/json');
-            echo json_encode([]);
-            exit;
-        }
-    }
-
-    // Confirmar una reserva pendiente
-    public function confirmarReserva() {
-        try {
-            if (!isset($_POST['id_area']) || !isset($_POST['fecha_reserva']) || !isset($_POST['hora_inicio'])) {
-                header('Location: AreaComunControlador.php?action=listarAreas&error=Datos+incompletos+para+confirmar+reserva');
-                exit;
-            }
-
+            $id_persona = intval($_POST['id_persona']);
             $id_area = intval($_POST['id_area']);
-            $fecha_reserva = $_POST['fecha_reserva'];
-            $hora_inicio = $_POST['hora_inicio'];
+            $fecha_reserva = trim($_POST['fecha_reserva']);
+            $hora_inicio = trim($_POST['hora_inicio']);
+            $nuevo_estado = trim($_POST['nuevo_estado']);
 
-            $resultado = $this->areamodelo->actualizarEstadoReserva($id_area, $fecha_reserva, $hora_inicio, 'confirmada');
+            $resultado = $this->areamodelo->actualizarEstadoReserva($id_persona, $id_area, $fecha_reserva, $hora_inicio, $nuevo_estado);
 
             if ($resultado) {
-                header('Location: AreaComunControlador.php?action=listarAreas&success=Reserva+confirmada+correctamente');
+                header('Location: AreaComunControlador.php?action=verReservasArea&id_area=' . $id_area . '&success=' . urlencode("Estado de reserva actualizado correctamente"));
             } else {
-                header('Location: AreaComunControlador.php?action=listarAreas&error=Error+al+confirmar+la+reserva');
+                header('Location: AreaComunControlador.php?action=verReservasArea&id_area=' . $id_area . '&error=' . urlencode("Error al actualizar el estado de la reserva"));
             }
             exit;
 
         } catch (Exception $e) {
-            error_log("Error en confirmarReserva controlador: " . $e->getMessage());
-            header('Location: AreaComunControlador.php?action=listarAreas&error=Error+al+confirmar+la+reserva');
+            error_log("Error en cambiarEstadoReserva: " . $e->getMessage());
+            header('Location: AreaComunControlador.php?action=verReservasArea&id_area=' . $_POST['id_area'] . '&error=' . urlencode("Error al cambiar el estado de la reserva"));
             exit;
         }
     }
 
-    // Cancelar una reserva
-    public function cancelarReserva() {
+    //informacion de las resrvas del mes
+    public function verReservasMes() {
         try {
-            if (!isset($_POST['id_area']) || !isset($_POST['fecha_reserva']) || !isset($_POST['hora_inicio'])) {
-                header('Location: AreaComunControlador.php?action=listarAreas&error=Datos+incompletos+para+cancelar+reserva');
-                exit;
+            // Obtener el mes solicitado (por defecto mes actual)
+            $mes = $_GET['mes'] ?? date('Y-m');
+
+            // Validar formato del mes (YYYY-MM)
+            if (!preg_match('/^\d{4}-\d{2}$/', $mes)) {
+                $mes = date('Y-m');
             }
 
-            $id_area = intval($_POST['id_area']);
-            $fecha_reserva = $_POST['fecha_reserva'];
-            $hora_inicio = $_POST['hora_inicio'];
-
-            $resultado = $this->areamodelo->actualizarEstadoReserva($id_area, $fecha_reserva, $hora_inicio, 'cancelada');
-
-            if ($resultado) {
-                header('Location: AreaComunControlador.php?action=listarAreas&success=Reserva+cancelada+correctamente');
-            } else {
-                header('Location: AreaComunControlador.php?action=listarAreas&error=Error+al+cancelar+la+reserva');
+            // Obtener reservas del mes
+            $reservas = $this->areamodelo->obtenerReservasDelMes($mes);
+            if ($reservas === false) {
+                $reservas = [];
             }
-            exit;
+
+            // Calcular mes anterior y siguiente
+            $fecha = DateTime::createFromFormat('Y-m', $mes);
+            $mesAnterior = $fecha->modify('-1 month')->format('Y-m');
+            $mesSiguiente = $fecha->modify('+2 month')->format('Y-m'); // +2 porque ya restamos 1
+
+            // Obtener nombre del mes en español
+            $nombresMeses = [
+                '01' => 'Enero', '02' => 'Febrero', '03' => 'Marzo', '04' => 'Abril',
+                '05' => 'Mayo', '06' => 'Junio', '07' => 'Julio', '08' => 'Agosto',
+                '09' => 'Septiembre', '10' => 'Octubre', '11' => 'Noviembre', '12' => 'Diciembre'
+            ];
+
+            $partesMes = explode('-', $mes);
+            $nombreMes = $nombresMeses[$partesMes[1]] ?? 'Mes Desconocido';
+            $anio = $partesMes[0];
+
+            include_once "../vista/verReservasMesVista.php";
 
         } catch (Exception $e) {
-            error_log("Error en cancelarReserva controlador: " . $e->getMessage());
-            header('Location: AreaComunControlador.php?action=listarAreas&error=Error+al+cancelar+la+reserva');
+            error_log("Error en listarReservasMes: " . $e->getMessage());
+            header('Location: AreaComunControlador.php?action=listarAreas&error=Error+al+cargar+las+reservas+del+mes');
             exit;
         }
     }
 
-    // Marcar reserva como pendiente
-    public function pendienteReserva() {
-        try {
-            if (!isset($_POST['id_area']) || !isset($_POST['fecha_reserva']) || !isset($_POST['hora_inicio'])) {
-                header('Location: AreaComunControlador.php?action=listarAreas&error=Datos+incompletos+para+marcar+reserva+como+pendiente');
-                exit;
+    public function verReservasPendientes(){
+        // Verificar que la acción sea correcta
+        if (isset($_GET['action']) && $_GET['action'] == 'verReservasPendientes') {
+
+            $reservas = $this->areamodelo->obtenerReservasPendientes();
+
+            // Verificar si hubo error en la consulta
+            if ($reservas === false) {
+                header("Location: AreaComunControlador.php?action=listarAreas&error=Error al cargar reservas pendientes");
+                exit();
             }
 
-            $id_area = intval($_POST['id_area']);
-            $fecha_reserva = $_POST['fecha_reserva'];
-            $hora_inicio = $_POST['hora_inicio'];
-
-            $resultado = $this->areamodelo->actualizarEstadoReserva($id_area, $fecha_reserva, $hora_inicio, 'pendiente');
-
-            if ($resultado) {
-                header('Location: AreaComunControlador.php?action=listarAreas&success=Reserva+marcada+como+pendiente+correctamente');
-            } else {
-                header('Location: AreaComunControlador.php?action=listarAreas&error=Error+al+marcar+la+reserva+como+pendiente');
-            }
-            exit;
-
-        } catch (Exception $e) {
-            error_log("Error en pendienteReserva controlador: " . $e->getMessage());
-            header('Location: AreaComunControlador.php?action=listarAreas&error=Error+al+marcar+la+reserva+como+pendiente');
-            exit;
+            include_once "../vista/verReservasPendientesVista.php";
         }
     }
+
+
 
 
 }
@@ -282,17 +438,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             case 'formularioReservaArea':
                 $controlador->formularioReservaArea();
                 break;
-            case 'eliminarArea':
-                $controlador->eliminarArea();
+            case 'verReservasArea':
+                $controlador->verReservasArea();
                 break;
-            case 'obtenerReservasPorFecha':
-                $controlador->obtenerReservasPorFecha();
+            case 'verReservasMes':
+                $controlador->verReservasMes();
                 break;
-            case 'listarReservasArea':
-                $controlador->listarReservasArea();
+            case 'verReservasPendientes':
+                $controlador->verReservasPendientes();
                 break;
             default:
-                header('Location: ../vista/DashboardVista.php?error=Accion+no+valida');
+                header('Location: ../vista/DashboardVista.php?error=Accion+no+valida+get');
                 exit;
         }
     } else {
@@ -302,13 +458,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 }
 
 // Manejo de rutas POST
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_once '../../config/database.php';
     require_once '../modelo/AreaComunModelo.php';
 
     $database = new Database();
     $db = $database->getConnection();
     $controlador = new AreaComunControlador($db);
+
+    if (isset($_POST['action'])) {
 
     switch($_POST['action']) {
         case 'registrarArea':
@@ -317,18 +475,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         case 'editarArea':
             $controlador->editarArea();
             break;
-        case 'confirmarReserva':
-            $controlador->confirmarReserva();
+        case 'eliminarArea':
+            $controlador->eliminarArea();
             break;
-        case 'cancelarReserva':
-            $controlador->cancelarReserva();
+        case 'programarMantenimiento':
+            $controlador->programarMantenimiento();
             break;
-        case 'pendienteReserva':
-            $controlador->pendienteReserva();
+        case 'finalizarMantenimiento':
+            $controlador->finalizarMantenimiento();
+            break;
+        case 'cambiarEstadoReserva':
+            $controlador->cambiarEstadoReserva();
             break;
         default:
-            header('Location: ../vista/DashboardVista.php?error=Accion+no+valida');
+            header('Location: ../vista/DashboardVista.php?error=Accion+no+valida+post');
             exit;
+    }
+
     }
 }
 ?>

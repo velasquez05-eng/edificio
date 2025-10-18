@@ -1,12 +1,21 @@
 
 <?php
-//session_start();
-//$_SESSION['rol']='Residente';
-//if (!isset($_SESSION['id_persona'])) {
-    
-  //  header("Location: ../../public/vista/LoginVista.php");
-   // exit();
-//}
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Función helper para mostrar valores de sesión de forma segura
+function getSessionValue($key, $default = '') {
+    if (!isset($_SESSION[$key])) {
+        return $default;
+    }
+
+    if (is_array($_SESSION[$key])) {
+        return $_SESSION[$key]['rol'] ?? $default;
+    }
+
+    return $_SESSION[$key];
+}
 ?>
 
 <!DOCTYPE html>
@@ -39,7 +48,7 @@
         <button class="mobile-menu-toggle me-3">
             <i class="fas fa-bars"></i>
         </button>
-        <a href="../controlador/DashboardControlador.php?action=mostrarDashboardPersonal" class="navbar-brand">
+        <a href="../controlador/DashboardControlador.php?action=mostrarDashboard<?php echo ($_SESSION['id_rol'] == '1') ? 'Administrador' : (($_SESSION['id_rol'] == '2') ? 'Residente' : 'Personal'); ?>" class="navbar-brand">
             <i class="fas fa-building"></i>
             <span class="d-none d-sm-inline">SEInt</span>
         </a>
@@ -51,11 +60,11 @@
         </button>
         
         <div class="user-profile">
-            <div class="user-avatar">AD</div>
+            <div class="user-avatar"><?php echo $_SESSION['avatar']?></div>
             <div class="user-info">
-                <div class="user-name">ADMINISTRADOR</div>
+                <div class="user-name"><?php echo $_SESSION['nombre']." ".$_SESSION['apellido_paterno']." ".$_SESSION['apellido_materno']?></div>
 
-                <div class="user-role">rol</div>
+                <div class="user-role"><?php echo htmlspecialchars($_SESSION['rol_nombre']);?></div>
             </div>
             <i class="fas fa-chevron-down ms-2" style="font-size: 0.9rem;"></i>
             <div class="user-dropdown">
@@ -97,7 +106,7 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                     <i class="fas fa-times me-2"></i>Cancelar
                 </button>
-                <form method="POST" action="../controlador/LoginControlador.php" class="d-inline">
+                <form method="POST" action="../controlador/PersonaControlador.php" class="d-inline">
                     <input type="hidden" name="action" value="logout">
                     <button type="submit" class="btn btn-warning">
                         <i class="fas fa-sign-out-alt me-2"></i>Sí, Cerrar Sesión

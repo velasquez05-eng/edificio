@@ -1,31 +1,71 @@
 <?php
+/**
+ * PersonaControlador - Controlador para gestionar operaciones de personas
+ * Incluye registro, edicion, eliminacion, login y gestion de roles
+ */
 class PersonaControlador{
     private $personamodelo;
     private $rolmodelo;
     private $correomodelo;
 
+    /**
+     * Constructor - Inicializa los modelos necesarios
+     */
     public function __construct($db){
         $this->personamodelo = new PersonaModelo($db);
         $this->rolmodelo = new RolModelo($db);
         $this->correomodelo = new CorreoModelo();
     }
 
+    // =============================================
+    // METODOS DE VISUALIZACION
+    // =============================================
+
+    /**
+     * Listar personal del sistema
+     */
     public function listarPersonal(){
         $personal = $this->personamodelo->listarPersonal();
         include '../vista/ListarPersonalVista.php';
     }
 
+    /**
+     * Listar residentes del sistema
+     */
     public function listarResidente(){
         $residentes = $this->personamodelo->listarResidente();
         include '../vista/ListarResidenteVista.php';
     }
+
+    /**
+     * Listar personas eliminadas
+     */
     public function listarEliminados(){
         $personas = $this->personamodelo->listarEliminados();
         include '../vista/ListarPersonasEliminadasVista.php';
     }
+
+    /**
+     * Mostrar formulario de registro de persona
+     */
     public function formularioPersona(){
         include '../vista/RegistrarPersonaVista.php';
     }
+
+    /**
+     * Mostrar formulario de login
+     */
+    public function verLogin(){
+        include '../vista/LoginVista.php';
+    }
+
+    // =============================================
+    // METODOS DE GESTION DE PERSONAS
+    // =============================================
+
+    /**
+     * Registrar nueva persona en el sistema
+     */
     public function registrarPersona(){
         if ($_POST['action']=="registrar") {
             // Validar campos requeridos
@@ -36,7 +76,7 @@ class PersonaControlador{
                 }
             }
 
-            // Sanitizar datos
+            // Sanitizar datos de entrada
             $nombre = htmlspecialchars(trim($_POST['nombre']));
             $apellido_paterno = htmlspecialchars(trim($_POST['apellido_paterno']));
             $apellido_materno = isset($_POST['apellido_materno']) ? htmlspecialchars(trim($_POST['apellido_materno'])) : '';
@@ -49,40 +89,36 @@ class PersonaControlador{
 
             // Validaciones adicionales
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                $this->redirigirConError("El formato del email no es válido");
+                $this->redirigirConError("El formato del email no es valido");
             }
 
-            // Validar fortaleza de la contraseña
+            // Validar fortaleza de la contrasena
             if (strlen($password) < 8) {
-                $this->redirigirConError("La contraseña debe tener al menos 8 caracteres");
+                $this->redirigirConError("La contrasena debe tener al menos 8 caracteres");
             }
 
-            // Validar formato de username (solo letras, números y guiones bajos)
+            // Validar formato de username
             if (!preg_match('/^[a-zA-Z0-9_]+$/', $username)) {
-                $this->redirigirConError("El username solo puede contener letras, números y guiones bajos");
+                $this->redirigirConError("El username solo puede contener letras, numeros y guiones bajos");
             }
 
-            // VERIFICAR SI EL CI YA EXISTE
+            // Verificar si el CI ya existe
             if ($this->personamodelo->verificarCIExistente($ci)) {
-                $this->redirigirConError("El número de CI ya está registrado en el sistema");
+                $this->redirigirConError("El numero de CI ya esta registrado en el sistema");
             }
 
-            // VERIFICAR SI EL EMAIL YA EXISTE
-            //if ($this->personamodelo->verificarEmailExistente($email)) {
-             //   $this->redirigirConError("El email ya está registrado en el sistema");
-            //}
-
-            // VERIFICAR SI EL USERNAME YA EXISTE
+            // Verificar si el username ya existe
             if ($this->personamodelo->verificarUsuarioExistente($username)) {
-                $this->redirigirConError("El username ya está registrado en el sistema");
+                $this->redirigirConError("El username ya esta registrado en el sistema");
             }
 
             try {
                 $rol = $this->rolmodelo->obtenerRol($id_rol);
                 $resultado = $this->personamodelo->registrarPersona($nombre,$apellido_paterno,$apellido_materno,$ci,$telefono,$email,$username,$password,$id_rol);
+
                 if($resultado){
                     $this->correomodelo->notificarCredenciales($email,$nombre." ".$apellido_paterno." ".$apellido_materno,$username,$password);
-                    $this->redirigirConExito("Persona registrada exitosamente como ".$rol['rol'] . ". Tiene 3 días para verificar su cuenta.");
+                    $this->redirigirConExito("Persona registrada exitosamente como ".$rol['rol'] . ". Tiene 3 dias para verificar su cuenta.");
                 }else{
                     $this->redirigirConError("Error al registrar persona - No se pudo ejecutar la consulta");
                 }
@@ -91,15 +127,10 @@ class PersonaControlador{
             }
         }
     }
-    private function redirigirConExito($mensaje) {
-        header('Location: ../controlador/PersonaControlador.php?action=formularioPersona&&success=' . urlencode($mensaje));
-        exit;
-    }
 
-    private function redirigirConError($mensaje) {
-        header('Location: ../vista/RegistrarPersonaVista.php?error=' . urlencode($mensaje));
-        exit;
-    }
+    /**
+     * Editar informacion de persona existente
+     */
     public function editarPersona(){
         if ($_POST['action']=="editarPersona") {
             // Validar campos requeridos
@@ -121,16 +152,26 @@ class PersonaControlador{
             $telefono = htmlspecialchars(trim($_POST['telefono']));
             $email = filter_var(trim($_POST['email']), FILTER_SANITIZE_EMAIL);
 
-
-            // VERIFICAR SI EL EMAIL YA EXISTE (excluyendo la persona actual)
-            if ($this->personamodelo->verificarEmail( $id_persona,$email)) {
-                $this->redirigirEdicionConError("El email ya está registrado en el sistema", $id_rol);
+            // Verificar si el email ya existe (excluyendo la persona actual)
+            if ($this->personamodelo->verificarEmail($id_persona,$email)) {
+                $this->redirigirEdicionConError("El email ya esta registrado en el sistema", $id_rol);
             }
 
             try {
                 $resultado = $this->personamodelo->editarPersona($id_persona, $nombre, $apellido_paterno, $apellido_materno, $telefono, $email, $id_rol);
 
                 if($resultado){
+                    session_start();
+                    // Actualizar datos de sesion si es el usuario logueado
+                    if ($_SESSION['id_persona']==$id_persona) {
+                        $_SESSION['nombre']=$nombre;
+                        $_SESSION['apellido_paterno']=$apellido_paterno;
+                        $_SESSION['apellido_materno']=$apellido_materno;
+                        $_SESSION['telefono']=$telefono;
+                        $_SESSION['email']=$email;
+                        $_SESSION['id_rol']=$id_rol;
+                        $_SESSION['rol_nombre'] = $rol['rol'];
+                    }
                     $this->redirigirEdicionConExito("Persona editada exitosamente con el rol de ".$rol['rol'], $id_rol);
                 } else {
                     $this->redirigirEdicionConError("Error al editar persona - No se pudo ejecutar la consulta", $id_rol);
@@ -141,31 +182,11 @@ class PersonaControlador{
         }
     }
 
-// Métodos auxiliares para redirección
-    private function redirigirEdicionConExito($mensaje, $id_rol) {
-        $rol = $this->rolmodelo->obtenerRol($id_rol);
-        if ($rol['rol'] == "Residente") {
-            header('Location: ../controlador/PersonaControlador.php?action=listarResidente&&success=' . urlencode($mensaje));
-        } else {
-            header('Location: ../controlador/PersonaControlador.php?action=listarPersonal&&success=' . urlencode($mensaje));
-        }
-        exit;
-    }
-
-    private function redirigirEdicionConError($mensaje, $id_rol) {
-        $rol = $this->rolmodelo->obtenerRol($id_rol);
-        if ($rol['rol'] == "Residente") {
-            header('Location: ../controlador/PersonaControlador.php?action=listarResidente&&error=' . urlencode($mensaje));
-        } else {
-            header('Location: ../controlador/PersonaControlador.php?action=listarPersonal&&error=' . urlencode($mensaje));
-        }
-        exit;
-    }
-
-    //actualizar contraseña
+    /**
+     * Restablecer contrasena de usuario
+     */
     public function restablecerPassword(){
         if ($_POST['action']=="restablecerPassword") {
-
             $camposRequeridos = ['id_persona',"nombrepassword","email_password",'ci_password','id_rol'];
             $id_rol = intval($_POST['id_rol']);
 
@@ -184,28 +205,31 @@ class PersonaControlador{
             try {
                 $resultado = $this->personamodelo->restablecerPassword($id_persona, $password);
                 if($resultado){
-                    $this->correomodelo->notificarRestablecimientoPassword($email, $nombre);
                     $rol = $this->rolmodelo->obtenerRol($id_rol);
-                    $this->redirigirEdicionConExito("Contraseña restablecida exitosamente", $id_rol);
+                    $this->redirigirEdicionConExito("Contrasena restablecida exitosamente", $id_rol);
                 } else {
-                    $this->redirigirEdicionConError("Error al restablecer contraseña - No se pudo ejecutar la consulta", $id_rol);
+                    $this->redirigirEdicionConError("Error al restablecer contrasena - No se pudo ejecutar la consulta", $id_rol);
                 }
             } catch (Exception $e) {
                 $this->redirigirEdicionConError("Error en base de datos: ".$e->getMessage(), $id_rol);
             }
         }
     }
-    public function ampliarTiempoVerificacion()
-    {
-        if ($_POST['action']=="ampliarTiempoVerificacion") {
 
+    /**
+     * Ampliar tiempo de verificacion de cuenta
+     */
+    public function ampliarTiempoVerificacion(){
+        if ($_POST['action']=="ampliarTiempoVerificacion") {
             $camposRequeridos = ['id_persona','tiempo_verificacion','id_rol_tiempo'];
             $id_rol = intval($_POST['id_rol_tiempo']);
+
             foreach($camposRequeridos as $campo) {
                 if(!isset($_POST[$campo]) || empty(trim($_POST[$campo]))) {
                     $this->redirigirEdicionConError("El campo $campo es obligatorio", $id_rol);
                 }
             }
+
             $id_persona = intval($_POST['id_persona']);
             $tiempo_verificacion = intval($_POST['tiempo_verificacion']);
 
@@ -223,18 +247,22 @@ class PersonaControlador{
         }
     }
 
-    public function eliminarPersona()
-    {
+    /**
+     * Eliminar persona (eliminacion logica)
+     */
+    public function eliminarPersona(){
         if ($_POST['action']=="eliminarPersona") {
-
             $camposRequeridos = ['id_persona','id_rol'];
             $id_rol = intval($_POST['id_rol']);
+
             foreach($camposRequeridos as $campo) {
                 if(!isset($_POST[$campo]) || empty(trim($_POST[$campo]))) {
                     $this->redirigirEdicionConError("El campo $campo es obligatorio", $id_rol);
                 }
             }
+
             $id_persona = intval($_POST['id_persona']);
+
             try {
                 $resultado = $this->personamodelo->eliminarPersona($id_persona);
                 if($resultado){
@@ -248,20 +276,20 @@ class PersonaControlador{
             }
         }
     }
-    public function restaurarPersona()
-    {
-        if ($_POST['action'] == "restaurarPersona") {
 
+    /**
+     * Restaurar persona eliminada
+     */
+    public function restaurarPersona(){
+        if ($_POST['action'] == "restaurarPersona") {
             $camposRequeridos = ['id_persona', 'id_rol'];
             $id_rol = intval($_POST['id_rol']);
-
             $id_persona = intval($_POST['id_persona']);
 
             try {
                 $resultado = $this->personamodelo->restaurarPersona($id_persona);
-
                 if ($resultado) {
-                    $this->redirigirEdicionConExito("Restauración realizada exitosamente", $id_rol);
+                    $this->redirigirEdicionConExito("Restauracion realizada exitosamente", $id_rol);
                 } else {
                     $this->redirigirEdicionConError("Error al restaurar - No se pudo ejecutar la consulta", $id_rol);
                 }
@@ -270,9 +298,161 @@ class PersonaControlador{
             }
         }
     }
+
+    // =============================================
+    // METODOS DE AUTENTICACION
+    // =============================================
+
+    /**
+     * Procesar inicio de sesion
+     */
+    public function login() {
+        if ($_POST) {
+            session_start();
+            $username = $_POST['username'] ?? '';
+            $password = $_POST['password'] ?? '';
+
+            if (!empty($username) && !empty($password)) {
+                $user = $this->personamodelo->login($username, $password);
+
+                if ($user) {
+                    // Obtener informacion completa de la persona
+                    $personaCompleta = $this->personamodelo->obtenerPersonaPorId($user['id_persona']);
+
+                    if ($personaCompleta) {
+                        $rol = $this->rolmodelo->obtenerRol($personaCompleta['id_rol']);
+
+                        // Guardar datos en sesion
+                        $_SESSION['id_persona'] = $personaCompleta['id_persona'];
+                        $_SESSION['id_rol'] = $personaCompleta['id_rol'];
+                        $_SESSION['rol_nombre'] = $rol['rol'];
+
+                        // Datos personales
+                        $_SESSION['nombre'] = $personaCompleta['nombre'];
+                        $_SESSION['apellido_paterno'] = $personaCompleta['apellido_paterno'];
+                        $_SESSION['apellido_materno'] = $personaCompleta['apellido_materno'] ?? '';
+                        $_SESSION['username'] = $personaCompleta['username'];
+                        $_SESSION['email'] = $personaCompleta['email'];
+                        $_SESSION['telefono'] = $personaCompleta['telefono'];
+                        $_SESSION['ci'] = $personaCompleta['ci'];
+
+                        // Crear avatar para el header
+                        $inicialNombre = strtoupper(substr($personaCompleta['nombre'], 0, 1));
+                        $inicialApellido = strtoupper(substr($personaCompleta['apellido_paterno'], 0, 1));
+                        $_SESSION['avatar'] = $inicialNombre . $inicialApellido;
+
+                        // Redirigir segun el rol
+                        switch ($_SESSION['id_rol']) {
+                            case '1':
+                                header("Location: ../controlador/DashboardControlador.php?action=mostrarDashboardAdministrador");
+                                break;
+                            case '2':
+                                header("Location: ../controlador/DashboardControlador.php?action=mostrarDashboardResidente");
+                                break;
+                            default:
+                                header("Location: ../controlador/DashboardControlador.php?action=mostrarDashboardPersonal");
+                                break;
+                        }
+                        exit();
+                    } else {
+                        $_SESSION['error'] = "Error al obtener informacion del usuario";
+                        header("Location: ../vista/LoginVista.php");
+                        exit();
+                    }
+                } else {
+                    $_SESSION['error'] = "Usuario o contrasena incorrectos";
+                    header("Location: ../vista/LoginVista.php");
+                    exit();
+                }
+            } else {
+                $_SESSION['error'] = "Todos los campos son obligatorios";
+                header("Location: ../vista/LoginVista.php");
+                exit();
+            }
+        }
+    }
+
+    /**
+     * Cerrar sesion y destruir datos de sesion
+     */
+    public function logout() {
+        // Verificar si la sesion esta activa antes de destruirla
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
+        }
+
+        // Limpiar todas las variables de sesion
+        $_SESSION = array();
+
+        // Eliminar cookie de sesion
+        if (ini_get("session.use_cookies")) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000,
+                $params["path"], $params["domain"],
+                $params["secure"], $params["httponly"]
+            );
+        }
+
+        // Finalmente destruir la sesion si existe
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
+        }
+
+        header('Location: ../vista/LoginVista.php');
+        exit;
+    }
+
+    // =============================================
+    // METODOS AUXILIARES DE REDIRECCION
+    // =============================================
+
+    /**
+     * Redirigir con mensaje de exito
+     */
+    private function redirigirConExito($mensaje) {
+        header('Location: ../controlador/PersonaControlador.php?action=formularioPersona&&success=' . urlencode($mensaje));
+        exit;
+    }
+
+    /**
+     * Redirigir con mensaje de error
+     */
+    private function redirigirConError($mensaje) {
+        header('Location: ../vista/RegistrarPersonaVista.php?error=' . urlencode($mensaje));
+        exit;
+    }
+
+    /**
+     * Redirigir edicion con mensaje de exito
+     */
+    private function redirigirEdicionConExito($mensaje, $id_rol) {
+        $rol = $this->rolmodelo->obtenerRol($id_rol);
+        if ($rol['rol'] == "Residente") {
+            header('Location: ../controlador/PersonaControlador.php?action=listarResidente&&success=' . urlencode($mensaje));
+        } else {
+            header('Location: ../controlador/PersonaControlador.php?action=listarPersonal&&success=' . urlencode($mensaje));
+        }
+        exit;
+    }
+
+    /**
+     * Redirigir edicion con mensaje de error
+     */
+    private function redirigirEdicionConError($mensaje, $id_rol) {
+        $rol = $this->rolmodelo->obtenerRol($id_rol);
+        if ($rol['rol'] == "Residente") {
+            header('Location: ../controlador/PersonaControlador.php?action=listarResidente&&error=' . urlencode($mensaje));
+        } else {
+            header('Location: ../controlador/PersonaControlador.php?action=listarPersonal&&error=' . urlencode($mensaje));
+        }
+        exit;
+    }
 }
 
-// Manejo de rutas
+// =============================================
+// MANEJO DE RUTAS - PETICIONES GET
+// =============================================
+
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     include_once "../../config/database.php";
     include_once "../modelo/PersonaModelo.php";
@@ -285,6 +465,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
     if(isset($_GET['action'])) {
         switch($_GET['action']) {
+            case 'verLogin':
+                $controlador->verLogin();
+                break;
             case 'listarPersonal':
                 $controlador->listarPersonal();
                 break;
@@ -298,11 +481,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 $controlador->formularioPersona();
                 break;
             default:
-                header('Location: ../vista/DashboardVista.php?error=Acción no válida');
+                header('Location: ../vista/DashboardVista.php?error=Accion no valida');
                 exit;
         }
     }
 }
+
+// =============================================
+// MANEJO DE RUTAS - PETICIONES POST
+// =============================================
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     require_once '../../config/database.php';
@@ -315,6 +502,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $controlador = new PersonaControlador($db);
 
     switch($_POST['action']) {
+        case 'login':
+            $controlador->login();
+            break;
+        case 'logout':
+            $controlador->logout();
+            break;
         case 'registrar':
             $controlador->registrarPersona();
             break;
@@ -334,7 +527,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $controlador->restaurarPersona();
             break;
         default:
-            header('Location: ../vista/DashboardVista.php?error=Acción no válida');
+            header('Location: ../vista/DashboardVista.php?error=Accion no valida');
             exit;
     }
 }
+?>

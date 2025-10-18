@@ -46,7 +46,24 @@ CREATE TABLE area_comun (
                             nombre VARCHAR(100) NOT NULL,
                             descripcion TEXT DEFAULT NULL,
                             capacidad INT DEFAULT NULL,
+                            costo_reserva decimal(10,2) not null,
+                            fecha_inicio_mantenimiento datetime default null,
+                            fecha_fin_mantenimiento datetime default null,
                             estado ENUM('disponible', 'mantenimiento', 'no disponible','eliminado') DEFAULT 'disponible'
+);
+
+-- 2️⃣ Tabla: comunicado
+CREATE TABLE comunicado (
+                            id_comunicado INT AUTO_INCREMENT PRIMARY KEY,
+                            id_persona INT NOT NULL,
+                            titulo VARCHAR(255) NOT NULL,
+                            contenido TEXT NOT NULL,
+                            fecha_publicacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                            fecha_expiracion DATE DEFAULT NULL,
+                            prioridad ENUM('baja', 'media', 'alta', 'urgente') DEFAULT 'media',
+                            estado ENUM('borrador', 'publicado', 'archivado') DEFAULT 'borrador',
+                            tipo_audiencia ENUM('Todos', 'Residente', 'Personal') NOT NULL,
+                            FOREIGN KEY (id_persona) REFERENCES persona(id_persona)
 );
 
 -- 5️⃣ Tabla: departamento
@@ -59,6 +76,7 @@ CREATE TABLE departamento (
 
 -- 6️⃣ Tabla: reserva_area_comun
 CREATE TABLE reserva_area_comun (
+                                    id_reserva INT AUTO_INCREMENT PRIMARY KEY,
                                     id_persona INT NOT NULL,
                                     id_area INT NOT NULL,
                                     fecha_reserva DATE NOT NULL,
@@ -67,7 +85,8 @@ CREATE TABLE reserva_area_comun (
                                     motivo TEXT DEFAULT NULL,
                                     estado ENUM('pendiente', 'confirmada', 'cancelada') DEFAULT 'pendiente',
                                     FOREIGN KEY (id_persona) REFERENCES persona(id_persona),
-                                    FOREIGN KEY (id_area) REFERENCES area_comun(id_area)
+                                    FOREIGN KEY (id_area) REFERENCES area_comun(id_area),
+                                    UNIQUE (id_area, fecha_reserva, hora_inicio, hora_fin)
 );
 
 -- 7️⃣ Tabla: tiene_departamento

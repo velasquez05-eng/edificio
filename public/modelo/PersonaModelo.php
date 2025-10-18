@@ -131,8 +131,19 @@ class PersonaModelo
     }
 
     public function listarResidente(){
-        $query = "SELECT * FROM " . $this->table_name . " p, rol r 
-                 WHERE p.id_rol = r.id_rol AND r.rol = 'Residente' and estado = 'activo'";
+        $query = "SELECT 
+                p.*, 
+                r.rol,
+                GROUP_CONCAT(DISTINCT CONCAT('D', d.numero, '-P', d.piso) SEPARATOR ' / ') as departamentos_vinculados,
+                GROUP_CONCAT(DISTINCT d.id_departamento) as ids_departamentos
+              FROM " . $this->table_name . " p 
+              JOIN rol r ON p.id_rol = r.id_rol 
+              LEFT JOIN tiene_departamento td ON p.id_persona = td.id_persona AND td.estado = 'activo'
+              LEFT JOIN departamento d ON td.id_departamento = d.id_departamento
+              WHERE r.rol = 'Residente' AND p.estado = 'activo'
+              GROUP BY p.id_persona
+              ORDER BY p.nombre ASC";
+
         $stmt = $this->db->prepare($query);
         $stmt->execute();
 
@@ -145,6 +156,12 @@ class PersonaModelo
                 $fila['apellido_paterno'] = $this->decrypt($fila['apellido_paterno']);
                 $fila['apellido_materno'] = $this->decrypt($fila['apellido_materno']);
                 $fila['ci'] = $this->decrypt($fila['ci']);
+
+                // Si no hay departamentos vinculados, establecer valores por defecto
+                if (empty($fila['departamentos_vinculados'])) {
+                    $fila['departamentos_vinculados'] = 'Sin departamento asignado';
+                    $fila['ids_departamentos'] = '';
+                }
             }
 
             return $resultados;
@@ -367,6 +384,48 @@ class PersonaModelo
             error_log("Error en ampliarTiempoVerificacion: " . $e->getMessage());
             return false;
         }
+    }
+
+    // para el inicio de session
+    public function login($username, $password) {
+        $query = "SELECT * FROM " . $this->table_name . " WHERE username = :username AND estado = 'activo'";
+        $stmt = $this->db->prepare($query);
+        $stmt->bindParam(':username', $username);
+        $stmt->execute();
+
+        if ($stmt->rowCount() == 1) {
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            // Verificar contraseña
+            if (password_verify($password, $row['password_hash'])) {
+                // Descifrar los datos sensibles
+                $row['nombre'] = $this->decrypt($row['nombre']);
+                $row['apellido_paterno'] = $this->decrypt($row['apellido_paterno']);
+                $row['apellido_materno'] = $this->decrypt($row['apellido_materno']);
+                $row['ci'] = $this->decrypt($row['ci']);
+                return $row;
+            }
+        }
+        return false;
+    }
+    public function obtenerPersonaPorId($id_persona) {
+        $query = "SELECT p.*, r.rol, r.descripcion as rol_descripcion 
+          FROM " . $this->table_name . " p 
+          INNER JOIN rol r ON p.id_rol = r.id_rol 
+          WHERE p.id_persona = :id_persona";
+        $stmt = $this->db->prepare($query);
+        $stmt->bindParam(':id_persona', $id_persona);
+        $stmt->execute();
+
+        if ($stmt->rowCount() == 1) {
+            $persona = $stmt->fetch(PDO::FETCH_ASSOC);
+            // Descifrar los datos sensibles
+            $persona['nombre'] = $this->decrypt($persona['nombre']);
+            $persona['apellido_paterno'] = $this->decrypt($persona['apellido_paterno']);
+            $persona['apellido_materno'] = $this->decrypt($persona['apellido_materno']);
+            $persona['ci'] = $this->decrypt($persona['ci']);
+            return $persona;
+        }
+        return false;
     }
 
 }

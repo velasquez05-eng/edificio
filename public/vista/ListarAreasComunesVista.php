@@ -1,4 +1,6 @@
-<?php include("../../includes/header.php"); ?>
+<?php include("../../includes/header.php");
+?>
+
 
     <!-- Page Header -->
     <div class="page-header fade-in">
@@ -36,31 +38,77 @@
     </div>
 <?php endif; ?>
 
-    <!-- Reservas del Día -->
+    <!-- Navegación entre secciones -->
     <div class="row fade-in mb-4">
         <div class="col-12">
             <div class="content-box">
-                <div class="content-box-header d-flex justify-content-between align-items-center">
-                    <h5>
-                        <i class="fas fa-calendar-day text-primary me-2"></i>
-                        Reservas del Día - <?php  date_default_timezone_set('America/La_Paz'); echo date('d/m/Y'); ?>
-                    </h5>
-                    <div class="d-flex align-items-center">
-                        <input type="date" id="fechaFiltro" class="form-control form-control-sm me-2"
-                               value="<?php echo date('Y-m-d'); ?>" style="width: auto;">
-                        <button class="btn btn-primary btn-sm" onclick="filtrarReservas()">
-                            <i class="fas fa-filter me-1"></i>Filtrar
-                        </button>
-                    </div>
-                </div>
                 <div class="content-box-body">
-                    <div id="reservasHoyContainer">
-                        <!-- Las reservas se cargaran aqui via JavaScript -->
-                        <div class="text-center py-4">
-                            <i class="fas fa-spinner fa-spin fa-2x text-muted mb-3"></i>
-                            <p class="text-muted">Cargando reservas del día...</p>
+                    <div class="row text-center">
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <a href="AreaComunControlador.php?action=verReservasPendientes"
+                               class="btn btn-warning btn-lg w-100">
+                                <i class="fas fa-clock me-2"></i>
+                                Reservas Pendientes
+                                <span class="badge bg-dark ms-2"><?php echo $numeroReservasPendientes; ?></span>
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <a href="AreaComunControlador.php?action=verReservasMes"
+                               class="btn btn-info btn-lg w-100">
+                                <i class="fas fa-calendar-alt me-2"></i>
+                                Reservas del Mes
+                                <span class="badge bg-dark ms-2"><?php echo $numeroReservasMes; ?></span>
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="AreaComunControlador.php?action=listarAreas"
+                               class="btn btn-primary btn-lg w-100">
+                                <i class="fas fa-swimming-pool me-2"></i>
+                                Ver Áreas
+                                <span class="badge bg-dark ms-2"><?php echo count($areascomunes); ?></span>
+                            </a>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas de Áreas -->
+    <div class="row fade-in mb-4">
+        <div class="col-md-3">
+            <div class="content-box text-center">
+                <div class="content-box-body">
+                    <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                    <h4 class="mb-1"><?php echo $numeroDisponible; ?></h4>
+                    <p class="text-muted mb-0">Disponibles</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="content-box text-center">
+                <div class="content-box-body">
+                    <i class="fas fa-tools fa-2x text-warning mb-2"></i>
+                    <h4 class="mb-1"><?php echo $numeroMantenimiento; ?></h4>
+                    <p class="text-muted mb-0">En Mantenimiento</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="content-box text-center">
+                <div class="content-box-body">
+                    <i class="fas fa-times-circle fa-2x text-danger mb-2"></i>
+                    <h4 class="mb-1"><?php echo $numeroNoDisponible; ?></h4>
+                    <p class="text-muted mb-0">No Disponibles</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="content-box text-center">
+                <div class="content-box-body">
+                    <i class="fas fa-swimming-pool fa-2x text-primary mb-2"></i>
+                    <h4 class="mb-1"><?php echo $numeroTotalArea; ?></h4>
+                    <p class="text-muted mb-0">Total Áreas</p>
                 </div>
             </div>
         </div>
@@ -89,7 +137,9 @@
                                     <th>Nombre</th>
                                     <th>Descripción</th>
                                     <th>Capacidad</th>
+                                    <th>Precio Reserva</th>
                                     <th>Estado</th>
+                                    <th>Mantenimiento</th>
                                     <th>Opciones</th>
                                 </tr>
                                 </thead>
@@ -107,6 +157,10 @@
                                         <td>
                                             <i class="fas fa-users text-info me-2"></i>
                                             <?php echo htmlspecialchars($area['capacidad']); ?> personas
+                                        </td>
+                                        <td>
+                                            <i class="fas fa-money-bill-wave text-success me-2"></i>
+                                            Bs. <?php echo number_format($area['costo_reserva'], 2); ?>
                                         </td>
                                         <td>
                                             <?php
@@ -135,6 +189,20 @@
                                             </span>
                                         </td>
                                         <td>
+                                            <?php if ($area['fecha_inicio_mantenimiento'] && $area['fecha_fin_mantenimiento']): ?>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-calendar-alt me-1"></i>
+                                                    <?php echo date('d/m/Y', strtotime($area['fecha_inicio_mantenimiento'])); ?>
+                                                    -
+                                                    <?php echo date('d/m/Y', strtotime($area['fecha_fin_mantenimiento'])); ?>
+                                                </small>
+                                            <?php else: ?>
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check me-1"></i>Funcional
+                                                </span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
                                             <div class="btn-group" role="group">
                                                 <button class="btn btn-warning btn-sm"
                                                         data-bs-toggle="modal"
@@ -143,10 +211,41 @@
                                                         data-nombre="<?php echo htmlspecialchars($area['nombre']); ?>"
                                                         data-descripcion="<?php echo htmlspecialchars($area['descripcion']); ?>"
                                                         data-capacidad="<?php echo htmlspecialchars($area['capacidad']); ?>"
+                                                        data-costo="<?php echo htmlspecialchars($area['costo_reserva']); ?>"
                                                         data-estado="<?php echo htmlspecialchars($area['estado']); ?>"
                                                         title="Editar área">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
+
+                                                <?php if ($area['estado'] == 'disponible'): ?>
+                                                    <button class="btn btn-secondary btn-sm"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#mantenimientoModal"
+                                                            data-id="<?php echo htmlspecialchars($area['id_area']); ?>"
+                                                            data-nombre="<?php echo htmlspecialchars($area['nombre']); ?>"
+                                                            title="Programar mantenimiento">
+                                                        <i class="fas fa-tools"></i>
+                                                    </button>
+                                                <?php elseif ($area['estado'] == 'mantenimiento'): ?>
+                                                    <button class="btn btn-success btn-sm"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#finalizarMantenimientoModal"
+                                                            data-id="<?php echo htmlspecialchars($area['id_area']); ?>"
+                                                            data-nombre="<?php echo htmlspecialchars($area['nombre']); ?>"
+                                                            title="Finalizar mantenimiento">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                <?php endif; ?>
+
+                                                <button class="btn btn-info btn-sm"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#verReservasModal"
+                                                        data-id="<?php echo htmlspecialchars($area['id_area']); ?>"
+                                                        data-nombre="<?php echo htmlspecialchars($area['nombre']); ?>"
+                                                        title="Ver reservas del área">
+                                                    <i class="fas fa-list"></i>
+                                                </button>
+
                                                 <button class="btn btn-danger btn-sm"
                                                         data-bs-toggle="modal"
                                                         data-bs-target="#eliminarAreaModal"
@@ -178,7 +277,7 @@
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form method="POST" action="AreaComunControlador.php">
+                <form method="POST" action="AreaComunControlador.php" id="formEditarArea">
                     <div class="modal-body">
                         <input type="hidden" name="action" value="editarArea">
                         <input type="hidden" name="id_area" id="editIdArea">
@@ -205,12 +304,18 @@
                         </div>
 
                         <div class="mb-3">
+                            <label for="editCosto" class="form-label">
+                                <i class="fas fa-money-bill-wave text-success me-2"></i>Precio de Reserva (Bs.)
+                            </label>
+                            <input type="number" class="form-control" id="editCosto" name="costo_reserva" step="0.01" min="0" required>
+                        </div>
+
+                        <div class="mb-3">
                             <label for="editEstado" class="form-label">
                                 <i class="fas fa-toggle-on text-success me-2"></i>Estado
                             </label>
                             <select class="form-select" id="editEstado" name="estado" required>
                                 <option value="disponible">Disponible</option>
-                                <option value="mantenimiento">En Mantenimiento</option>
                                 <option value="no disponible">No Disponible</option>
                             </select>
                         </div>
@@ -228,6 +333,132 @@
         </div>
     </div>
 
+    <!-- Modal Mantenimiento -->
+    <div class="modal fade" id="mantenimientoModal" tabindex="-1" aria-labelledby="mantenimientoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="mantenimientoModalLabel">
+                        <i class="fas fa-tools me-2"></i>Programar Mantenimiento
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="AreaComunControlador.php" id="formMantenimiento">
+                    <div class="modal-body">
+                        <input type="hidden" name="action" value="programarMantenimiento">
+                        <input type="hidden" name="id_persona" id="id_persona" value="<?php echo $_SESSION['id_persona'] ?>">
+                        <input type="hidden" name="id_area" id="mantenimientoIdArea">
+
+
+                        <div class="text-center mb-3">
+                            <i class="fas fa-tools fa-3x text-warning mb-2"></i>
+                            <p class="text-muted">Programar mantenimiento para: <strong id="nombreAreaMantenimiento"></strong></p>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="fechaInicioMantenimiento" class="form-label">
+                                <i class="fas fa-calendar-plus text-primary me-2"></i>Fecha Inicio
+                            </label>
+                            <input type="date" class="form-control" id="fechaInicioMantenimiento" name="fecha_inicio" required
+                                   min="<?php echo date('Y-m-d'); ?>">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="fechaFinMantenimiento" class="form-label">
+                                <i class="fas fa-calendar-minus text-danger me-2"></i>Fecha Fin
+                            </label>
+                            <input type="date" class="form-control" id="fechaFinMantenimiento" name="fecha_fin" required
+                                   min="<?php echo date('Y-m-d'); ?>">
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Durante el período de mantenimiento, el área no estará disponible para reservas.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-tools me-2"></i>Programar Mantenimiento
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Finalizar Mantenimiento -->
+    <div class="modal fade" id="finalizarMantenimientoModal" tabindex="-1" aria-labelledby="finalizarMantenimientoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="finalizarMantenimientoModalLabel">
+                        <i class="fas fa-check me-2"></i>Finalizar Mantenimiento
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="AreaComunControlador.php" id="formFinalizarMantenimiento">
+                    <div class="modal-body">
+                        <input type="hidden" name="action" value="finalizarMantenimiento">
+                        <input type="hidden" name="id_area" id="finalizarMantenimientoIdArea">
+
+                        <div class="text-center">
+                            <i class="fas fa-question-circle fa-3x text-warning mb-3"></i>
+                            <h6>¿Está seguro que desea finalizar el mantenimiento?</h6>
+                            <p class="text-muted mb-0">Área: <strong id="nombreAreaFinalizarMantenimiento"></strong></p>
+                            <p class="text-muted">El área volverá a estar disponible para reservas.</p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check me-2"></i>Finalizar Mantenimiento
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ver Reservas del Área -->
+    <div class="modal fade" id="verReservasModal" tabindex="-1" aria-labelledby="verReservasModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="verReservasModalLabel">
+                        <i class="fas fa-list me-2"></i>Ver Reservas del Área
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="GET" action="AreaComunControlador.php" id="formVerReservas">
+                    <div class="modal-body">
+                        <input type="hidden" name="action" value="verReservasArea">
+                        <input type="hidden" name="id_area" id="verReservasIdArea">
+
+                        <div class="text-center">
+                            <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                            <h6 class="text-warning">Advertencia</h6>
+                            <p class="mb-3">Está a punto de ver la información general de todas las reservas de esta área común.</p>
+                            <p class="text-muted mt-3">¿Desea continuar?</p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-eye me-2"></i>Continuar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Eliminar Área -->
     <div class="modal fade" id="eliminarAreaModal" tabindex="-1" aria-labelledby="eliminarAreaModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -238,99 +469,24 @@
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="text-center">
-                        <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
-                        <h6>¿Está seguro que desea eliminar el área?</h6>
-                        <p class="text-muted mb-0">Área: <strong id="nombreAreaEliminar"></strong></p>
-                        <p class="text-muted">Esta acción no se puede deshacer.</p>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times me-2"></i>Cancelar
-                    </button>
-                    <a href="#" id="btnConfirmarEliminar" class="btn btn-danger">
-                        <i class="fas fa-trash me-2"></i>Eliminar
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Confirmar Reserva -->
-    <div class="modal fade" id="confirmarReservaModal" tabindex="-1" aria-labelledby="confirmarReservaModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="confirmarReservaModalLabel">
-                        <i class="fas fa-check-circle me-2"></i>Confirmar Reserva
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form method="POST" action="AreaComunControlador.php" id="formConfirmarReserva">
-                    <input type="hidden" name="action" value="confirmarReserva">
-                    <input type="hidden" name="id_area" id="confirmarIdArea">
-                    <input type="hidden" name="fecha_reserva" id="confirmarFechaReserva">
-                    <input type="hidden" name="hora_inicio" id="confirmarHoraInicio">
+                <form method="POST" action="AreaComunControlador.php" id="formEliminarArea">
                     <div class="modal-body">
+                        <input type="hidden" name="action" value="eliminarArea">
+                        <input type="hidden" name="id_area" id="eliminarAreaId">
+
                         <div class="text-center">
-                            <i class="fas fa-question-circle fa-3x text-primary mb-3"></i>
-                            <h6>¿Confirmar esta reserva?</h6>
-                            <div class="reserva-info bg-light p-3 rounded mt-3">
-                                <p class="mb-1"><strong>Área:</strong> <span id="nombreAreaReserva"></span></p>
-                                <p class="mb-1"><strong>Fecha:</strong> <span id="fechaReserva"></span></p>
-                                <p class="mb-1"><strong>Horario:</strong> <span id="horarioReserva"></span></p>
-                                <p class="mb-0"><strong>Persona:</strong> <span id="personaReserva"></span></p>
-                            </div>
+                            <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                            <h6>¿Está seguro que desea eliminar el área?</h6>
+                            <p class="text-muted mb-0">Área: <strong id="nombreAreaEliminar"></strong></p>
+                            <p class="text-muted">Esta acción no se puede deshacer.</p>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                             <i class="fas fa-times me-2"></i>Cancelar
                         </button>
-                        <button type="submit" class="btn btn-success">
-                            <i class="fas fa-check me-2"></i>Confirmar
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Cancelar Reserva -->
-    <div class="modal fade" id="cancelarReservaModal" tabindex="-1" aria-labelledby="cancelarReservaModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="cancelarReservaModalLabel">
-                        <i class="fas fa-times-circle me-2"></i>Cancelar Reserva
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form method="POST" action="AreaComunControlador.php" id="formCancelarReserva">
-                    <input type="hidden" name="action" value="cancelarReserva">
-                    <input type="hidden" name="id_area" id="cancelarIdArea">
-                    <input type="hidden" name="fecha_reserva" id="cancelarFechaReserva">
-                    <input type="hidden" name="hora_inicio" id="cancelarHoraInicio">
-                    <div class="modal-body">
-                        <div class="text-center">
-                            <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
-                            <h6>¿Cancelar esta reserva?</h6>
-                            <div class="reserva-info bg-light p-3 rounded mt-3">
-                                <p class="mb-1"><strong>Área:</strong> <span id="nombreAreaCancelar"></span></p>
-                                <p class="mb-1"><strong>Fecha:</strong> <span id="fechaCancelar"></span></p>
-                                <p class="mb-1"><strong>Horario:</strong> <span id="horarioCancelar"></span></p>
-                                <p class="mb-0"><strong>Persona:</strong> <span id="personaCancelar"></span></p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                            <i class="fas fa-times me-2"></i>Cerrar
-                        </button>
                         <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-ban me-2"></i>Cancelar Reserva
+                            <i class="fas fa-trash me-2"></i>Eliminar
                         </button>
                     </div>
                 </form>
@@ -338,45 +494,6 @@
         </div>
     </div>
 
-    <!-- Modal Marcar como Pendiente -->
-    <div class="modal fade" id="pendienteReservaModal" tabindex="-1" aria-labelledby="pendienteReservaModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="pendienteReservaModalLabel">
-                        <i class="fas fa-clock me-2"></i>Marcar como Pendiente
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form method="POST" action="AreaComunControlador.php" id="formPendienteReserva">
-                    <input type="hidden" name="action" value="pendienteReserva">
-                    <input type="hidden" name="id_area" id="pendienteIdArea">
-                    <input type="hidden" name="fecha_reserva" id="pendienteFechaReserva">
-                    <input type="hidden" name="hora_inicio" id="pendienteHoraInicio">
-                    <div class="modal-body">
-                        <div class="text-center">
-                            <i class="fas fa-question-circle fa-3x text-warning mb-3"></i>
-                            <h6>¿Marcar esta reserva como pendiente?</h6>
-                            <div class="reserva-info bg-light p-3 rounded mt-3">
-                                <p class="mb-1"><strong>Área:</strong> <span id="nombreAreaPendiente"></span></p>
-                                <p class="mb-1"><strong>Fecha:</strong> <span id="fechaPendiente"></span></p>
-                                <p class="mb-1"><strong>Horario:</strong> <span id="horarioPendiente"></span></p>
-                                <p class="mb-0"><strong>Persona:</strong> <span id="personaPendiente"></span></p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                            <i class="fas fa-times me-2"></i>Cerrar
-                        </button>
-                        <button type="submit" class="btn btn-warning">
-                            <i class="fas fa-clock me-2"></i>Marcar como Pendiente
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
     <!-- Incluir DataTables CSS y JS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
@@ -405,11 +522,11 @@
                 columnDefs: [
                     {
                         orderable: false,
-                        targets: [5] // Columna de opciones no ordenable
+                        targets: [7] // Columna de opciones no ordenable
                     },
                     {
                         searchable: false,
-                        targets: [5] // Columna de opciones no buscable
+                        targets: [7] // Columna de opciones no buscable
                     },
                     {
                         width: 'auto',
@@ -434,6 +551,7 @@
                 const nombre = button.getAttribute('data-nombre');
                 const descripcion = button.getAttribute('data-descripcion');
                 const capacidad = button.getAttribute('data-capacidad');
+                const costo = button.getAttribute('data-costo');
                 const estado = button.getAttribute('data-estado');
 
                 // Llenar el formulario con los datos actuales
@@ -441,7 +559,52 @@
                 document.getElementById('editNombre').value = nombre;
                 document.getElementById('editDescripcion').value = descripcion;
                 document.getElementById('editCapacidad').value = capacidad;
+                document.getElementById('editCosto').value = costo;
                 document.getElementById('editEstado').value = estado;
+            });
+
+            // Cargar datos en el modal de mantenimiento
+            const mantenimientoModal = document.getElementById('mantenimientoModal');
+            mantenimientoModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const idArea = button.getAttribute('data-id');
+                const nombre = button.getAttribute('data-nombre');
+
+                document.getElementById('mantenimientoIdArea').value = idArea;
+                document.getElementById('nombreAreaMantenimiento').textContent = nombre;
+
+                // Establecer fecha mínima para fecha fin
+                const fechaInicioInput = document.getElementById('fechaInicioMantenimiento');
+                const fechaFinInput = document.getElementById('fechaFinMantenimiento');
+
+                fechaInicioInput.addEventListener('change', function() {
+                    fechaFinInput.min = this.value;
+                    if (fechaFinInput.value && fechaFinInput.value < this.value) {
+                        fechaFinInput.value = this.value;
+                    }
+                });
+            });
+
+            // Cargar datos en el modal de finalizar mantenimiento
+            const finalizarMantenimientoModal = document.getElementById('finalizarMantenimientoModal');
+            finalizarMantenimientoModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const idArea = button.getAttribute('data-id');
+                const nombre = button.getAttribute('data-nombre');
+
+                document.getElementById('finalizarMantenimientoIdArea').value = idArea;
+                document.getElementById('nombreAreaFinalizarMantenimiento').textContent = nombre;
+            });
+
+            // Cargar datos en el modal de ver reservas
+            const verReservasModal = document.getElementById('verReservasModal');
+            verReservasModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const idArea = button.getAttribute('data-id');
+                const nombre = button.getAttribute('data-nombre');
+
+                document.getElementById('verReservasIdArea').value = idArea;
+                document.getElementById('verReservasModalLabel').innerHTML = `<i class="fas fa-list me-2"></i>Ver Reservas - ${nombre}`;
             });
 
             // Cargar datos en el modal de eliminar area
@@ -451,251 +614,30 @@
                 const idArea = button.getAttribute('data-id');
                 const nombre = button.getAttribute('data-nombre');
 
+                document.getElementById('eliminarAreaId').value = idArea;
                 document.getElementById('nombreAreaEliminar').textContent = nombre;
-                document.getElementById('btnConfirmarEliminar').href = `AreaComunControlador.php?action=eliminarArea&id_area=${idArea}`;
             });
 
-            // Cargar reservas del dia al inicio
-            cargarReservasDelDia();
+            // Configurar envío de formularios para cerrar modales automáticamente
+            const forms = document.querySelectorAll('#formEditarArea, #formMantenimiento, #formFinalizarMantenimiento, #formEliminarArea, #formVerReservas');
+            forms.forEach(form => {
+                form.addEventListener('submit', function() {
+                    const modal = bootstrap.Modal.getInstance(this.closest('.modal'));
+                    if (modal) {
+                        modal.hide();
+                    }
+                });
+            });
 
-            // Auto-ocultar alertas despues de 5 segundos
+            // Auto-ocultar alertas después de 5 segundos
             setTimeout(function() {
                 const alerts = document.querySelectorAll('.alert');
                 alerts.forEach(function(alert) {
                     const bsAlert = new bootstrap.Alert(alert);
                     bsAlert.close();
                 });
-            }, 5000);
+            }, 10000);
         });
-
-        // Funcion para cargar reservas del dia
-        function cargarReservasDelDia() {
-            const fecha = document.getElementById('fechaFiltro').value;
-            const container = document.getElementById('reservasHoyContainer');
-
-            // Mostrar loading
-            container.innerHTML = `
-                <div class="text-center py-4">
-                    <i class="fas fa-spinner fa-spin fa-2x text-muted mb-3"></i>
-                    <p class="text-muted">Cargando reservas...</p>
-                </div>
-            `;
-
-            // Obtener todas las reservas para la fecha seleccionada
-            fetch(`AreaComunControlador.php?action=obtenerReservasPorFecha&fecha=${fecha}`)
-                .then(response => response.json())
-                .then(reservas => {
-                    mostrarReservasEnContainer(reservas, fecha);
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    container.innerHTML = `
-                        <div class="text-center py-4">
-                            <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
-                            <p class="text-danger">Error al cargar las reservas</p>
-                        </div>
-                    `;
-                });
-        }
-
-        // Configuración de zona horaria
-        const APP_TIMEZONE = 'America/La_Paz';
-
-        // Función para formatear fechas
-        function formatearFecha(fecha) {
-            if (!fecha) return 'Fecha inválida';
-
-            try {
-                // Para formato YYYY-MM-DD (de input date)
-                if (fecha.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                    const [year, month, day] = fecha.split('-');
-                    return `${day}/${month}/${year}`;
-                }
-
-                // Para otros formatos usar Date con zona horaria
-                const fechaObj = new Date(fecha);
-                return fechaObj.toLocaleDateString('es-ES', {
-                    timeZone: APP_TIMEZONE,
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric'
-                });
-            } catch (error) {
-                return fecha;
-            }
-        }
-        // Funcion para mostrar reservas en el contenedor
-        function mostrarReservasEnContainer(reservas, fecha) {
-            const container = document.getElementById('reservasHoyContainer');
-
-            if (!reservas || reservas.length === 0) {
-                // Formatear la fecha con zona horaria
-                const fechaFormateada = formatearFecha(fecha);
-
-                container.innerHTML = `
-            <div class="text-center py-4">
-                <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
-                <p class="text-muted">No hay reservas para el ${fechaFormateada}</p>
-            </div>
-        `;
-                return;
-            }
-
-            let html = `
-                <div class="table-responsive">
-                    <table class="table table-sm table-hover">
-                        <thead>
-                            <tr>
-                                <th>Área</th>
-                                <th>Horario</th>
-                                <th>Persona</th>
-                                <th>CI</th>
-                                <th>Email</th>
-                                <th>Estado</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-            `;
-
-            reservas.forEach(reserva => {
-                const nombreCompleto = `${reserva.nombre_persona} ${reserva.apellido_persona}`;
-                let badgeClass = '';
-                switch(reserva.estado) {
-                    case 'confirmada': badgeClass = 'bg-success'; break;
-                    case 'pendiente': badgeClass = 'bg-warning'; break;
-                    case 'cancelada': badgeClass = 'bg-danger'; break;
-                    default: badgeClass = 'bg-secondary';
-                }
-
-                html += `
-                    <tr>
-                        <td>
-                            <i class="fas fa-map-marker-alt text-primary me-1"></i>
-                            ${reserva.area_nombre}
-                        </td>
-                        <td>
-                            <i class="fas fa-clock text-info me-1"></i>
-                            ${reserva.hora_inicio} - ${reserva.hora_fin}
-                        </td>
-                        <td>${nombreCompleto}</td>
-                        <td>${reserva.ci || 'N/A'}</td>
-                        <td>${reserva.email || 'N/A'}</td>
-                        <td>
-                            <span class="badge ${badgeClass}">
-                                ${reserva.estado.charAt(0).toUpperCase() + reserva.estado.slice(1)}
-                            </span>
-                        </td>
-                        <td>
-                            <div class="btn-group" role="group">
-                                ${reserva.estado !== 'confirmada' ? `
-                                    <button class="btn btn-success btn-sm"
-                                            onclick="mostrarModalConfirmarReserva(
-                                                '${reserva.id_area}',
-                                                '${reserva.area_nombre}',
-                                                '${reserva.fecha_reserva}',
-                                                '${reserva.hora_inicio}',
-                                                '${reserva.hora_fin}',
-                                                '${nombreCompleto}'
-                                            )" title="Confirmar reserva">
-                                        <i class="fas fa-check"></i>
-                                    </button>
-                                ` : ''}
-                                ${reserva.estado !== 'cancelada' ? `
-                                    <button class="btn btn-danger btn-sm"
-                                            onclick="mostrarModalCancelarReserva(
-                                                '${reserva.id_area}',
-                                                '${reserva.area_nombre}',
-                                                '${reserva.fecha_reserva}',
-                                                '${reserva.hora_inicio}',
-                                                '${reserva.hora_fin}',
-                                                '${nombreCompleto}'
-                                            )" title="Cancelar reserva">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                ` : ''}
-                                ${reserva.estado !== 'pendiente' ? `
-                                    <button class="btn btn-warning btn-sm"
-                                            onclick="mostrarModalPendienteReserva(
-                                                '${reserva.id_area}',
-                                                '${reserva.area_nombre}',
-                                                '${reserva.fecha_reserva}',
-                                                '${reserva.hora_inicio}',
-                                                '${reserva.hora_fin}',
-                                                '${nombreCompleto}'
-                                            )" title="Marcar como pendiente">
-                                        <i class="fas fa-clock"></i>
-                                    </button>
-                                ` : ''}
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            });
-
-            html += `
-                        </tbody>
-                    </table>
-                </div>
-            `;
-
-            container.innerHTML = html;
-        }
-
-        // Funcion para filtrar reservas por fecha
-        function filtrarReservas() {
-            cargarReservasDelDia();
-        }
-
-        // Funcion para mostrar modal de confirmar reserva
-        function mostrarModalConfirmarReserva(idArea, nombreArea, fecha, horaInicio, horaFin, persona) {
-            document.getElementById('nombreAreaReserva').textContent = nombreArea;
-            document.getElementById('fechaReserva').textContent = new Date(fecha).toLocaleDateString('es-ES');
-            document.getElementById('horarioReserva').textContent = `${horaInicio} - ${horaFin}`;
-            document.getElementById('personaReserva').textContent = persona;
-
-            // Llenar el formulario
-            document.getElementById('confirmarIdArea').value = idArea;
-            document.getElementById('confirmarFechaReserva').value = fecha;
-            document.getElementById('confirmarHoraInicio').value = horaInicio;
-
-            // Mostrar el modal
-            const modal = new bootstrap.Modal(document.getElementById('confirmarReservaModal'));
-            modal.show();
-        }
-
-        // Funcion para mostrar modal de cancelar reserva
-        function mostrarModalCancelarReserva(idArea, nombreArea, fecha, horaInicio, horaFin, persona) {
-            document.getElementById('nombreAreaCancelar').textContent = nombreArea;
-            document.getElementById('fechaCancelar').textContent = new Date(fecha).toLocaleDateString('es-ES');
-            document.getElementById('horarioCancelar').textContent = `${horaInicio} - ${horaFin}`;
-            document.getElementById('personaCancelar').textContent = persona;
-
-            // Llenar el formulario
-            document.getElementById('cancelarIdArea').value = idArea;
-            document.getElementById('cancelarFechaReserva').value = fecha;
-            document.getElementById('cancelarHoraInicio').value = horaInicio;
-
-            // Mostrar el modal
-            const modal = new bootstrap.Modal(document.getElementById('cancelarReservaModal'));
-            modal.show();
-        }
-        // Funcion para mostrar modal de marcar como pendiente
-        function mostrarModalPendienteReserva(idArea, nombreArea, fecha, horaInicio, horaFin, persona) {
-            document.getElementById('nombreAreaPendiente').textContent = nombreArea;
-            document.getElementById('fechaPendiente').textContent = new Date(fecha).toLocaleDateString('es-ES');
-            document.getElementById('horarioPendiente').textContent = `${horaInicio} - ${horaFin}`;
-            document.getElementById('personaPendiente').textContent = persona;
-
-            // Llenar el formulario
-            document.getElementById('pendienteIdArea').value = idArea;
-            document.getElementById('pendienteFechaReserva').value = fecha;
-            document.getElementById('pendienteHoraInicio').value = horaInicio;
-
-            // Mostrar el modal
-            const modal = new bootstrap.Modal(document.getElementById('pendienteReservaModal'));
-            modal.show();
-        }
     </script>
 
     <!-- Estilos adicionales -->
@@ -728,14 +670,6 @@
         .table-container {
             width: 100%;
             overflow-x: hidden;
-        }
-
-        .area-info {
-            border-left: 4px solid var(--azul-oscuro);
-        }
-
-        .reserva-info {
-            border-left: 4px solid var(--azul-oscuro);
         }
 
         /* Estilos para DataTable */
@@ -779,28 +713,22 @@
             overflow-x: hidden !important;
         }
 
-        /* Estilos para el formulario de edicion */
-        .form-label {
-            font-weight: 600;
+        /* Estilos para las estadísticas */
+        .content-box.text-center {
+            transition: transform 0.2s;
+        }
+
+        .content-box.text-center:hover {
+            transform: translateY(-5px);
+        }
+
+        .content-box.text-center .fa-2x {
+            margin-bottom: 10px;
+        }
+
+        .content-box.text-center h4 {
+            font-weight: bold;
             color: var(--azul-oscuro);
-        }
-
-        .form-control, .form-select {
-            border-radius: 0.5rem;
-        }
-
-        .form-control:focus, .form-select:focus {
-            border-color: var(--azul-oscuro);
-            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-        }
-
-        /* Estilos para la tabla de reservas del dia */
-        #reservasHoyContainer table {
-            font-size: 0.875rem;
-        }
-
-        #reservasHoyContainer .table th {
-            background-color: #e9ecef;
         }
     </style>
 
