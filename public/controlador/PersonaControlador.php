@@ -216,6 +216,64 @@ class PersonaControlador{
         }
     }
 
+        /**
+     * Ampliar tiempo de verificacion de cuenta
+     */
+
+    public function cambiarContraseña(){
+        if ($_POST['action']=="cambiarContraseña") {
+
+            // Sanitizar datos
+            $id_persona = intval($_POST['id_persona']);
+            $password = $_POST['new_password'];
+
+            try {
+                $resultado = $this->personamodelo->cambiarPassword($id_persona, $password);
+                if($resultado){
+                        session_start();
+                        $personaCompleta=$this->personamodelo->obtenerPersonaPorId($id_persona);
+                        $rol = $this->rolmodelo->obtenerRol($personaCompleta['id_rol']);
+
+                        // Guardar datos en sesion
+                        $_SESSION['id_persona']=$personaCompleta['id_persona'];
+                        $_SESSION['id_rol'] = $personaCompleta['id_rol'];
+                        $_SESSION['rol_nombre'] = $rol['rol'];
+
+                        // Datos personales
+                        $_SESSION['nombre'] = $personaCompleta['nombre'];
+                        $_SESSION['apellido_paterno'] = $personaCompleta['apellido_paterno'];
+                        $_SESSION['apellido_materno'] = $personaCompleta['apellido_materno'] ?? '';
+                        $_SESSION['username'] = $personaCompleta['username'];
+                        $_SESSION['email'] = $personaCompleta['email'];
+                        $_SESSION['telefono'] = $personaCompleta['telefono'];
+                        $_SESSION['ci'] = $personaCompleta['ci'];
+
+                        // Crear avatar para el header
+                        $inicialNombre = strtoupper(substr($personaCompleta['nombre'], 0, 1));
+                        $inicialApellido = strtoupper(substr($personaCompleta['apellido_paterno'], 0, 1));
+                        $_SESSION['avatar'] = $inicialNombre . $inicialApellido;
+
+                        // Redirigir segun el rol
+                        switch ($_SESSION['id_rol']) {
+                            case '1':
+                                header("Location: ../controlador/DashboardControlador.php?action=mostrarDashboardAdministrador");
+                                break;
+                            case '2':
+                                header("Location: ../controlador/DashboardControlador.php?action=mostrarDashboardResidente");
+                                break;
+                            default:
+                                header("Location: ../controlador/DashboardControlador.php?action=mostrarDashboardPersonal");
+                                break;
+                        }
+                        exit();
+                } else {
+                //    $this->redirigirEdicionConError("Error al restablecer contrasena - No se pudo ejecutar la consulta", $id_rol);
+                }
+            } catch (Exception $e) {
+              //  $this->redirigirEdicionConError("Error en base de datos: ".$e->getMessage(), $id_rol);
+            }
+        }
+    }
     /**
      * Ampliar tiempo de verificacion de cuenta
      */
@@ -316,14 +374,17 @@ class PersonaControlador{
                 $user = $this->personamodelo->login($username, $password);
 
                 if ($user) {
+                     $_SESSION['id_persona'] = $user['id_persona'];
                     // Obtener informacion completa de la persona
+                    if(!$this->personamodelo->verificacionPersona($user['id_persona'])){
+                        include_once "../vista/VerificacionVista.php";
+                    }else{
                     $personaCompleta = $this->personamodelo->obtenerPersonaPorId($user['id_persona']);
 
                     if ($personaCompleta) {
                         $rol = $this->rolmodelo->obtenerRol($personaCompleta['id_rol']);
 
                         // Guardar datos en sesion
-                        $_SESSION['id_persona'] = $personaCompleta['id_persona'];
                         $_SESSION['id_rol'] = $personaCompleta['id_rol'];
                         $_SESSION['rol_nombre'] = $rol['rol'];
 
@@ -358,7 +419,8 @@ class PersonaControlador{
                         $_SESSION['error'] = "Error al obtener informacion del usuario";
                         header("Location: ../vista/LoginVista.php");
                         exit();
-                    }
+                    } 
+                 }
                 } else {
                     $_SESSION['error'] = "Usuario o contrasena incorrectos";
                     header("Location: ../vista/LoginVista.php");
@@ -525,6 +587,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             break;
         case 'restaurarPersona':
             $controlador->restaurarPersona();
+            break;
+        case 'cambiarContraseña':
+            $controlador->cambiarContraseña();
             break;
         default:
             header('Location: ../vista/DashboardVista.php?error=Accion no valida');

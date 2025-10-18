@@ -427,5 +427,64 @@ class PersonaModelo
         }
         return false;
     }
+    public function verificacionPersona($id_persona) {
+    // FALTA UN ESPACIO después de table_name
+    $sql = "SELECT * FROM ".$this->table_name." WHERE id_persona = :id_persona and verificado = 1";
+    $stmt = $this->db->prepare($sql);
+    $stmt->bindParam(':id_persona', $id_persona);
+    $stmt->execute();  
+    if ($stmt->rowCount() > 0) {
+        return true; 
+    }
+    return false;
+}
+public function cambiarPassword($id_persona, $password){
+    try {
+        // Validar parámetros de entrada
+        if (empty($id_persona) || empty($password)) {
+            throw new InvalidArgumentException("ID de persona y contraseña son obligatorios");
+        }
 
+        // Hash de la contraseña
+        $password_hash = password_hash($password, PASSWORD_DEFAULT);
+        if (!$password_hash) {
+            throw new Exception("Error al generar el hash de la contraseña");
+        }
+
+        // VERIFICA EL NOMBRE REAL DE TU COLUMNA EN LA BASE DE DATOS
+        
+        // Si tu columna realmente se llama 'password_hash', déjalo así:
+        
+        $query = "UPDATE " . $this->table_name . " 
+                 SET password_hash = :password_hash,
+                 verificado = true
+                 WHERE id_persona = :id_persona";
+        
+
+        $stmt = $this->db->prepare($query);
+        $stmt->bindParam(":password_hash", $password_hash);
+        $stmt->bindParam(":id_persona", $id_persona);
+
+        if($stmt->execute()){
+            // Verificar si realmente se actualizó algún registro
+            if ($stmt->rowCount() > 0) {
+                return true;
+            } else {
+                error_log("Advertencia: No se encontró el usuario con ID: " . $id_persona);
+                return false;
+            }
+        } else {
+            $errorInfo = $stmt->errorInfo();
+            error_log("Error en execute: " . implode(", ", $errorInfo));
+            return false;
+        }
+
+    } catch (InvalidArgumentException $e) {
+        error_log("Error de validación en cambiarPassword: " . $e->getMessage());
+        return false;
+    } catch (Exception $e) {
+        error_log("Error en cambiarPassword: " . $e->getMessage());
+        return false;
+    }
+}
 }
