@@ -360,80 +360,179 @@ class PersonaControlador{
     // =============================================
     // METODOS DE AUTENTICACION
     // =============================================
-
     /**
-     * Procesar inicio de sesion
+     * Procesar inicio de sesión
      */
     public function login() {
         if ($_POST) {
             session_start();
             $username = $_POST['username'] ?? '';
             $password = $_POST['password'] ?? '';
+            $recaptcha_response = $_POST['g-recaptcha-response'] ?? '';
 
-            if (!empty($username) && !empty($password)) {
-                $user = $this->personamodelo->login($username, $password);
+            // 1. Validar reCAPTCHA primero
+            if (!$this->validarRecaptcha($recaptcha_response)) {
+                header("Location: ../vista/LoginVista.php?error=Por favor, verifica que no eres un robot");
+                exit();
+            }
 
-                if ($user) {
-                     $_SESSION['id_persona'] = $user['id_persona'];
-                    // Obtener informacion completa de la persona
-                    if(!$this->personamodelo->verificacionPersona($user['id_persona'])){
-                        include_once "../vista/VerificacionVista.php";
-                    }else{
-                    $personaCompleta = $this->personamodelo->obtenerPersonaPorId($user['id_persona']);
+            // 2. Validar campos vacíos
+            if (empty($username) || empty($password)) {
+                header("Location: ../vista/LoginVista.php?error=Todos los campos son obligatorios");
+                exit();
+            }
 
-                    if ($personaCompleta) {
-                        $rol = $this->rolmodelo->obtenerRol($personaCompleta['id_rol']);
-
-                        // Guardar datos en sesion
-                        $_SESSION['id_rol'] = $personaCompleta['id_rol'];
-                        $_SESSION['rol_nombre'] = $rol['rol'];
-
-                        // Datos personales
-                        $_SESSION['nombre'] = $personaCompleta['nombre'];
-                        $_SESSION['apellido_paterno'] = $personaCompleta['apellido_paterno'];
-                        $_SESSION['apellido_materno'] = $personaCompleta['apellido_materno'] ?? '';
-                        $_SESSION['username'] = $personaCompleta['username'];
-                        $_SESSION['email'] = $personaCompleta['email'];
-                        $_SESSION['telefono'] = $personaCompleta['telefono'];
-                        $_SESSION['ci'] = $personaCompleta['ci'];
-
-                        // Crear avatar para el header
-                        $inicialNombre = strtoupper(substr($personaCompleta['nombre'], 0, 1));
-                        $inicialApellido = strtoupper(substr($personaCompleta['apellido_paterno'], 0, 1));
-                        $_SESSION['avatar'] = $inicialNombre . $inicialApellido;
-
-                        // Redirigir segun el rol
-                        switch ($_SESSION['id_rol']) {
-                            case '1':
-                                header("Location: ../controlador/DashboardControlador.php?action=mostrarDashboardAdministrador");
-                                break;
-                            case '2':
-                                header("Location: ../controlador/DashboardControlador.php?action=mostrarDashboardResidente");
-                                break;
-                            default:
-                                header("Location: ../controlador/DashboardControlador.php?action=mostrarDashboardPersonal");
-                                break;
-                        }
-                        exit();
-                    } else {
-                        $_SESSION['error'] = "Error al obtener informacion del usuario";
-                        header("Location: ../vista/LoginVista.php");
-                        exit();
-                    } 
-                 }
+            // 3. Verificar si el usuario está bloqueado temporalmente (ANTES del login)
+            $bloqueoInfo = $this->personamodelo->verificarTiempoBloqueo($username);
+            if ($bloqueoInfo['bloqueado']) {
+                if ($bloqueoInfo['bloqueo_permanente']) {
+                    $mensajeError = "Cuenta bloqueada permanentemente por seguridad. Contacte al administrador.";
+                    header("Location: ../vista/LoginVista.php?error=" . urlencode($mensajeError));
                 } else {
-                    $_SESSION['error'] = "Usuario o contrasena incorrectos";
-                    header("Location: ../vista/LoginVista.php");
+                    $mensajeError = "Cuenta temporalmente bloqueada. Tiempo restante: " . $bloqueoInfo['tiempo_restante'];
+                    // Pasar el tiempo en segundos para el JavaScript
+                    $tiempo_segundos = $bloqueoInfo['segundos_restantes'];
+                    // Para debug
+                    error_log("DEBUG BLOQUEO INICIAL - Tiempo: " . $tiempo_segundos . "s, Usuario: " . $username);
+                    header("Location: ../vista/LoginVista.php?error=" . urlencode($mensajeError) . "&bloqueado=true&tiempo=" . $tiempo_segundos);
+                }
+                exit();
+            }
+
+            // 4. Resto de la lógica de login
+            $user = $this->personamodelo->login($username, $password);
+
+            if ($user) {
+                // Login exitoso - registrar en historial y resetear bloqueo
+                $this->personamodelo->successLogin($user['id_persona'], $username);
+
+                $_SESSION['id_persona'] = $user['id_persona'];
+
+                // PRIMERO: Verificar si el tiempo de verificación ha vencido
+                if ($this->personamodelo->tiempoVerificacionVencido($user['id_persona'])) {
+                    session_destroy();
+                    header("Location: ../vista/LoginVista.php?error=Su tiempo para verificar su cuenta ha vencido");
+                    exit();
+                }
+
+                // SEGUNDO: Verificar si la persona está verificada
+                if (!$this->personamodelo->verificacionPersona($user['id_persona'])) {
+                    // VERIFICAR SI ESTÁ BLOQUEADO ANTES DE MOSTRAR PANTALLA DE VERIFICACIÓN
+                    $bloqueoInfo = $this->personamodelo->verificarTiempoBloqueoPorId($user['id_persona']);
+                    if ($bloqueoInfo['bloqueado']) {
+                        session_destroy();
+                        if ($bloqueoInfo['bloqueo_permanente']) {
+                            $mensajeError = "Cuenta bloqueada permanentemente. No puede verificar su cuenta.";
+                        } else {
+                            $mensajeError = "No puede verificar su cuenta mientras esté bloqueado. Tiempo restante: " . $bloqueoInfo['tiempo_restante'];
+                        }
+                        header("Location: ../vista/LoginVista.php?error=" . urlencode($mensajeError));
+                        exit();
+                    }
+
+                    include_once "../vista/VerificacionVista.php";
+                    exit();
+                } else {
+                    // Persona verificada y tiempo no vencido - proceder con el login
+                    $rol = $this->rolmodelo->obtenerRol($user['id_rol']);
+
+                    // Guardar datos en sesión
+                    $_SESSION['id_rol'] = $user['id_rol'];
+                    $_SESSION['rol_nombre'] = $rol['rol'];
+
+                    // Datos personales
+                    $_SESSION['nombre'] = $user['nombre'];
+                    $_SESSION['apellido_paterno'] = $user['apellido_paterno'];
+                    $_SESSION['apellido_materno'] = $user['apellido_materno'] ?? '';
+                    $_SESSION['username'] = $user['username'];
+                    $_SESSION['email'] = $user['email'];
+                    $_SESSION['telefono'] = $user['telefono'];
+                    $_SESSION['ci'] = $user['ci'];
+
+                    // Crear avatar para el header
+                    $inicialNombre = strtoupper(substr($user['nombre'], 0, 1));
+                    $inicialApellido = strtoupper(substr($user['apellido_paterno'], 0, 1));
+                    $_SESSION['avatar'] = $inicialNombre . $inicialApellido;
+
+                    // Redirigir según el rol
+                    switch ($_SESSION['id_rol']) {
+                        case '1':
+                            header("Location: ../controlador/DashboardControlador.php?action=mostrarDashboardAdministrador");
+                            break;
+                        case '2':
+                            header("Location: ../controlador/DashboardControlador.php?action=mostrarDashboardResidente");
+                            break;
+                        default:
+                            header("Location: ../controlador/DashboardControlador.php?action=mostrarDashboardPersonal");
+                            break;
+                    }
                     exit();
                 }
             } else {
-                $_SESSION['error'] = "Todos los campos son obligatorios";
-                header("Location: ../vista/LoginVista.php");
+                // Login fallido - registrar en historial y verificar bloqueo
+                $this->personamodelo->errorLogin($username);
+
+                // Verificar si después de este intento fallido debe bloquearse
+                $bloqueoInfo = $this->personamodelo->verificarYBloquearUsuario($username);
+                if ($bloqueoInfo['bloqueado']) {
+                    if ($bloqueoInfo['bloqueo_permanente']) {
+                        $mensajeError = "Cuenta bloqueada permanentemente por seguridad. Contacte al administrador.";
+                        header("Location: ../vista/LoginVista.php?error=" . urlencode($mensajeError));
+                    } else {
+                        $mensajeError = "Demasiados intentos fallidos. Cuenta bloqueada por: " . $bloqueoInfo['tiempo_restante'];
+                        // Pasar el tiempo en segundos para el JavaScript
+                        $tiempo_segundos = $bloqueoInfo['segundos_restantes'] ?? 30;
+                        // Para debug
+                        error_log("DEBUG BLOQUEO FALLIDO - Tiempo: " . $tiempo_segundos . "s, Nivel: " . ($bloqueoInfo['nivel_bloqueo'] ?? 'N/A') . ", Usuario: " . $username);
+                        header("Location: ../vista/LoginVista.php?error=" . urlencode($mensajeError) . "&bloqueado=true&tiempo=" . $tiempo_segundos);
+                    }
+                } else {
+                    $mensajeError = "Usuario o contraseña incorrectos";
+                    header("Location: ../vista/LoginVista.php?error=" . urlencode($mensajeError));
+                }
                 exit();
             }
         }
     }
+    /**
+     * Validar reCAPTCHA v2
+     */
+    private function validarRecaptcha($recaptcha_response) {
+        $secret_key = "6LdZwe0rAAAAABfHgehPznrTwz-M6SydOiaHAfrU"; // Tu SECRET_KEY aquí
 
+        // Verificar si está vacío
+        if (empty($recaptcha_response)) {
+            return false;
+        }
+
+        // Validar con Google
+        $url = 'https://www.google.com/recaptcha/api/siteverify';
+        $data = [
+            'secret' => $secret_key,
+            'response' => $recaptcha_response,
+            'remoteip' => $_SERVER['REMOTE_ADDR']
+        ];
+
+        $options = [
+            'http' => [
+                'header' => "Content-type: application/x-www-form-urlencoded\r\n",
+                'method' => 'POST',
+                'content' => http_build_query($data)
+            ]
+        ];
+
+        $context = stream_context_create($options);
+        $response = file_get_contents($url, false, $context);
+
+        if ($response === false) {
+            error_log("Error de conexión con reCAPTCHA");
+            return false;
+        }
+
+        $result = json_decode($response, true);
+
+        return $result['success'] ?? false;
+    }
     /**
      * Cerrar sesion y destruir datos de sesion
      */
@@ -508,6 +607,32 @@ class PersonaControlador{
             header('Location: ../controlador/PersonaControlador.php?action=listarPersonal&&error=' . urlencode($mensaje));
         }
         exit;
+    }
+
+    /**
+     * Verificar estado de bloqueo para AJAX
+     */
+    public function verificarBloqueo() {
+        if ($_POST && isset($_POST['username'])) {
+            $username = $_POST['username'] ?? '';
+
+            if (!empty($username)) {
+                $bloqueoInfo = $this->personamodelo->verificarTiempoBloqueo($username);
+                header('Content-Type: application/json');
+                echo json_encode($bloqueoInfo);
+                exit();
+            }
+        }
+
+        // Si no hay username, retornar error
+        header('Content-Type: application/json');
+        echo json_encode([
+            'bloqueado' => false,
+            'tiempo_restante' => '0 segundos',
+            'segundos_restantes' => 0,
+            'bloqueo_permanente' => false
+        ]);
+        exit();
     }
 }
 
@@ -590,6 +715,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             break;
         case 'cambiarContraseña':
             $controlador->cambiarContraseña();
+            break;
+        case 'verificarBloqueo': // ← NUEVA ACCIÓN PARA AJAX
+            $controlador->verificarBloqueo();
             break;
         default:
             header('Location: ../vista/DashboardVista.php?error=Accion no valida');

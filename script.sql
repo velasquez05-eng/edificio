@@ -24,6 +24,7 @@ CREATE TABLE persona (
                          tiempo_verificacion DATETIME DEFAULT NULL,
                          codigo_recuperacion VARCHAR(6) DEFAULT NULL,
                          tiempo_codigo_recuperacion DATETIME DEFAULT NULL,
+                         intentos_fallidos INT DEFAULT 0,
                          tiempo_bloqueo DATETIME DEFAULT NULL,
                          fecha_eliminado DATETIME DEFAULT NULL,
                          estado ENUM('activo', 'inactivo') DEFAULT 'activo',

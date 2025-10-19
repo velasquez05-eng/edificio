@@ -388,7 +388,17 @@ class PersonaModelo
 
     // para el inicio de session
     public function login($username, $password) {
-        $query = "SELECT * FROM " . $this->table_name . " WHERE username = :username AND estado = 'activo'";
+        // Determinar si el parámetro es un email o username
+        $isEmail = filter_var($username, FILTER_VALIDATE_EMAIL);
+
+        if ($isEmail) {
+            // Buscar por email
+            $query = "SELECT * FROM " . $this->table_name . " WHERE email = :username AND estado = 'activo'";
+        } else {
+            // Buscar por username
+            $query = "SELECT * FROM " . $this->table_name . " WHERE username = :username AND estado = 'activo'";
+        }
+
         $stmt = $this->db->prepare($query);
         $stmt->bindParam(':username', $username);
         $stmt->execute();
@@ -437,7 +447,284 @@ class PersonaModelo
         return true; 
     }
     return false;
-}
+    }
+    public function tiempoVerificacionVencido($id_persona) {
+        $sql = "SELECT * FROM ".$this->table_name." 
+            WHERE id_persona = :id_persona 
+            AND NOW() > tiempo_verificacion 
+            AND verificado = 0";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':id_persona', $id_persona);
+        $stmt->execute();
+
+        return $stmt->rowCount() > 0;
+    }
+    public function successLogin($id_persona, $username) {
+        try {
+            // Registrar en historial_login como exitoso
+            $sql_historial = "INSERT INTO historial_login (id_persona, fecha, estado) 
+                         VALUES (:id_persona, NOW(), 'exitoso')";
+            $stmt_historial = $this->db->prepare($sql_historial);
+            $stmt_historial->bindParam(':id_persona', $id_persona);
+            $stmt_historial->execute();
+
+            // Resetear completamente el sistema de bloqueo
+            $sql_reset = "UPDATE " . $this->table_name . " 
+                     SET tiempo_bloqueo = NULL,
+                         intentos_fallidos = 0
+                     WHERE id_persona = :id_persona";
+            $stmt_reset = $this->db->prepare($sql_reset);
+            $stmt_reset->bindParam(':id_persona', $id_persona);
+            $stmt_reset->execute();
+
+            return true;
+        } catch (Exception $e) {
+            error_log("Error en successLogin: " . $e->getMessage());
+            return false;
+        }
+    }
+    public function errorLogin($username) {
+        try {
+            // Buscar usuario por username o email
+            $sql_user = "SELECT id_persona FROM " . $this->table_name . " 
+                    WHERE (username = :username OR email = :username) 
+                    AND estado = 'activo'";
+            $stmt_user = $this->db->prepare($sql_user);
+            $stmt_user->bindParam(':username', $username);
+            $stmt_user->execute();
+
+            if ($stmt_user->rowCount() == 1) {
+                $user = $stmt_user->fetch(PDO::FETCH_ASSOC);
+                $id_persona = $user['id_persona'];
+
+                // Registrar en historial_login como fallido
+                $sql_historial = "INSERT INTO historial_login (id_persona, fecha, estado) 
+                             VALUES (:id_persona, NOW(), 'fallido')";
+                $stmt_historial = $this->db->prepare($sql_historial);
+                $stmt_historial->bindParam(':id_persona', $id_persona);
+                $stmt_historial->execute();
+
+                // Incrementar contador de intentos fallidos
+                $sql_update = "UPDATE " . $this->table_name . " 
+                          SET intentos_fallidos = intentos_fallidos + 1
+                          WHERE id_persona = :id_persona";
+                $stmt_update = $this->db->prepare($sql_update);
+                $stmt_update->bindParam(':id_persona', $id_persona);
+                $stmt_update->execute();
+
+                return true;
+            }
+            return false;
+        } catch (Exception $e) {
+            error_log("Error en errorLogin: " . $e->getMessage());
+            return false;
+        }
+    }
+    public function verificarTiempoBloqueo($username) {
+        try {
+            $sql = "SELECT id_persona, tiempo_bloqueo, estado,
+                       TIMESTAMPDIFF(SECOND, NOW(), tiempo_bloqueo) as segundos_restantes
+                FROM " . $this->table_name . " 
+                WHERE (username = :username OR email = :username)";
+
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindParam(':username', $username);
+            $stmt->execute();
+
+            if ($stmt->rowCount() == 1) {
+                $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                // Verificar si la cuenta está inactiva (bloqueo permanente)
+                if ($user['estado'] == 'inactivo') {
+                    return [
+                        'bloqueado' => true,
+                        'tiempo_restante' => 'PERMANENTE',
+                        'segundos_restantes' => 0,
+                        'bloqueo_permanente' => true
+                    ];
+                }
+
+                // Verificar bloqueo temporal
+                if ($user['tiempo_bloqueo'] !== null && $user['segundos_restantes'] > 0) {
+                    $segundos_restantes = $user['segundos_restantes'];
+
+                    return [
+                        'bloqueado' => true,
+                        'tiempo_restante' => $this->formatearTiempo($segundos_restantes),
+                        'segundos_restantes' => $segundos_restantes,
+                        'bloqueo_permanente' => false
+                    ];
+                }
+            }
+
+            return [
+                'bloqueado' => false,
+                'tiempo_restante' => '0 segundos',
+                'segundos_restantes' => 0,
+                'bloqueo_permanente' => false
+            ];
+
+        } catch (Exception $e) {
+            error_log("Error en verificarTiempoBloqueo: " . $e->getMessage());
+            return [
+                'bloqueado' => false,
+                'tiempo_restante' => '0 segundos',
+                'segundos_restantes' => 0,
+                'bloqueo_permanente' => false
+            ];
+        }
+    }
+    public function verificarYBloquearUsuario($username) {
+        try {
+            $sql = "SELECT id_persona, intentos_fallidos, tiempo_bloqueo 
+                FROM " . $this->table_name . " 
+                WHERE (username = :username OR email = :username) 
+                AND estado = 'activo'";
+
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindParam(':username', $username);
+            $stmt->execute();
+
+            if ($stmt->rowCount() == 1) {
+                $user = $stmt->fetch(PDO::FETCH_ASSOC);
+                $intentos_fallidos = $user['intentos_fallidos'];
+
+                // Si tiene 3 o más intentos fallidos, aplicar bloqueo
+                if ($intentos_fallidos >= 3) {
+                    $nivel_bloqueo = min(($intentos_fallidos - 2), 4); // 1, 2, 3 o 4
+
+                    // Niveles de bloqueo progresivo
+                    if ($nivel_bloqueo <= 3) {
+                        // Bloqueos temporales
+                        $tiempo_bloqueo_segundos = 30 * pow(2, $nivel_bloqueo - 1); // 30, 60, 120 segundos
+
+                        $sql_bloqueo = "UPDATE " . $this->table_name . " 
+                                   SET tiempo_bloqueo = DATE_ADD(NOW(), INTERVAL :tiempo SECOND)
+                                   WHERE id_persona = :id_persona";
+
+                        $stmt_bloqueo = $this->db->prepare($sql_bloqueo);
+                        $stmt_bloqueo->bindParam(':tiempo', $tiempo_bloqueo_segundos);
+                        $stmt_bloqueo->bindParam(':id_persona', $user['id_persona']);
+                        $stmt_bloqueo->execute();
+
+                        return [
+                            'bloqueado' => true,
+                            'tiempo_restante' => $this->formatearTiempo($tiempo_bloqueo_segundos),
+                            'segundos_restantes' => $tiempo_bloqueo_segundos, // ← Asegurar que se envíe esto
+                            'nivel_bloqueo' => $nivel_bloqueo,
+                            'bloqueo_permanente' => false
+                        ];
+                    } else {
+                        // CUARTO NIVEL: Bloqueo permanente
+                        $sql_bloqueo_permanente = "UPDATE " . $this->table_name . " 
+                                              SET estado = 'inactivo',
+                                                  tiempo_bloqueo = NULL,
+                                                  fecha_eliminado = NOW()
+                                              WHERE id_persona = :id_persona";
+
+                        $stmt_bloqueo = $this->db->prepare($sql_bloqueo_permanente);
+                        $stmt_bloqueo->bindParam(':id_persona', $user['id_persona']);
+                        $stmt_bloqueo->execute();
+
+                        return [
+                            'bloqueado' => true,
+                            'tiempo_restante' => 'PERMANENTE',
+                            'segundos_restantes' => 0,
+                            'nivel_bloqueo' => $nivel_bloqueo,
+                            'bloqueo_permanente' => true
+                        ];
+                    }
+                }
+            }
+
+            return [
+                'bloqueado' => false,
+                'tiempo_restante' => '0 segundos',
+                'segundos_restantes' => 0,
+                'nivel_bloqueo' => 0,
+                'bloqueo_permanente' => false
+            ];
+
+        } catch (Exception $e) {
+            error_log("Error en verificarYBloquearUsuario: " . $e->getMessage());
+            return [
+                'bloqueado' => false,
+                'tiempo_restante' => '0 segundos',
+                'segundos_restantes' => 0,
+                'nivel_bloqueo' => 0,
+                'bloqueo_permanente' => false
+            ];
+        }
+    }
+    public function verificarTiempoBloqueoPorId($id_persona) {
+        try {
+            $sql = "SELECT tiempo_bloqueo, estado,
+                       TIMESTAMPDIFF(SECOND, NOW(), tiempo_bloqueo) as segundos_restantes
+                FROM " . $this->table_name . " 
+                WHERE id_persona = :id_persona";
+
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindParam(':id_persona', $id_persona);
+            $stmt->execute();
+
+            if ($stmt->rowCount() == 1) {
+                $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                // Verificar si la cuenta está inactiva (bloqueo permanente)
+                if ($user['estado'] == 'inactivo') {
+                    return [
+                        'bloqueado' => true,
+                        'tiempo_restante' => 'PERMANENTE',
+                        'segundos_restantes' => 0,
+                        'bloqueo_permanente' => true
+                    ];
+                }
+
+                // Verificar bloqueo temporal
+                if ($user['tiempo_bloqueo'] > NOW()) {
+                    $segundos_restantes = $user['segundos_restantes'];
+
+                    return [
+                        'bloqueado' => true,
+                        'tiempo_restante' => $this->formatearTiempo($segundos_restantes),
+                        'segundos_restantes' => $segundos_restantes,
+                        'bloqueo_permanente' => false
+                    ];
+                }
+            }
+
+            return [
+                'bloqueado' => false,
+                'tiempo_restante' => '0 segundos',
+                'segundos_restantes' => 0,
+                'bloqueo_permanente' => false
+            ];
+
+        } catch (Exception $e) {
+            error_log("Error en verificarTiempoBloqueoPorId: " . $e->getMessage());
+            return [
+                'bloqueado' => false,
+                'tiempo_restante' => '0 segundos',
+                'segundos_restantes' => 0,
+                'bloqueo_permanente' => false
+            ];
+        }
+    }
+    // Método auxiliar para formatear el tiempo
+    private function formatearTiempo($segundos) {
+        if ($segundos < 60) {
+            return $segundos . ' segundos';
+        } else {
+            $minutos = floor($segundos / 60);
+            $segundos_restantes = $segundos % 60;
+            if ($segundos_restantes > 0) {
+                return $minutos . ' minuto' . ($minutos > 1 ? 's' : '') .
+                    ' y ' . $segundos_restantes . ' segundo' . ($segundos_restantes > 1 ? 's' : '');
+            } else {
+                return $minutos . ' minuto' . ($minutos > 1 ? 's' : '');
+            }
+        }
+    }
 public function cambiarPassword($id_persona, $password){
     try {
         // Validar parámetros de entrada

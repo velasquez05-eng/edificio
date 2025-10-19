@@ -4,117 +4,107 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login | SEINT</title>
-    <link href="../../includes/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../../includes/css/login.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <style>
-        /* --- Estilos adicionales --- */
+        :root {
+            --celeste: #afefce;
+            --verde-suave: #99b6a0;
+            --verde: #368979;
+            --azul: #2a7595;
+            --azul-oscuro: #0d3d47;
+        }
+
         body {
-            background-color: #f5f7fa;
+            background: linear-gradient(135deg, var(--celeste) 0%, var(--azul) 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
 
         .login-container {
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-            border-radius: 16px;
+            max-width: 1000px;
+            width: 100%;
+            margin: auto;
+            border-radius: 20px;
             overflow: hidden;
-            background: #fff;
+            box-shadow: 0 15px 40px rgba(13, 61, 71, 0.25);
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .login-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 45px rgba(13, 61, 71, 0.3);
+        }
+
+        .login-left {
+            background: linear-gradient(135deg, var(--azul-oscuro) 0%, var(--azul) 100%);
+            color: white;
+            padding: 50px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
         .login-right {
-            padding: 2rem 3rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        /* Lado izquierdo con colores del sistema */
-        .login-left {
-            background: linear-gradient(135deg, #2a7595 0%, #0d3d47 100%);
-            color: white;
-            padding: 3rem 2rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
+            background-color: white;
+            padding: 50px 40px;
         }
 
         .logo-container {
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 40px;
         }
 
         .logo {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            color: #afcfce;
+            width: 120px;
+            height: 120px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 50px;
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: rotate(10deg) scale(1.05);
         }
 
         .system-title {
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            color: white;
+            font-size: 26px;
+            font-weight: 600;
+            margin-bottom: 10px;
         }
 
         .system-subtitle {
-            color: #afcfce;
-            font-size: 1rem;
-        }
-
-        .features {
-            margin-top: 1.5rem;
+            font-size: 16px;
+            opacity: 0.9;
         }
 
         .feature-item h5 {
-            color: #99b6a0;
+            font-weight: 600;
         }
 
-        .feature-item p {
-            color: #afcfce;
-            font-size: 0.9rem;
+        .form-control {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
         }
 
-        /* Ícono dinámico */
-        .icon-container {
-            text-align: center;
-            margin-bottom: 1rem;
-            position: relative;
-            height: 80px;
-        }
-
-        .icon-dynamic {
-            font-size: 3.5rem;
-            color: #6c757d;
-            transition: all 0.5s ease;
-            opacity: 0;
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%) scale(0.8);
-        }
-
-        .icon-dynamic.active {
-            opacity: 1;
-            transform: translateX(-50%) scale(1);
-        }
-
-        .icon-dynamic.user {
-            color: #2a7595;
-        }
-
-        .icon-dynamic.robot-error {
-            color: #dc3545;
-        }
-
-        h3 {
-            text-align: center;
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 1.5rem;
-            transition: color 0.3s ease;
-        }
-
-        .form-label {
-            font-weight: 500;
-            color: #0d3d47;
+        .form-control:focus {
+            border-color: var(--azul);
+            box-shadow: 0 0 10px rgba(42, 117, 149, 0.25);
+            transform: scale(1.02);
         }
 
         .password-container {
@@ -123,58 +113,149 @@
 
         .toggle-password {
             position: absolute;
-            top: 50%;
-            right: 12px;
-            transform: translateY(-50%);
+            right: 15px;
+            top: 12px;
             cursor: pointer;
-            color: #888;
+            color: var(--azul);
+            transition: color 0.3s ease;
+            z-index: 5;
         }
 
         .toggle-password:hover {
-            color: #2a7595;
+            color: var(--azul-oscuro);
+        }
+
+        /* Solución para reposicionar los iconos de validación */
+        .was-validated .form-control:valid,
+        .was-validated .form-control:invalid {
+            padding-right: 45px;
+            background-position: right 15px center;
+        }
+
+        .was-validated .password-container .form-control:valid,
+        .was-validated .password-container .form-control:invalid {
+            padding-right: 70px;
+            background-position: right 40px center;
+        }
+
+        /* Centrar el reCAPTCHA */
+        .g-recaptcha {
+            display: flex;
+            justify-content: center;
+        }
+
+        .g-recaptcha > div {
+            margin: 0 auto;
         }
 
         .btn-login {
-            background-color: #368979;
-            border-color: #368979;
-            transition: all 0.3s ease-in-out;
+            background-color: var(--verde);
+            border: none;
             border-radius: 10px;
+            padding: 12px;
             font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(54, 137, 121, 0.3);
         }
 
         .btn-login:hover {
-            background-color: #2a7595;
-            border-color: #2a7595;
+            background-color: var(--azul);
+            box-shadow: 0 6px 15px rgba(42, 117, 149, 0.4);
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(42, 117, 149, 0.3);
-        }
-
-        #recaptchaError {
-            font-size: 0.9rem;
-            color: #d9534f;
-            display: none;
-            text-align: center;
         }
 
         .login-links {
-            text-align: center;
-            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
         }
 
-        .forgot-password-link {
+        .login-links a {
+            color: var(--azul);
             text-decoration: none;
-            color: #2a7595;
-            font-size: 0.9rem;
+            font-size: 14px;
+            transition: all 0.3s ease;
         }
 
-        .forgot-password-link:hover {
-            color: #0d3d47;
+        .login-links a:hover {
+            color: var(--azul-oscuro);
             text-decoration: underline;
         }
 
-        .form-control:focus {
-            border-color: #2a7595;
-            box-shadow: 0 0 0 0.25rem rgba(42, 117, 149, 0.25);
+        .alert {
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        #loginTitle {
+            font-weight: 700;
+            margin-bottom: 25px;
+            text-align: center;
+            color: var(--azul-oscuro);
+        }
+
+        /* Nuevos estilos para el contador de bloqueo */
+        .bloqueo-container {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 1px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .bloqueo-titulo {
+            color: #856404;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .bloqueo-tiempo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #d63031;
+            font-family: 'Courier New', monospace;
+        }
+
+        .bloqueo-mensaje {
+            color: #856404;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .btn-login:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .form-control:disabled {
+            background-color: #e9ecef;
+            opacity: 1;
+        }
+
+        .g-recaptcha-disabled {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        @media (max-width: 768px) {
+            .login-left {
+                display: none;
+            }
+
+            .login-right {
+                padding: 30px 25px;
+            }
+
+            .login-container {
+                box-shadow: 0 10px 30px rgba(13, 61, 71, 0.25);
+            }
+
+            /* Ajustes para reCAPTCHA en móviles */
+            .g-recaptcha {
+                transform: scale(0.9);
+                transform-origin: center;
+            }
         }
     </style>
 </head>
@@ -209,36 +290,48 @@
 
             <!-- Lado derecho -->
             <div class="col-md-6 login-right">
-                <form method="POST" action="../controlador/PersonaControlador.php" id="loginForm">
+                <form method="POST" action="../controlador/PersonaControlador.php" id="loginForm" novalidate>
                     <input type="hidden" name="action" value="login">
 
+                    <h3 id="loginTitle">Iniciar Sesión</h3>
 
+                    <!-- Contenedor para mostrar el bloqueo -->
+                    <div id="bloqueoContainer" class="bloqueo-container d-none">
+                        <div class="bloqueo-titulo">
+                            <i class="fas fa-lock me-2"></i>Cuenta Temporalmente Bloqueada
+                        </div>
+                        <div class="bloqueo-tiempo" id="tiempoRestante">
+                            00:00
+                        </div>
+                        <div class="bloqueo-mensaje">
+                            Podrás intentar nuevamente cuando el tiempo finalice
+                        </div>
+                    </div>
 
-                    <h3 id="loginTitle">Login</h3>
-   <?php if (isset($_SESSION['error'])): ?>
-                        <div class="alert alert-danger">
-                            <?php 
-                                echo $_SESSION['error']; 
-                                unset($_SESSION['error']);
-                            ?>
-                        </div>
-                    <?php endif; ?>
-                    
-                    <?php if (isset($_SESSION['success'])): ?>
-                        <div class="alert alert-success">
-                            <?php 
-                                echo $_SESSION['success']; 
-                                unset($_SESSION['success']);
-                            ?>
-                        </div>
-                    <?php endif; ?>
+                    <!-- Contenedor para mensajes de error (se oculta cuando hay bloqueo) -->
+                    <div id="alertContainer">
+                        <?php if (isset($_GET['error'])): ?>
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <?php echo htmlspecialchars($_GET['error']); ?>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if (isset($_GET['success'])): ?>
+                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                <?php echo htmlspecialchars($_GET['success']); ?>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
                     <div class="mb-3">
-                        <label for="username" class="form-label">Usuario o Email</label>
+                        <label for="username" class="form-label fw-semibold">Usuario o Email</label>
                         <input type="text" class="form-control" id="username" name="username" placeholder="Ingresa tu usuario o correo electrónico" required>
                     </div>
 
                     <div class="mb-3">
-                        <label for="password" class="form-label">Contraseña</label>
+                        <label for="password" class="form-label fw-semibold">Contraseña</label>
                         <div class="password-container">
                             <input type="password" class="form-control" id="password" name="password" placeholder="Ingresa tu contraseña" required>
                             <span class="toggle-password" id="togglePassword">
@@ -253,10 +346,10 @@
                              data-callback="recaptchaSuccess"
                              data-expired-callback="recaptchaExpired">
                         </div>
-                        <div id="recaptchaError">Por favor, marca "No soy un robot"</div>
+                        <div id="recaptchaError" class="text-danger small mt-2 d-none">Por favor, marca "No soy un robot"</div>
                     </div>
 
-                    <button type="submit" class="btn btn-primary w-100 btn-login">Iniciar Sesión</button>
+                    <button type="submit" class="btn btn-primary w-100 btn-login" id="btnLogin">Iniciar Sesión</button>
 
                     <div class="login-links">
                         <a href="RecuperarVista.php" class="forgot-password-link">¿Olvidaste tu contraseña?</a>
@@ -267,27 +360,183 @@
     </div>
 </div>
 
-<script src="../../includes/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+    // Variables globales
+    let tiempoRestante = 0;
+    let contadorInterval = null;
+    let recaptchaWidgetId = null;
+
+    // Inicializar reCAPTCHA
+    function onloadCallback() {
+        recaptchaWidgetId = grecaptcha.render(document.querySelector('.g-recaptcha'), {
+            'sitekey': '6LdZwe0rAAAAABg8fRgVhiG1lAHj0jW1ippKCqg9',
+            'callback': recaptchaSuccess,
+            'expired-callback': recaptchaExpired
+        });
+    }
+
     // Mostrar/ocultar contraseña
-    document.getElementById('togglePassword').addEventListener('click', function() {
+    document.getElementById('togglePassword').addEventListener('click', function () {
         const passwordInput = document.getElementById('password');
         const icon = this.querySelector('i');
-        if (passwordInput.type === 'password') {
-            passwordInput.type = 'text';
-            icon.classList.replace('fa-eye', 'fa-eye-slash');
-        } else {
-            passwordInput.type = 'password';
-            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        const isPassword = passwordInput.type === 'password';
+        passwordInput.type = isPassword ? 'text' : 'password';
+        icon.classList.toggle('fa-eye', !isPassword);
+        icon.classList.toggle('fa-eye-slash', isPassword);
+    });
+
+    // reCAPTCHA
+    let recaptchaValid = false;
+    function recaptchaSuccess() {
+        recaptchaValid = true;
+        document.getElementById('recaptchaError').classList.add('d-none');
+    }
+    function recaptchaExpired() {
+        recaptchaValid = false;
+        document.getElementById('recaptchaError').classList.remove('d-none');
+    }
+
+    // Validación antes de enviar
+    document.getElementById('loginForm').addEventListener('submit', function (e) {
+        if (!this.checkValidity() || !recaptchaValid || tiempoRestante > 0) {
+            e.preventDefault();
+            this.classList.add('was-validated');
+            if (!recaptchaValid) {
+                document.getElementById('recaptchaError').classList.remove('d-none');
+            }
         }
     });
 
+    // Función para formatear el tiempo
+    function formatearTiempo(segundos) {
+        const minutos = Math.floor(segundos / 60);
+        const segundosRestantes = segundos % 60;
+        return `${minutos.toString().padStart(2, '0')}:${segundosRestantes.toString().padStart(2, '0')}`;
+    }
 
+    // Función para actualizar el contador
+    function actualizarContador() {
+        if (tiempoRestante > 0) {
+            tiempoRestante--;
+            document.getElementById('tiempoRestante').textContent = formatearTiempo(tiempoRestante);
 
+            // Deshabilitar el formulario
+            document.getElementById('username').disabled = true;
+            document.getElementById('password').disabled = true;
+            document.getElementById('btnLogin').disabled = true;
+            document.querySelector('.g-recaptcha').classList.add('g-recaptcha-disabled');
 
+        } else {
+            // Tiempo terminado, habilitar formulario
+            clearInterval(contadorInterval);
+            contadorInterval = null;
+            document.getElementById('bloqueoContainer').classList.add('d-none');
+            document.getElementById('alertContainer').style.display = 'block';
+            document.getElementById('username').disabled = false;
+            document.getElementById('password').disabled = false;
+            document.getElementById('btnLogin').disabled = false;
+            document.querySelector('.g-recaptcha').classList.remove('g-recaptcha-disabled');
 
+            // Resetear reCAPTCHA correctamente
+            if (window.grecaptcha && recaptchaWidgetId !== null) {
+                grecaptcha.reset(recaptchaWidgetId);
+            }
+            recaptchaValid = false;
+        }
+    }
 
+    // Función para verificar estado del usuario via AJAX
+    function verificarEstadoUsuario() {
+        const username = document.getElementById('username').value.trim();
+        if (!username) return;
 
+        // Crear FormData para enviar la petición
+        const formData = new FormData();
+        formData.append('action', 'verificarBloqueo');
+        formData.append('username', username);
+
+        fetch('../controlador/PersonaControlador.php', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.bloqueado && !data.bloqueo_permanente && data.segundos_restantes > 0) {
+                    tiempoRestante = data.segundos_restantes;
+                    document.getElementById('bloqueoContainer').classList.remove('d-none');
+                    document.getElementById('alertContainer').style.display = 'none'; // Ocultar alertas
+                    document.getElementById('tiempoRestante').textContent = formatearTiempo(tiempoRestante);
+
+                    // Iniciar contador si no está corriendo
+                    if (!contadorInterval) {
+                        contadorInterval = setInterval(actualizarContador, 1000);
+                        actualizarContador(); // Ejecutar inmediatamente
+                    }
+                } else {
+                    // Mostrar alertas si no hay bloqueo
+                    document.getElementById('alertContainer').style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error('Error al verificar estado:', error);
+                document.getElementById('alertContainer').style.display = 'block';
+            });
+    }
+
+    // Inicializar cuando la página carga
+    document.addEventListener('DOMContentLoaded', function() {
+        const alerts = document.querySelectorAll('.alert');
+        if (alerts.length > 0) {
+            setTimeout(() => {
+                alerts.forEach(alert => {
+                    alert.classList.remove('show');
+                    alert.classList.add('fade');
+                    setTimeout(() => alert.remove(), 500);
+                });
+            }, 15000);
+        }
+
+        // Verificar si hay parámetros de bloqueo en la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const tiempoParam = urlParams.get('tiempo');
+        const bloqueadoParam = urlParams.get('bloqueado');
+
+        if (bloqueadoParam === 'true' && tiempoParam) {
+            tiempoRestante = parseInt(tiempoParam);
+            if (tiempoRestante > 0) {
+                document.getElementById('bloqueoContainer').classList.remove('d-none');
+                document.getElementById('alertContainer').style.display = 'none'; // Ocultar alertas
+                document.getElementById('tiempoRestante').textContent = formatearTiempo(tiempoRestante);
+
+                // Iniciar contador
+                contadorInterval = setInterval(actualizarContador, 1000);
+                actualizarContador(); // Ejecutar inmediatamente
+            }
+        }
+
+        // Verificar estado cuando el usuario pierde el foco del username
+        document.getElementById('username').addEventListener('blur', verificarEstadoUsuario);
+
+        // Limpiar contador si el usuario cambia el username
+        document.getElementById('username').addEventListener('input', function() {
+            if (contadorInterval) {
+                clearInterval(contadorInterval);
+                contadorInterval = null;
+            }
+            document.getElementById('bloqueoContainer').classList.add('d-none');
+            document.getElementById('alertContainer').style.display = 'block'; // Mostrar alertas
+            document.getElementById('username').disabled = false;
+            document.getElementById('password').disabled = false;
+            document.getElementById('btnLogin').disabled = false;
+            document.querySelector('.g-recaptcha').classList.remove('g-recaptcha-disabled');
+        });
+    });
 </script>
 </body>
 </html>
