@@ -634,6 +634,90 @@ class PersonaControlador{
         ]);
         exit();
     }
+
+    public function solicitarCodigo()
+    {
+        $email = trim($_POST['email'] ?? '');
+        session_start();
+        if (empty($email)) {
+            $_SESSION['error'] = "Por favor ingresa un email.";
+            header("Location: ../vista/RecuperarVista.php?etapa=solicitud");
+            exit();
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $_SESSION['error'] = "Por favor ingresa un email válido.";
+            header("Location: ../vista/RecuperarVista.php?etapa=solicitud");
+            exit();
+        }
+
+        // Primero obtener el id_persona basado en el email
+        $persona = $this->personamodelo->obtenerPersonaPorEmail($email);
+
+        if (!$persona) {
+            $_SESSION['error'] = "No existe una cuenta con este email.";
+            header("Location: ../vista/RecuperarVista.php?etapa=solicitud");
+            exit();
+        }
+
+        $id_persona = $persona['id_persona'];
+
+        // Generar código de recuperación (6 dígitos)
+        $codigo_recuperacion = sprintf("%06d", mt_rand(1, 999999));
+        $expiracion = date('Y-m-d H:i:s', strtotime('+30 minutes'));
+
+        // Guardar código en la base de datos usando id_persona
+        $resultado = $this->personamodelo->guardarCodigoRecuperacion($id_persona, $codigo_recuperacion, $expiracion);
+
+        if ($resultado) {
+            // Guardar datos en sesión
+            $_SESSION['id_persona'] = $id_persona;
+            $_SESSION['email_recuperacion'] = $email; // Opcional: mantener email para referencia
+            // Para testing - mostrar código en pantalla
+            $_SESSION['codigo_debug'] = $codigo_recuperacion;
+
+            $this->correomodelo->notificarCodigoRecuperacion($email,  $persona['nombre'], $codigo_recuperacion);
+            // En un entorno real, aquí enviarías el código por email
+            header("Location: ../vista/RecuperarVista.php?etapa=codigo");
+            exit();
+        } else {
+            $_SESSION['error'] = "Error al generar el código de recuperación.";
+            header("Location: ../vista/RecuperarVista.php?etapa=solicitud");
+            exit();
+        }
+    }
+    public function verificarCodigo() {
+        $codigo_ingresado = trim($_POST['codigo'] ?? '');
+        session_start();
+
+        if (empty($codigo_ingresado) || strlen($codigo_ingresado) !== 6) {
+            $_SESSION['error'] = "El código debe tener 6 dígitos.";
+            header("Location: ../vista/RecuperarVista.php?etapa=codigo");
+            exit();
+        }
+
+        // Verificar que existe id_persona en sesión
+        if (!isset($_SESSION['id_persona'])) {
+            $_SESSION['error'] = "Sesión expirada. Por favor, solicita un nuevo código.";
+            header("Location: ../vista/RecuperarVista.php?etapa=solicitud");
+            exit();
+        }
+
+        $id_persona = $_SESSION['id_persona'];
+
+        // Verificar código usando id_persona
+        $codigoValido = $this->personamodelo->verificarCodigoRecuperacion($id_persona, $codigo_ingresado);
+
+        if ($codigoValido) {
+            $_SESSION['codigo_valido'] = true;
+            header("Location: ../vista/RecuperarVista.php?etapa=nueva_contrasena");
+            exit();
+        } else {
+            $_SESSION['error'] = "Código inválido o expirado.";
+            header("Location: ../vista/RecuperarVista.php?etapa=codigo");
+            exit();
+        }
+    }
 }
 
 // =============================================
@@ -691,6 +775,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     switch($_POST['action']) {
         case 'login':
             $controlador->login();
+            break;
+        case 'solicitarCodigo':
+            $controlador->solicitarCodigo();
+            break;
+        case 'verificarCodigo':
+            $controlador->verificarCodigo();
             break;
         case 'logout':
             $controlador->logout();

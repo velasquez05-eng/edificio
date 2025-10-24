@@ -78,6 +78,44 @@
                             </div>
                         </div>
 
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="costo_reserva" class="form-label">
+                                        <i class="fas fa-money-bill-wave text-success me-2"></i>Costo de Reserva
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">Bs.</span>
+                                        <input type="number"
+                                               class="form-control"
+                                               id="costo_reserva"
+                                               name="costo_reserva"
+                                               min="0"
+                                               max="50000"
+                                               step="0.01"
+                                               placeholder="0.00"
+                                               value="<?php echo isset($_GET['costo_reserva']) ? htmlspecialchars($_GET['costo_reserva']) : ''; ?>">
+                                        <span class="input-group-text">BOB</span>
+                                    </div>
+                                    <div class="form-text">Costo por reserva en Bolivianos (opcional - dejar en 0 para gratuito)</div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="estado" class="form-label">
+                                        <i class="fas fa-toggle-on text-azul me-2"></i>Estado *
+                                    </label>
+                                    <select class="form-control" id="estado" name="estado" required>
+                                        <option value="">Seleccione un estado</option>
+                                        <option value="disponible" <?php echo (isset($_GET['estado']) && $_GET['estado'] == 'disponible') ? 'selected' : ''; ?>>Disponible</option>
+                                        <option value="no disponible" <?php echo (isset($_GET['estado']) && $_GET['estado'] == 'no disponible') ? 'selected' : ''; ?>>No Disponible</option>
+                                    </select>
+                                    <div class="form-text">Estado actual del área común</div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="form-group mb-3">
                             <label for="descripcion" class="form-label">
                                 <i class="fas fa-align-left text-verde me-2"></i>Descripción
@@ -89,19 +127,6 @@
                                       maxlength="500"
                                       placeholder="Descripción detallada del área común y sus características"><?php echo isset($_GET['descripcion']) ? htmlspecialchars($_GET['descripcion']) : ''; ?></textarea>
                             <div class="form-text">Descripción opcional del área común (máximo 500 caracteres)</div>
-                        </div>
-
-                        <div class="form-group mb-3">
-                            <label for="estado" class="form-label">
-                                <i class="fas fa-toggle-on text-azul me-2"></i>Estado *
-                            </label>
-                            <select class="form-control" id="estado" name="estado" required>
-                                <option value="">Seleccione un estado</option>
-                                <option value="disponible" <?php echo (isset($_GET['estado']) && $_GET['estado'] == 'disponible') ? 'selected' : ''; ?>>Disponible</option>
-                                <option value="mantenimiento" <?php echo (isset($_GET['estado']) && $_GET['estado'] == 'mantenimiento') ? 'selected' : ''; ?>>En Mantenimiento</option>
-                                <option value="no disponible" <?php echo (isset($_GET['estado']) && $_GET['estado'] == 'no disponible') ? 'selected' : ''; ?>>No Disponible</option>
-                            </select>
-                            <div class="form-text">Estado actual del área común</div>
                         </div>
 
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
@@ -131,6 +156,7 @@
                             <li>El nombre del área debe ser único y descriptivo</li>
                             <li>Verifique que el área no exista previamente</li>
                             <li>Seleccione el estado apropiado del área</li>
+                            <li>El costo de reserva es opcional</li>
                         </ul>
                     </div>
 
@@ -138,8 +164,7 @@
                         <h6><i class="fas fa-exclamation-triangle me-2"></i>Estados:</h6>
                         <ul class="mb-0 mt-2">
                             <li><strong>Disponible:</strong> Área libre para reservar</li>
-                            <li><strong>Mantenimiento:</strong> En reparación o limpieza</li>
-                            <li><strong>No Disponible:</strong> Temporalmente fuera de servicio</li>
+                            <li><strong>No Disponible:</strong> No puede ser reservado</li>
                         </ul>
                     </div>
 
@@ -150,6 +175,7 @@
                             <li>Incluya la capacidad si es relevante</li>
                             <li>Proporcione una descripción útil para los residentes</li>
                             <li>Actualice el estado según la disponibilidad real</li>
+                            <li>Establezca un costo de reserva si aplica</li>
                         </ul>
                     </div>
                 </div>
@@ -168,6 +194,7 @@
                 const nombre = document.getElementById('nombre').value.trim();
                 const estado = document.getElementById('estado').value;
                 const capacidad = document.getElementById('capacidad').value;
+                const costoReserva = document.getElementById('costo_reserva').value;
 
                 if (!nombre) {
                     e.preventDefault();
@@ -197,6 +224,13 @@
                     return;
                 }
 
+                if (costoReserva && (costoReserva < 0 || costoReserva > 50000)) {
+                    e.preventDefault();
+                    showAlert('El costo de reserva debe estar entre 0 y 50,000 Bs.', 'error');
+                    document.getElementById('costo_reserva').focus();
+                    return;
+                }
+
                 // Mostrar loading en el botón
                 btnRegistrar.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Registrando...';
                 btnRegistrar.disabled = true;
@@ -214,6 +248,15 @@
             document.getElementById('capacidad').addEventListener('input', function() {
                 const capacidadValue = parseInt(this.value);
                 if (this.value && (capacidadValue < 1 || capacidadValue > 1000 || isNaN(capacidadValue))) {
+                    this.classList.add('is-invalid');
+                } else {
+                    this.classList.remove('is-invalid');
+                }
+            });
+
+            document.getElementById('costo_reserva').addEventListener('input', function() {
+                const costoValue = parseFloat(this.value);
+                if (this.value && (costoValue < 0 || costoValue > 50000 || isNaN(costoValue))) {
                     this.classList.add('is-invalid');
                 } else {
                     this.classList.remove('is-invalid');
@@ -321,6 +364,11 @@
         .alert-warning {
             background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
             color: #856404;
+        }
+        /* Estilos para el input group */
+        .input-group-text {
+            background-color: #f8f9fa;
+            border-color: #ced4da;
         }
     </style>
 

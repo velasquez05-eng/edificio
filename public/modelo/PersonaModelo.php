@@ -680,8 +680,9 @@ class PersonaModelo
                     ];
                 }
 
+                $now = (new DateTime())->format('Y-m-d H:i:s');
                 // Verificar bloqueo temporal
-                if ($user['tiempo_bloqueo'] > NOW()) {
+                if ($user['tiempo_bloqueo'] > $now) {
                     $segundos_restantes = $user['segundos_restantes'];
 
                     return [
@@ -774,4 +775,73 @@ public function cambiarPassword($id_persona, $password){
         return false;
     }
 }
+
+
+    public function obtenerPersonaPorEmail($email) {
+        try {
+            $query = "SELECT p.*, r.rol, r.descripcion as rol_descripcion 
+                  FROM " . $this->table_name . " p 
+                  INNER JOIN rol r ON p.id_rol = r.id_rol 
+                  WHERE p.email = :email AND p.estado = 'activo'";
+            $stmt = $this->db->prepare($query);
+            $stmt->bindParam(':email', $email);
+            $stmt->execute();
+
+            if ($stmt->rowCount() == 1) {
+                $persona = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                // Descifrar los datos sensibles
+                $persona['nombre'] = $this->decrypt($persona['nombre']);
+                $persona['apellido_paterno'] = $this->decrypt($persona['apellido_paterno']);
+                $persona['apellido_materno'] = $this->decrypt($persona['apellido_materno']);
+                $persona['ci'] = $this->decrypt($persona['ci']);
+
+                return $persona;
+            }
+            return false;
+
+        } catch (Exception $e) {
+            error_log("Error en obtenerPersonaPorEmail: " . $e->getMessage());
+            return false;
+        }
+    }
+    public function guardarCodigoRecuperacion($id_persona, $codigo, $expiracion)
+    {
+        try {
+            $sql = "UPDATE " . $this->table_name . " 
+                SET codigo_recuperacion = :codigo_recuperacion,
+                    tiempo_codigo_recuperacion = :tiempo_codigo_recuperacion 
+                WHERE id_persona = :id_persona";
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindParam(":codigo_recuperacion", $codigo);
+            $stmt->bindParam(":tiempo_codigo_recuperacion", $expiracion);
+            $stmt->bindParam(":id_persona", $id_persona);
+
+            if($stmt->execute()){
+                return true;
+            }
+            return false;
+        } catch (Exception $e) {
+            error_log("Error en guardarCodigoRecuperacion: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function verificarCodigoRecuperacion($id_persona, $codigo) {
+        try {
+            $sql = "SELECT * FROM ". $this->table_name." 
+                WHERE id_persona = :id_persona 
+                AND codigo_recuperacion = :codigo_recuperacion
+                AND tiempo_codigo_recuperacion > NOW()";
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindParam(":id_persona", $id_persona);
+            $stmt->bindParam(":codigo_recuperacion", $codigo);
+            $stmt->execute();
+
+            return $stmt->rowCount() > 0;
+        } catch (Exception $e) {
+            error_log("Error en verificarCodigoRecuperacion: " . $e->getMessage());
+            return false;
+        }
+    }
 }

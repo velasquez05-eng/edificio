@@ -136,35 +136,10 @@ function getSessionValue($key, $default = '') {
                                 Gestión del sistema
                             </p>
                         </a>
-                        <ul class="nav nav-treeview show">
-                            <li class="nav-item">
-                                <a href="#" class="nav-link">
-                                    <i class="fas fa-tools"></i>
-                                    <p>Gestionar Incidentes</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="#" class="nav-link">
-                                    <i class="fas fa-file-invoice-dollar"></i>
-                                    <p>Ver Facturas</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="#" class="nav-link">
-                                    <i class="fas fa-chart-bar"></i>
-                                    <p>Generar Reporte</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="#" class="nav-link">
-                                    <i class="fas fa-bell"></i>
-                                    <p>Notificaciones</p>
-                                </a>
-                            </li>
-                        </ul>
                     </li>
                     
                     <li class="nav-header">OPCIONES</li>
+                    <?php if ($_SESSION['id_rol'] == '1') { ?>
                     <li class="nav-item">
                         <a href="#" class="nav-link">
                             <i class="fas fa-user-tie"></i>
@@ -212,7 +187,8 @@ function getSessionValue($key, $default = '') {
                             </li>
                         </ul>
                     </li>
-                    
+                    <?php }?>
+                    <?php if ($_SESSION['id_rol'] == '1') { ?>
                     <li class="nav-item">
                         <a href="#" class="nav-link">
                             <i class="fas fa-door-open"></i>
@@ -242,7 +218,7 @@ function getSessionValue($key, $default = '') {
                             </li>
                         </ul>
                     </li>
-                    
+                    <?php }?>
 
                     
                     <li class="nav-item">
@@ -254,10 +230,18 @@ function getSessionValue($key, $default = '') {
                             </p>
                         </a>
                         <ul class="nav nav-treeview">
+                            <?php if ($_SESSION['id_rol'] == '1') { ?>
                             <li class="nav-item">
                                 <a href="../controlador/AreaComunControlador.php?action=listarAreas" class="nav-link">
                                     <i class="fas fa-list"></i>
                                     <p>Listar Areas</p>
+                                </a>
+                            </li>
+                            <?php }?>
+                            <li class="nav-item">
+                                <a href="../controlador/AreaComunControlador.php?action=listarReservas" class="nav-link">
+                                    <i class="fas fa-list"></i>
+                                    <p>Listar Reservas</p>
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -266,12 +250,14 @@ function getSessionValue($key, $default = '') {
                                     <p>Reservar Area</p>
                                 </a>
                             </li>
+                            <?php if ($_SESSION['id_rol'] == '1') { ?>
                             <li class="nav-item">
                                 <a href="../controlador/AreaComunControlador.php?action=formularioArea" class="nav-link">
                                     <i class="fas fa-plus-circle"></i>
                                     <p>Registrar Area</p>
                                 </a>
                             </li>
+                            <?php }?>
                         </ul>
                     </li>
                     
@@ -296,6 +282,8 @@ function getSessionValue($key, $default = '') {
                                     <p>Registrar Incidente</p>
                                 </a>
                             </li>
+                            <?php if ($_SESSION['id_rol'] == '1') { ?>
+
                             <li class="nav-item">
                                 <a href="#" class="nav-link">
                                     <i class="fas fa-user-check"></i>
@@ -314,6 +302,8 @@ function getSessionValue($key, $default = '') {
                                     <p>Historial Incidentes</p>
                                 </a>
                             </li>
+                            <?php } ?>
+
                         </ul>
                     </li>
                     
@@ -327,17 +317,19 @@ function getSessionValue($key, $default = '') {
                         </a>
                         <ul class="nav nav-treeview">
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
+                                <a href="../controlador/ComunicadoControlador.php" class="nav-link">
                                     <i class="fas fa-list"></i>
                                     <p>Listar Comunicados</p>
                                 </a>
                             </li>
+                            <?php if ($_SESSION['id_rol'] == '1') { ?>
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
+                                <a href="../controlador/ComunicadoControlador.php?action=formularioComunicado" class="nav-link">
                                     <i class="fas fa-plus-circle"></i>
                                     <p>Registrar Comunicado</p>
                                 </a>
                             </li>
+                            <?php }?>
                         </ul>
                     </li>
                     
@@ -350,6 +342,7 @@ function getSessionValue($key, $default = '') {
                             </p>
                         </a>
                         <ul class="nav nav-treeview">
+                            <?php if ($_SESSION['id_rol'] == '1') { ?>
                             <li class="nav-item">
                                 <a href="#" class="nav-link">
                                     <i class="fas fa-list"></i>
@@ -362,6 +355,7 @@ function getSessionValue($key, $default = '') {
                                     <p>Registrar Servicio</p>
                                 </a>
                             </li>
+                            <?php }?>
                             <li class="nav-item">
                                 <a href="#" class="nav-link">
                                     <i class="fas fa-chart-line"></i>
@@ -381,17 +375,19 @@ function getSessionValue($key, $default = '') {
                         </a>
                         <ul class="nav nav-treeview">
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
+                                <a href="../controlador/FacturaControlador.php?action=listarFacturas" class="nav-link">
                                     <i class="fas fa-list"></i>
                                     <p>Listar Facturas</p>
                                 </a>
                             </li>
+                            <?php if ($_SESSION['id_rol'] == '1') { ?>
                             <li class="nav-item">
                                 <a href="#" class="nav-link">
                                     <i class="fas fa-plus-circle"></i>
                                     <p>Registrar Factura</p>
                                 </a>
                             </li>
+                            <?php }?>
                             <li class="nav-item">
                                 <a href="#" class="nav-link">
                                     <i class="fas fa-money-check"></i>

@@ -1,11 +1,14 @@
 .
 ├── config
-│   └── database.php
+│   ├── database.php
+│   └── recaptcha.php
+├── crear_usuario.php
 ├── datos
 │   ├── db_final.drawio
 │   ├── estrucutura.txt
 │   ├── Tareas.txt
 │   └── universo del discuros.md
+├── db_edificio_v1 (1).sql
 ├── db_edificio_v1.sql
 ├── estructura.txt
 ├── includes
@@ -53,14 +56,17 @@
 │   │   └── RolModelo.php
 │   └── vista
 │       ├── AsignarPersonasDepartamentoVista.php
+│       ├── DashboardAdministradorVista.php
 │       ├── DashboardPersonalVista.php
 │       ├── DashboardResidenteVista.php
 │       ├── ListarAreasComunesVista.php
 │       ├── ListarDepartamentoVista.php
 │       ├── ListarPersonalVista.php
 │       ├── ListarPersonasEliminadasVista.php
+│       ├── listarReservasVista.php
 │       ├── ListarResidenteVista.php
 │       ├── ListarRolVista.php
+│       ├── LoginRecuperarVista.php
 │       ├── LoginVista.php
 │       ├── RecuperarVista.php
 │       ├── RegistrarAreaVista.php
@@ -68,8 +74,12 @@
 │       ├── RegistrarPersonaVista.php
 │       ├── RegistrarReservaAreaVista.php
 │       ├── RegistrarRolVista.php
-│       └── RegistroVista.php
+│       ├── RegistroVista.php
+│       ├── VerificacionVista.php
+│       ├── verReservasAreaVista.php
+│       ├── verReservasMesVista.php
+│       └── verReservasPendientesVista.php
 ├── README.md
 └── script.sql
 
-12 directories, 61 files
+12 directories, 71 files

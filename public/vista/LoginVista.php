@@ -352,7 +352,7 @@
                     <button type="submit" class="btn btn-primary w-100 btn-login" id="btnLogin">Iniciar Sesión</button>
 
                     <div class="login-links">
-                        <a href="RecuperarVista.php" class="forgot-password-link">¿Olvidaste tu contraseña?</a>
+                        <a href="../vista/RecuperarVista.php" class="forgot-password-link">¿Olvidaste tu contraseña?</a>
                     </div>
                 </form>
             </div>
