@@ -22,7 +22,7 @@ class FacturaControlador {
      */
     public function listarFacturas() {
         $facturas = $this->facturamodelo->obtenerTodasLasFacturas();
-        include '../vista/listarFacturasVista.php';
+        include '../vista/ListarFacturasVista.php';
     }
 
     // =============================================

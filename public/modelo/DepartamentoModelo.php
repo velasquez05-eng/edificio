@@ -155,22 +155,4 @@ class DepartamentoModelo{
         }
     }
 
-    // Método adicional para verificar si existe un departamento
-    public function existeDepartamento($id_departamento){
-        $sql = "SELECT COUNT(*) FROM " . $this->table_departamento . " WHERE id_departamento = :id_departamento";
-        $resultado = $this->db->prepare($sql);
-        $resultado->bindParam(':id_departamento', $id_departamento, PDO::PARAM_INT);
-        $resultado->execute();
-        return $resultado->fetchColumn() > 0;
-    }
-
-    // Método adicional para obtener departamento por ID
-    public function obtenerDepartamentoPorId($id_departamento){
-        $sql = "SELECT * FROM " . $this->table_departamento . " WHERE id_departamento = :id_departamento";
-        $resultado = $this->db->prepare($sql);
-        $resultado->bindParam(':id_departamento', $id_departamento, PDO::PARAM_INT);
-        $resultado->execute();
-        return $resultado->fetch(PDO::FETCH_ASSOC);
-    }
-
 }

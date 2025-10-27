@@ -21,7 +21,7 @@ class DepartamentoControlador
     public function formularioAsignarPersonasDepartamento(){
        $departamentos = $this->departamentomodelo->listarDepartamento();
        $personas = $this->personamodelo->listarResidente();
-        include_once "../vista/AsignarPersonasDepartamentoVista.php";
+        include_once "../vista/RegistrarPersonasDepartamentoVista.php";
     }
 
     public function registrarDepartamento(){

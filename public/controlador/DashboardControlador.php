@@ -42,10 +42,7 @@ class DashboardControlador{
 
     public function mostrarDashboardPersonal() {
         // Verificar que el usuario sea personal (rol 3 según tu estructura)
-        if (!isset($_SESSION['id_rol']) || $_SESSION['id_rol'] != 3) {
-            header("Location: ../vista/LoginVista.php?error=Acceso no autorizado");
-            exit();
-        }
+
 
         $id_personal = $_SESSION['id_persona'];
 

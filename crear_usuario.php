@@ -3,7 +3,7 @@
 class Database
 {
     private $host = 'localhost';
-    private $db_name = 'db_edificio_v1';
+    private $db_name = 'db_edificio_v2';
     private $username = 'root';
     private $password = '';
     public $conn;
@@ -142,7 +142,7 @@ class PersonaModelo
             $stmt->bindParam(":id_rol", $id_rol);
 
             if($stmt->execute()){
-                return true;
+                return $this->db->lastInsertId();
             }else{
                 error_log("Error en execute: " . implode(", ", $stmt->errorInfo()));
                 return false;
@@ -154,7 +154,7 @@ class PersonaModelo
     }
 }
 
-class AdminCreator 
+class DataSeeder
 {
     private $db;
     private $personaModelo;
@@ -178,7 +178,7 @@ class AdminCreator
 
             $query = "INSERT INTO rol (rol, descripcion) VALUES ('Administrador', 'Usuario con acceso total al sistema')";
             $stmt = $this->db->prepare($query);
-            
+
             if ($stmt->execute()) {
                 $id_rol = $this->db->lastInsertId();
                 echo "✅ Rol 'Administrador' creado exitosamente. ID: " . $id_rol . "\n";
@@ -199,7 +199,7 @@ class AdminCreator
 
         try {
             $id_rol = $this->crearRolAdministrador();
-            
+
             if (!$id_rol) {
                 throw new Exception("No se pudo obtener el ID del rol Administrador");
             }
@@ -272,32 +272,556 @@ class AdminCreator
         }
     }
 
+    private function crearRolesAdicionales() {
+        try {
+            echo "📋 Creando roles adicionales...\n";
+
+            $roles = [
+                ['id_rol' => 2, 'rol' => 'Residente', 'descripcion' => 'Residente del edificio'],
+                ['id_rol' => 3, 'rol' => 'Soporte Externo', 'descripcion' => 'Personal externo de mantenimiento'],
+                ['id_rol' => 4, 'rol' => 'Soporte Interno', 'descripcion' => 'Personal de mantenimiento interno']
+            ];
+
+            foreach ($roles as $rol) {
+                $query = "SELECT id_rol FROM rol WHERE id_rol = :id_rol";
+                $stmt = $this->db->prepare($query);
+                $stmt->bindParam(':id_rol', $rol['id_rol']);
+                $stmt->execute();
+
+                if ($stmt->rowCount() == 0) {
+                    $query = "INSERT INTO rol (id_rol, rol, descripcion) VALUES (:id_rol, :rol, :descripcion)";
+                    $stmt = $this->db->prepare($query);
+                    $stmt->bindParam(':id_rol', $rol['id_rol']);
+                    $stmt->bindParam(':rol', $rol['rol']);
+                    $stmt->bindParam(':descripcion', $rol['descripcion']);
+
+                    if ($stmt->execute()) {
+                        echo "✅ Rol '{$rol['rol']}' creado exitosamente.\n";
+                    } else {
+                        throw new Exception("Error al crear el rol {$rol['rol']}");
+                    }
+                } else {
+                    echo "✅ El rol '{$rol['rol']}' ya existe.\n";
+                }
+            }
+            return true;
+
+        } catch (Exception $e) {
+            echo "❌ Error al crear roles adicionales: " . $e->getMessage() . "\n";
+            return false;
+        }
+    }
+
+    private function crearPersonasAdicionales() {
+        try {
+            echo "👥 Creando personas adicionales...\n";
+
+            $personas = [
+                [
+                    'nombre' => 'María',
+                    'apellido_paterno' => 'Residente',
+                    'apellido_materno' => 'López',
+                    'ci' => '87654321',
+                    'telefono' => '77777771',
+                    'email' => 'maria@residente.com',
+                    'username' => 'maria',
+                    'password' => 'maria123',
+                    'id_rol' => 2
+                ],
+                [
+                    'nombre' => 'Juan',
+                    'apellido_paterno' => 'Técnico',
+                    'apellido_materno' => 'Externo',
+                    'ci' => '87654322',
+                    'telefono' => '77777772',
+                    'email' => 'juan@tecnico.com',
+                    'username' => 'juan',
+                    'password' => 'juan123',
+                    'id_rol' => 3
+                ],
+                [
+                    'nombre' => 'Pedro',
+                    'apellido_paterno' => 'Mantenimiento',
+                    'apellido_materno' => 'Interno',
+                    'ci' => '87654323',
+                    'telefono' => '77777773',
+                    'email' => 'pedro@mantenimiento.com',
+                    'username' => 'pedro',
+                    'password' => 'pedro123',
+                    'id_rol' => 4
+                ]
+            ];
+
+            $personas_ids = [];
+
+            foreach ($personas as $persona) {
+                // Verificar si el usuario ya existe por username
+                if (!$this->personaModelo->verificarUsuarioExistente($persona['username'])) {
+                    $id_persona = $this->personaModelo->registrarPersona(
+                        $persona['nombre'],
+                        $persona['apellido_paterno'],
+                        $persona['apellido_materno'],
+                        $persona['ci'],
+                        $persona['telefono'],
+                        $persona['email'],
+                        $persona['username'],
+                        $persona['password'],
+                        $persona['id_rol']
+                    );
+
+                    if ($id_persona) {
+                        $personas_ids[$persona['username']] = $id_persona;
+                        echo "✅ Persona '{$persona['nombre']} {$persona['apellido_paterno']}' creada exitosamente. ID: {$id_persona}\n";
+                    } else {
+                        throw new Exception("Error al crear la persona {$persona['nombre']}");
+                    }
+                } else {
+                    // Obtener el ID de la persona existente
+                    $query = "SELECT id_persona FROM persona WHERE username = :username";
+                    $stmt = $this->db->prepare($query);
+                    $stmt->bindParam(':username', $persona['username']);
+                    $stmt->execute();
+                    $existing_person = $stmt->fetch(PDO::FETCH_ASSOC);
+                    $personas_ids[$persona['username']] = $existing_person['id_persona'];
+                    echo "✅ La persona '{$persona['nombre']} {$persona['apellido_paterno']}' ya existe. ID: {$existing_person['id_persona']}\n";
+                }
+            }
+            return $personas_ids;
+
+        } catch (Exception $e) {
+            echo "❌ Error al crear personas adicionales: " . $e->getMessage() . "\n";
+            return false;
+        }
+    }
+
+    private function crearDepartamentos() {
+        try {
+            echo "🏢 Creando departamentos...\n";
+
+            $departamentos = [
+                ['id_departamento' => 1, 'numero' => '101', 'piso' => 1, 'estado' => 'ocupado'],
+                ['id_departamento' => 2, 'numero' => '102', 'piso' => 1, 'estado' => 'ocupado'],
+                ['id_departamento' => 3, 'numero' => '201', 'piso' => 2, 'estado' => 'ocupado'],
+                ['id_departamento' => 4, 'numero' => '202', 'piso' => 2, 'estado' => 'ocupado']
+            ];
+
+            foreach ($departamentos as $depto) {
+                $query = "SELECT id_departamento FROM departamento WHERE id_departamento = :id_departamento";
+                $stmt = $this->db->prepare($query);
+                $stmt->bindParam(':id_departamento', $depto['id_departamento']);
+                $stmt->execute();
+
+                if ($stmt->rowCount() == 0) {
+                    $query = "INSERT INTO departamento (id_departamento, numero, piso, estado) VALUES (:id_departamento, :numero, :piso, :estado)";
+                    $stmt = $this->db->prepare($query);
+                    $stmt->bindParam(':id_departamento', $depto['id_departamento']);
+                    $stmt->bindParam(':numero', $depto['numero']);
+                    $stmt->bindParam(':piso', $depto['piso']);
+                    $stmt->bindParam(':estado', $depto['estado']);
+
+                    if ($stmt->execute()) {
+                        echo "✅ Departamento {$depto['numero']} creado exitosamente.\n";
+                    } else {
+                        throw new Exception("Error al crear el departamento {$depto['numero']}");
+                    }
+                } else {
+                    echo "✅ El departamento {$depto['numero']} ya existe.\n";
+                }
+            }
+            return true;
+
+        } catch (Exception $e) {
+            echo "❌ Error al crear departamentos: " . $e->getMessage() . "\n";
+            return false;
+        }
+    }
+
+    private function crearAreasComunes() {
+        try {
+            echo "🏊 Creando áreas comunes...\n";
+
+            $areas = [
+                [
+                    'id_area' => 1,
+                    'nombre' => 'Sala de Eventos',
+                    'descripcion' => 'Área para eventos sociales',
+                    'capacidad' => 50,
+                    'costo_reserva' => 100.00,
+                    'estado' => 'disponible'
+                ],
+                [
+                    'id_area' => 2,
+                    'nombre' => 'Piscina',
+                    'descripcion' => 'Piscina climatizada',
+                    'capacidad' => 20,
+                    'costo_reserva' => 50.00,
+                    'estado' => 'disponible'
+                ],
+                [
+                    'id_area' => 3,
+                    'nombre' => 'Gimnasio',
+                    'descripcion' => 'Gimnasio equipado',
+                    'capacidad' => 15,
+                    'costo_reserva' => 30.00,
+                    'estado' => 'disponible'
+                ]
+            ];
+
+            foreach ($areas as $area) {
+                $query = "SELECT id_area FROM area_comun WHERE id_area = :id_area";
+                $stmt = $this->db->prepare($query);
+                $stmt->bindParam(':id_area', $area['id_area']);
+                $stmt->execute();
+
+                if ($stmt->rowCount() == 0) {
+                    $query = "INSERT INTO area_comun (id_area, nombre, descripcion, capacidad, costo_reserva, estado) 
+                             VALUES (:id_area, :nombre, :descripcion, :capacidad, :costo_reserva, :estado)";
+                    $stmt = $this->db->prepare($query);
+                    $stmt->bindParam(':id_area', $area['id_area']);
+                    $stmt->bindParam(':nombre', $area['nombre']);
+                    $stmt->bindParam(':descripcion', $area['descripcion']);
+                    $stmt->bindParam(':capacidad', $area['capacidad']);
+                    $stmt->bindParam(':costo_reserva', $area['costo_reserva']);
+                    $stmt->bindParam(':estado', $area['estado']);
+
+                    if ($stmt->execute()) {
+                        echo "✅ Área común '{$area['nombre']}' creada exitosamente.\n";
+                    } else {
+                        throw new Exception("Error al crear el área común {$area['nombre']}");
+                    }
+                } else {
+                    echo "✅ El área común '{$area['nombre']}' ya existe.\n";
+                }
+            }
+            return true;
+
+        } catch (Exception $e) {
+            echo "❌ Error al crear áreas comunes: " . $e->getMessage() . "\n";
+            return false;
+        }
+    }
+
+    private function crearResidentesAdicionales($personas_ids) {
+        try {
+            echo "🏠 Creando residentes adicionales...\n";
+
+            $residentes = [
+                [
+                    'nombre' => 'Carlos',
+                    'apellido_paterno' => 'Gómez',
+                    'apellido_materno' => 'Pérez',
+                    'ci' => '87654324',
+                    'telefono' => '77777774',
+                    'email' => 'carlos@residente.com',
+                    'username' => 'carlos',
+                    'password' => 'carlos123',
+                    'id_rol' => 2,
+                    'id_departamento' => 2
+                ],
+                [
+                    'nombre' => 'Ana',
+                    'apellido_paterno' => 'Martínez',
+                    'apellido_materno' => 'Rodríguez',
+                    'ci' => '87654325',
+                    'telefono' => '77777775',
+                    'email' => 'ana@residente.com',
+                    'username' => 'ana',
+                    'password' => 'ana123',
+                    'id_rol' => 2,
+                    'id_departamento' => 3
+                ],
+                [
+                    'nombre' => 'Luis',
+                    'apellido_paterno' => 'Hernández',
+                    'apellido_materno' => 'García',
+                    'ci' => '87654326',
+                    'telefono' => '77777776',
+                    'email' => 'luis@residente.com',
+                    'username' => 'luis',
+                    'password' => 'luis123',
+                    'id_rol' => 2,
+                    'id_departamento' => 4
+                ]
+            ];
+
+            $nuevos_ids = [];
+
+            foreach ($residentes as $residente) {
+                if (!$this->personaModelo->verificarUsuarioExistente($residente['username'])) {
+                    $id_persona = $this->personaModelo->registrarPersona(
+                        $residente['nombre'],
+                        $residente['apellido_paterno'],
+                        $residente['apellido_materno'],
+                        $residente['ci'],
+                        $residente['telefono'],
+                        $residente['email'],
+                        $residente['username'],
+                        $residente['password'],
+                        $residente['id_rol']
+                    );
+
+                    if ($id_persona) {
+                        $nuevos_ids[$residente['username']] = $id_persona;
+                        echo "✅ Residente '{$residente['nombre']} {$residente['apellido_paterno']}' creado exitosamente. ID: {$id_persona}\n";
+                    } else {
+                        throw new Exception("Error al crear el residente {$residente['nombre']}");
+                    }
+                } else {
+                    // Obtener el ID del residente existente
+                    $query = "SELECT id_persona FROM persona WHERE username = :username";
+                    $stmt = $this->db->prepare($query);
+                    $stmt->bindParam(':username', $residente['username']);
+                    $stmt->execute();
+                    $existing_resident = $stmt->fetch(PDO::FETCH_ASSOC);
+                    $nuevos_ids[$residente['username']] = $existing_resident['id_persona'];
+                    echo "✅ El residente '{$residente['nombre']} {$residente['apellido_paterno']}' ya existe. ID: {$existing_resident['id_persona']}\n";
+                }
+            }
+
+            // Combinar todos los IDs
+            return array_merge($personas_ids, $nuevos_ids);
+
+        } catch (Exception $e) {
+            echo "❌ Error al crear residentes adicionales: " . $e->getMessage() . "\n";
+            return false;
+        }
+    }
+
+    private function asignarDepartamentos($personas_ids) {
+        try {
+            echo "🔗 Asignando departamentos a residentes...\n";
+
+            // Primero limpiar asignaciones existentes para evitar duplicados
+            $query = "DELETE FROM tiene_departamento";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute();
+            echo "✅ Asignaciones anteriores limpiadas.\n";
+
+            $asignaciones = [
+                ['id_departamento' => 1, 'username' => 'maria'],
+                ['id_departamento' => 2, 'username' => 'carlos'],
+                ['id_departamento' => 3, 'username' => 'ana'],
+                ['id_departamento' => 4, 'username' => 'luis']
+            ];
+
+            foreach ($asignaciones as $asignacion) {
+                if (isset($personas_ids[$asignacion['username']])) {
+                    $id_persona = $personas_ids[$asignacion['username']];
+
+                    $query = "INSERT INTO tiene_departamento (id_departamento, id_persona, estado) VALUES (:id_departamento, :id_persona, 'activo')";
+                    $stmt = $this->db->prepare($query);
+                    $stmt->bindParam(':id_departamento', $asignacion['id_departamento']);
+                    $stmt->bindParam(':id_persona', $id_persona);
+
+                    if ($stmt->execute()) {
+                        echo "✅ Departamento {$asignacion['id_departamento']} asignado a {$asignacion['username']} (ID: {$id_persona}).\n";
+                    } else {
+                        throw new Exception("Error al asignar departamento {$asignacion['id_departamento']} a {$asignacion['username']}");
+                    }
+                } else {
+                    throw new Exception("No se encontró el ID para el usuario: {$asignacion['username']}");
+                }
+            }
+            return true;
+
+        } catch (Exception $e) {
+            echo "❌ Error al asignar departamentos: " . $e->getMessage() . "\n";
+            return false;
+        }
+    }
+
+    public function seedData() {
+        echo "🚀 INICIANDO CARGA DE DATOS DE PRUEBA\n";
+        echo "=============================================\n\n";
+
+        try {
+            // Crear administrador primero
+            $this->crearAdministrador();
+
+            // Crear roles adicionales
+            if (!$this->crearRolesAdicionales()) {
+                throw new Exception("Error en la creación de roles");
+            }
+
+            // Crear personas adicionales y obtener sus IDs
+            $personas_ids = $this->crearPersonasAdicionales();
+            if (!$personas_ids) {
+                throw new Exception("Error en la creación de personas");
+            }
+
+            // Crear departamentos
+            if (!$this->crearDepartamentos()) {
+                throw new Exception("Error en la creación de departamentos");
+            }
+
+            // Crear áreas comunes
+            if (!$this->crearAreasComunes()) {
+                throw new Exception("Error en la creación de áreas comunes");
+            }
+
+            // Crear residentes adicionales y obtener todos los IDs
+            $todos_los_ids = $this->crearResidentesAdicionales($personas_ids);
+            if (!$todos_los_ids) {
+                throw new Exception("Error en la creación de residentes adicionales");
+            }
+
+            // Asignar departamentos
+            if (!$this->asignarDepartamentos($todos_los_ids)) {
+                throw new Exception("Error en la asignación de departamentos");
+            }
+
+            echo "\n🎉 ¡DATOS DE PRUEBA CARGADOS EXITOSAMENTE!\n";
+            echo "=============================================\n";
+            echo "📊 RESUMEN:\n";
+            echo "   📋 4 roles creados\n";
+            echo "   👥 7 personas creadas (1 admin + 3 personal + 3 residentes)\n";
+            echo "   🏢 4 departamentos creados (2 por piso)\n";
+            echo "   🏊 3 áreas comunes creadas\n";
+            echo "   🔗 4 asignaciones de departamentos\n";
+            echo "=============================================\n";
+            return true;
+
+        } catch (Exception $e) {
+            echo "❌ Error durante la carga de datos: " . $e->getMessage() . "\n";
+            return false;
+        }
+    }
+
     public function mostrarInfoBaseDatos() {
         try {
-            echo "\n📊 INFORMACIÓN DE LA BASE DE DATOS:\n";
-            echo "=============================================\n";
-            
-            $query = "SELECT COUNT(*) as total_roles FROM rol";
-            $stmt = $this->db->prepare($query);
-            $stmt->execute();
-            $roles = $stmt->fetch(PDO::FETCH_ASSOC);
-            echo "   Total de roles: " . $roles['total_roles'] . "\n";
+            echo '<!DOCTYPE html>
+            <html lang="es">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Información Base de Datos</title>
+                <style>
+                    body { 
+                        font-family: Arial, sans-serif; 
+                        margin: 20px; 
+                        background-color: #f5f5f5;
+                    }
+                    .container { 
+                        max-width: 1200px; 
+                        margin: 0 auto; 
+                        background: white;
+                        padding: 20px;
+                        border-radius: 10px;
+                        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                    }
+                    h1, h2 { 
+                        color: #333; 
+                        text-align: center;
+                    }
+                    .stats { 
+                        background: #e8f4fd; 
+                        padding: 15px; 
+                        border-radius: 5px; 
+                        margin: 20px 0; 
+                        text-align: center;
+                    }
+                    table { 
+                        width: 100%; 
+                        border-collapse: collapse; 
+                        margin: 20px 0; 
+                        background: white;
+                    }
+                    th, td { 
+                        border: 1px solid #ddd; 
+                        padding: 12px; 
+                        text-align: left; 
+                    }
+                    th { 
+                        background-color: #4CAF50; 
+                        color: white; 
+                        font-weight: bold;
+                    }
+                    tr:nth-child(even) { 
+                        background-color: #f2f2f2; 
+                    }
+                    tr:hover { 
+                        background-color: #e9f7e9; 
+                    }
+                    .section { 
+                        margin: 30px 0; 
+                    }
+                    .section-title { 
+                        background: #2c3e50; 
+                        color: white; 
+                        padding: 10px; 
+                        border-radius: 5px; 
+                        margin-bottom: 10px;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>📊 INFORMACIÓN DE LA BASE DE DATOS</h1>
+                    <div class="stats">';
 
-            $query = "SELECT COUNT(*) as total_usuarios FROM persona";
-            $stmt = $this->db->prepare($query);
-            $stmt->execute();
-            $usuarios = $stmt->fetch(PDO::FETCH_ASSOC);
-            echo "   Total de usuarios: " . $usuarios['total_usuarios'] . "\n";
+            // Estadísticas generales
+            $stats = [
+                'roles' => "SELECT COUNT(*) as total FROM rol",
+                'usuarios' => "SELECT COUNT(*) as total FROM persona",
+                'departamentos' => "SELECT COUNT(*) as total FROM departamento",
+                'areas' => "SELECT COUNT(*) as total FROM area_comun",
+                'asignaciones' => "SELECT COUNT(*) as total FROM tiene_departamento"
+            ];
+
+            foreach ($stats as $key => $query) {
+                $stmt = $this->db->prepare($query);
+                $stmt->execute();
+                $result = $stmt->fetch(PDO::FETCH_ASSOC);
+                echo "<strong>Total de " . str_replace('_', ' ', $key) . ":</strong> " . $result['total'] . " | ";
+            }
+
+            echo '</div>';
+
+            // Tabla de Roles
+            echo '<div class="section">
+                    <div class="section-title">
+                        <h2>📋 TABLA DE ROLES</h2>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Rol</th>
+                                <th>Descripción</th>
+                            </tr>
+                        </thead>
+                        <tbody>';
 
             $query = "SELECT id_rol, rol, descripcion FROM rol ORDER BY id_rol";
             $stmt = $this->db->prepare($query);
             $stmt->execute();
             $roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            
-            echo "   📋 Roles existentes:\n";
+
             foreach ($roles as $rol) {
-                echo "     - ID: {$rol['id_rol']} | Rol: {$rol['rol']} | Descripción: {$rol['descripcion']}\n";
+                echo "<tr>
+                        <td>{$rol['id_rol']}</td>
+                        <td><strong>{$rol['rol']}</strong></td>
+                        <td>{$rol['descripcion']}</td>
+                      </tr>";
             }
+            echo '</tbody></table></div>';
+
+            // Tabla de Usuarios
+            echo '<div class="section">
+                    <div class="section-title">
+                        <h2>👥 TABLA DE USUARIOS</h2>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Usuario</th>
+                                <th>Email</th>
+                                <th>Rol</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>';
 
             $query = "SELECT p.id_persona, p.username, p.email, r.rol 
                      FROM persona p 
@@ -306,49 +830,204 @@ class AdminCreator
             $stmt = $this->db->prepare($query);
             $stmt->execute();
             $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            
-            echo "   👥 Usuarios existentes:\n";
+
             foreach ($usuarios as $usuario) {
-                echo "     - ID: {$usuario['id_persona']} | Usuario: {$usuario['username']} | Email: {$usuario['email']} | Rol: {$usuario['rol']}\n";
+                $estado = ($usuario['username'] == 'admin') ? '<span style="color: red; font-weight: bold;">Administrador</span>' : '<span style="color: green;">Activo</span>';
+                echo "<tr>
+                        <td>{$usuario['id_persona']}</td>
+                        <td><strong>{$usuario['username']}</strong></td>
+                        <td>{$usuario['email']}</td>
+                        <td>{$usuario['rol']}</td>
+                        <td>{$estado}</td>
+                      </tr>";
             }
+            echo '</tbody></table></div>';
+
+            // Tabla de Departamentos
+            echo '<div class="section">
+                    <div class="section-title">
+                        <h2>🏢 TABLA DE DEPARTAMENTOS</h2>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Número</th>
+                                <th>Piso</th>
+                                <th>Estado</th>
+                                <th>Residente</th>
+                            </tr>
+                        </thead>
+                        <tbody>';
+
+            $query = "SELECT d.id_departamento, d.numero, d.piso, d.estado, 
+                             p.username
+                      FROM departamento d 
+                      LEFT JOIN tiene_departamento td ON d.id_departamento = td.id_departamento
+                      LEFT JOIN persona p ON td.id_persona = p.id_persona
+                      ORDER BY d.piso, d.numero";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute();
+            $deptos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($deptos as $depto) {
+                $residente = $depto['username'] ? $depto['username'] : '<span style="color: #999;">Sin asignar</span>';
+                $estado_color = ($depto['estado'] == 'ocupado') ? 'color: green; font-weight: bold;' : 'color: orange;';
+                echo "<tr>
+                        <td>{$depto['id_departamento']}</td>
+                        <td><strong>{$depto['numero']}</strong></td>
+                        <td>{$depto['piso']}</td>
+                        <td style=\"{$estado_color}\">{$depto['estado']}</td>
+                        <td>{$residente}</td>
+                      </tr>";
+            }
+            echo '</tbody></table></div>';
+
+            // Tabla de Áreas Comunes
+            echo '<div class="section">
+                    <div class="section-title">
+                        <h2>🏊 TABLA DE ÁREAS COMUNES</h2>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                                <th>Capacidad</th>
+                                <th>Costo Reserva</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>';
+
+            $query = "SELECT id_area, nombre, descripcion, capacidad, costo_reserva, estado 
+                      FROM area_comun 
+                      ORDER BY id_area";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute();
+            $areas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($areas as $area) {
+                $estado_color = ($area['estado'] == 'disponible') ? 'color: green; font-weight: bold;' : 'color: red;';
+                echo "<tr>
+                        <td>{$area['id_area']}</td>
+                        <td><strong>{$area['nombre']}</strong></td>
+                        <td>{$area['descripcion']}</td>
+                        <td>{$area['capacidad']} personas</td>
+                        <td style=\"color: blue; font-weight: bold;\">$ {$area['costo_reserva']}</td>
+                        <td style=\"{$estado_color}\">{$area['estado']}</td>
+                      </tr>";
+            }
+            echo '</tbody></table></div>';
+
+            echo '</div></body></html>';
 
         } catch (Exception $e) {
-            echo "❌ Error al obtener información de la base de datos: " . $e->getMessage() . "\n";
+            echo "<div style='color: red; padding: 20px; background: #ffe6e6; border-radius: 5px;'>❌ Error al obtener información de la base de datos: " . $e->getMessage() . "</div>";
         }
     }
 }
 
 // Ejecución principal
-echo "=============================================\n";
-echo "   SISTEMA DE CREACIÓN DE ADMINISTRADOR\n";
-echo "=============================================\n";
+echo "<!DOCTYPE html>
+<html lang='es'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Sistema de Carga de Datos</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .main-container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .header { 
+            text-align: center; 
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .header h1 { 
+            margin: 0; 
+            font-size: 2.5em; 
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .console {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            margin: 20px 0;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 2px solid #333;
+        }
+        .success { color: #4CAF50; font-weight: bold; }
+        .error { color: #f44336; font-weight: bold; }
+        .warning { color: #ff9800; font-weight: bold; }
+        .info { color: #2196F3; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class='main-container'>
+        <div class='header'>
+            <h1>🏢 SISTEMA DE CARGA DE DATOS DE PRUEBA</h1>
+            <p>Sistema de gestión de edificios - Base de datos</p>
+        </div>";
 
 try {
-    $adminCreator = new AdminCreator();
-    
-    // Mostrar información actual
-    $adminCreator->mostrarInfoBaseDatos();
-    
-    echo "\n";
-    
-    // Crear el administrador
-    $resultado = $adminCreator->crearAdministrador();
-    
+    ob_start(); // Capturar la salida del proceso
+
+    $dataSeeder = new DataSeeder();
+
+    echo "<div class='console'>";
+    echo "<div class='info'>📊 Mostrando información actual de la base de datos...</div>\n";
+    echo "</div>";
+
+    // Mostrar información actual en HTML
+    $dataSeeder->mostrarInfoBaseDatos();
+
+    echo "<div class='console'>";
+    echo "\n<div class='info'>🚀 INICIANDO CARGA DE DATOS DE PRUEBA...</div>\n";
+
+    // Cargar datos de prueba
+    $resultado = $dataSeeder->seedData();
+
     if ($resultado) {
-        echo "\n✅ Proceso completado exitosamente.\n";
+        echo "<div class='success'>\n✅ Proceso completado exitosamente.</div>\n";
     } else {
-        echo "\n⚠️  El administrador no pudo ser creado (puede que ya exista).\n";
+        echo "<div class='warning'>\n⚠️ Hubo problemas al cargar los datos de prueba.</div>\n";
     }
-    
-    // Mostrar información final
-    echo "\n";
-    $adminCreator->mostrarInfoBaseDatos();
-    
+
+    echo "</div>";
+
+    // Mostrar información final en HTML
+    echo "<div class='console'>";
+    echo "<div class='info'>📊 Mostrando información final de la base de datos...</div>\n";
+    echo "</div>";
+    $dataSeeder->mostrarInfoBaseDatos();
+
 } catch (Exception $e) {
-    echo "❌ Error fatal: " . $e->getMessage() . "\n";
+    echo "<div class='console'>";
+    echo "<div class='error'>❌ Error fatal: " . $e->getMessage() . "</div>\n";
+    echo "</div>";
 }
 
-echo "\n=============================================\n";
-echo "   FIN DEL PROCESO\n";
-echo "=============================================\n";
+echo "    </div>
+</body>
+</html>";
 ?>

@@ -191,39 +191,48 @@ CREATE TABLE historial_pago (
                                 FOREIGN KEY (id_persona) REFERENCES persona(id_persona)
 );
 
--- 15️⃣ Tabla: incidente
 CREATE TABLE incidente (
                            id_incidente INT AUTO_INCREMENT PRIMARY KEY,
                            id_departamento INT NOT NULL,
                            id_residente INT NOT NULL,
+                           id_creador INT NOT NULL,
+                           tipo ENUM('interno', 'externo') DEFAULT 'interno',
                            descripcion TEXT NOT NULL,
+                           descripcion_detallada TEXT,
+                           costo_externo DECIMAL(10,2) DEFAULT 0,
+                           id_area INT NULL,
                            fecha_registro DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                            estado ENUM('pendiente', 'en_proceso', 'resuelto', 'cancelado') DEFAULT 'pendiente',
+
                            FOREIGN KEY (id_departamento) REFERENCES departamento(id_departamento),
-                           FOREIGN KEY (id_residente) REFERENCES persona(id_persona)
+                           FOREIGN KEY (id_residente) REFERENCES persona(id_persona),
+                           FOREIGN KEY (id_creador) REFERENCES persona(id_persona),
+                           FOREIGN KEY (id_area) REFERENCES area_comun(id_area)
 );
 
--- 16️⃣ Tabla: incidente_asignado
 CREATE TABLE incidente_asignado (
                                     id_asignacion INT AUTO_INCREMENT PRIMARY KEY,
                                     id_incidente INT NOT NULL,
                                     id_personal INT NOT NULL,
                                     fecha_asignacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                                     fecha_atencion DATETIME DEFAULT NULL,
+                                    observaciones TEXT DEFAULT NULL,
+                                    requiere_reasignacion BOOLEAN DEFAULT FALSE,
+                                    comentario_reasignacion TEXT DEFAULT NULL,
                                     FOREIGN KEY (id_incidente) REFERENCES incidente(id_incidente),
                                     FOREIGN KEY (id_personal) REFERENCES persona(id_persona)
 );
 
--- 17️⃣ Tabla: historial_incidente
 CREATE TABLE historial_incidente (
                                      id_historial_incidente INT AUTO_INCREMENT PRIMARY KEY,
                                      id_incidente INT NOT NULL,
                                      id_persona INT NOT NULL,
-                                     accion ENUM('asignacion', 'inicio_atencion', 'actualizacion', 'resolucion', 'cancelacion') NOT NULL,
+                                     accion ENUM('creacion', 'asignacion', 'inicio_atencion', 'actualizacion', 'resolucion', 'cancelacion', 'reasignacion') NOT NULL,
                                      observacion TEXT DEFAULT NULL,
                                      estado_anterior ENUM('pendiente', 'en_proceso', 'resuelto', 'cancelado') DEFAULT NULL,
                                      estado_nuevo ENUM('pendiente', 'en_proceso', 'resuelto', 'cancelado') DEFAULT NULL,
                                      fecha_accion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
                                      FOREIGN KEY (id_incidente) REFERENCES incidente(id_incidente),
                                      FOREIGN KEY (id_persona) REFERENCES persona(id_persona)
 );
@@ -576,3 +585,207 @@ BEGIN
 END//
 
 DELIMITER ;
+
+
+
+--- incidenes
+
+-- Triggers
+DELIMITER //
+
+-- Trigger para creación de incidente
+CREATE TRIGGER after_incidente_insert
+    AFTER INSERT ON incidente
+    FOR EACH ROW
+BEGIN
+    INSERT INTO historial_incidente (
+        id_incidente,
+        id_persona,
+        accion,
+        observacion,
+        estado_anterior,
+        estado_nuevo
+    ) VALUES (
+                 NEW.id_incidente,
+                 NEW.id_creador,
+                 'creacion',
+                 CONCAT('Incidente creado: ', NEW.descripcion),
+                 NULL,
+                 NEW.estado
+             );
+END//
+
+-- Trigger para asignación de personal
+CREATE TRIGGER after_incidente_asignado_insert
+    AFTER INSERT ON incidente_asignado
+    FOR EACH ROW
+BEGIN
+    INSERT INTO historial_incidente (
+        id_incidente,
+        id_persona,
+        accion,
+        observacion,
+        estado_anterior,
+        estado_nuevo
+    ) VALUES (
+                 NEW.id_incidente,
+                 NEW.id_personal,
+                 'asignacion',
+                 CONCAT('Asignado para: ', COALESCE(NEW.observaciones, 'Sin observaciones')),
+                 'pendiente',
+                 'en_proceso'
+             );
+
+    UPDATE incidente SET estado = 'en_proceso' WHERE id_incidente = NEW.id_incidente;
+END//
+
+-- Trigger para actualizaciones en asignaciones
+CREATE TRIGGER after_incidente_asignado_update
+    AFTER UPDATE ON incidente_asignado
+    FOR EACH ROW
+BEGIN
+    -- Inicio de atención
+    IF OLD.fecha_atencion IS NULL AND NEW.fecha_atencion IS NOT NULL THEN
+        INSERT INTO historial_incidente (
+            id_incidente,
+            id_persona,
+            accion,
+            observacion,
+            estado_anterior,
+            estado_nuevo
+        ) VALUES (
+                     NEW.id_incidente,
+                     NEW.id_personal,
+                     'inicio_atencion',
+                     CONCAT('Atención iniciada: ', COALESCE(NEW.observaciones, 'Inicio de trabajo')),
+                     'en_proceso',
+                     'en_proceso'
+                 );
+
+        -- Reasignación de personal
+    ELSEIF OLD.id_personal != NEW.id_personal THEN
+        INSERT INTO historial_incidente (
+            id_incidente,
+            id_persona,
+            accion,
+            observacion,
+            estado_anterior,
+            estado_nuevo
+        ) VALUES (
+                     NEW.id_incidente,
+                     NEW.id_personal,
+                     'reasignacion',
+                     CONCAT('Reasignado: ', COALESCE(NEW.observaciones, 'Reasignación completada')),
+                     'en_proceso',
+                     'en_proceso'
+                 );
+
+        -- Actualizaciones de progreso
+    ELSEIF OLD.fecha_atencion IS NOT NULL AND NEW.observaciones != OLD.observaciones THEN
+        INSERT INTO historial_incidente (
+            id_incidente,
+            id_persona,
+            accion,
+            observacion,
+            estado_anterior,
+            estado_nuevo
+        ) VALUES (
+                     NEW.id_incidente,
+                     NEW.id_personal,
+                     'actualizacion',
+                     CONCAT('Progreso: ', COALESCE(NEW.observaciones, 'Actualización de trabajo')),
+                     'en_proceso',
+                     'en_proceso'
+                 );
+    END IF;
+END//
+
+-- Eliminar el trigger problemático
+DROP TRIGGER IF EXISTS after_incidente_update;
+
+DELIMITER //
+
+CREATE TRIGGER after_incidente_update
+    AFTER UPDATE ON incidente
+    FOR EACH ROW
+BEGIN
+    DECLARE persona_accion INT;
+    DECLARE concepto_descripcion TEXT;
+
+    -- Solo procesar si el estado cambió y es resolución o cancelación
+    IF OLD.estado != NEW.estado AND NEW.estado IN ('resuelto', 'cancelado') THEN
+
+        -- Verificar si hay una variable de sesión definida
+        IF @usuario_actual IS NOT NULL THEN
+            SET persona_accion = @usuario_actual;
+        ELSE
+            -- Si no hay variable de sesión, usar lógica por defecto
+            IF NEW.estado = 'cancelado' THEN
+                SET persona_accion = 1; -- Administrador por defecto
+            ELSE
+                SELECT ia.id_personal INTO persona_accion
+                FROM incidente_asignado ia
+                WHERE ia.id_incidente = NEW.id_incidente
+                ORDER BY ia.id_asignacion DESC
+                LIMIT 1;
+
+                IF persona_accion IS NULL THEN
+                    SET persona_accion = NEW.id_residente;
+                END IF;
+            END IF;
+        END IF;
+
+        INSERT INTO historial_incidente (
+            id_incidente,
+            id_persona,
+            accion,
+            observacion,
+            estado_anterior,
+            estado_nuevo
+        ) VALUES (
+                     NEW.id_incidente,
+                     persona_accion,
+                     IF(NEW.estado = 'resuelto', 'resolucion', 'cancelacion'),
+                     CONCAT('Incidente ', NEW.estado, ': ', NEW.descripcion),
+                     OLD.estado,
+                     NEW.estado
+                 );
+
+        -- Limpiar variable de sesión después de usarla
+        SET @usuario_actual = NULL;
+
+        -- 🆕 GENERAR CONCEPTO PARA CUALQUIER INCIDENTE CON COSTO > 0 (INTERNO O EXTERNO)
+        IF NEW.estado = 'resuelto' AND NEW.costo_externo > 0 THEN
+
+            -- Determinar la descripción según el tipo de incidente
+            IF NEW.tipo = 'externo' THEN
+                SET concepto_descripcion = CONCAT('Costo por reparación externa: ', NEW.descripcion);
+            ELSE
+                SET concepto_descripcion = CONCAT('Costo por materiales/reparación interna: ', NEW.descripcion);
+            END IF;
+
+            INSERT INTO conceptos (
+                id_persona,
+                concepto,
+                monto,
+                id_origen,
+                tipo_origen,
+                descripcion,
+                estado
+            ) VALUES (
+                         NEW.id_residente,
+                         'incidente',
+                         NEW.costo_externo,
+                         NEW.id_incidente,
+                         'incidente',
+                         concepto_descripcion,
+                         'pendiente'
+                     );
+        END IF;
+    END IF;
+END//
+
+DELIMITER ;
+
+
+

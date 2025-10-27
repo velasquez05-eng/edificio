@@ -4,17 +4,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Función helper para mostrar valores de sesión de forma segura
-function getSessionValue($key, $default = '') {
-    if (!isset($_SESSION[$key])) {
-        return $default;
-    }
-
-    if (is_array($_SESSION[$key])) {
-        return $_SESSION[$key]['rol'] ?? $default;
-    }
-
-    return $_SESSION[$key];
+if (empty($_SESSION['id_persona'])) {
+    header("Location: ../controlador/PersonaControlador.php?action=logout");
+    exit();
 }
 ?>
 
@@ -270,36 +262,41 @@ function getSessionValue($key, $default = '') {
                             </p>
                         </a>
                         <ul class="nav nav-treeview">
+                            <?php if ($_SESSION['id_rol'] == '2') { ?>
+
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
+                                <a href="../controlador/IncidenteControlador.php?action=verMisIncidentes" class="nav-link">
                                     <i class="fas fa-list"></i>
-                                    <p>Listar Incidentes</p>
+                                    <p>Mis Incidentes</p>
                                 </a>
                             </li>
+                            <?php } ?>
+                            <?php if ($_SESSION['id_rol'] == '1' || $_SESSION['id_rol'] == '2') { ?>
+
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
+                                <a href="../controlador/IncidenteControlador.php?action=formularioIncidente" class="nav-link">
                                     <i class="fas fa-plus-circle"></i>
                                     <p>Registrar Incidente</p>
                                 </a>
                             </li>
+                            <?php } ?>
+
                             <?php if ($_SESSION['id_rol'] == '1') { ?>
+                                <li class="nav-item">
+                                    <a href="../controlador/IncidenteControlador.php?action=listarIncidentes" class="nav-link">
+                                        <i class="fas fa-list"></i>
+                                        <p>Listar Incidentes</p>
+                                    </a>
+                                </li>
+
+
+                            <?php } ?>
+                            <?php if ($_SESSION['id_rol'] != '1'&&$_SESSION['id_rol'] != '2') { ?>
 
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
-                                    <i class="fas fa-user-check"></i>
-                                    <p>Asignar Incidente</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="#" class="nav-link">
+                                <a href="../controlador/IncidenteControlador.php?action=verIncidentesAsignados" class="nav-link">
                                     <i class="fas fa-tools"></i>
                                     <p>Atender Incidente</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="#" class="nav-link">
-                                    <i class="fas fa-history"></i>
-                                    <p>Historial Incidentes</p>
                                 </a>
                             </li>
                             <?php } ?>

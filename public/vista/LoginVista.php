@@ -256,6 +256,13 @@
                 transform: scale(0.9);
                 transform-origin: center;
             }
+            #skipCaptcha {
+                cursor: pointer;
+            }
+            .form-check-label {
+                user-select: none;
+            }
+
         }
     </style>
 </head>
@@ -347,6 +354,13 @@
                              data-expired-callback="recaptchaExpired">
                         </div>
                         <div id="recaptchaError" class="text-danger small mt-2 d-none">Por favor, marca "No soy un robot"</div>
+                    </div>
+
+                    <div class="form-check mt-3 text-start">
+                        <input class="form-check-input" type="checkbox" id="skipCaptcha">
+                        <label class="form-check-label text-secondary small" for="skipCaptcha">
+                            Modo desarrollador: omitir reCAPTCHA
+                        </label>
                     </div>
 
                     <button type="submit" class="btn btn-primary w-100 btn-login" id="btnLogin">Iniciar Sesión</button>
@@ -535,6 +549,27 @@
             document.getElementById('password').disabled = false;
             document.getElementById('btnLogin').disabled = false;
             document.querySelector('.g-recaptcha').classList.remove('g-recaptcha-disabled');
+        });
+        // --- NUEVO: Checkbox para omitir el reCAPTCHA ---
+        document.getElementById('skipCaptcha').addEventListener('change', function() {
+            recaptchaValid = this.checked; // Si está marcado, se considera válido
+            const recaptcha = document.querySelector('.g-recaptcha');
+            const mensajeError = document.getElementById('recaptchaError');
+
+            if (this.checked) {
+                // Desactivar el widget visual
+                recaptcha.classList.add('g-recaptcha-disabled');
+                mensajeError.classList.add('d-none');
+                console.log("Modo desarrollador activado: reCAPTCHA omitido");
+            } else {
+                // Reactivar el widget visual
+                recaptcha.classList.remove('g-recaptcha-disabled');
+                if (window.grecaptcha && recaptchaWidgetId !== null) {
+                    grecaptcha.reset(recaptchaWidgetId);
+                }
+                recaptchaValid = false;
+                console.log("Modo desarrollador desactivado: reCAPTCHA requerido");
+            }
         });
     });
 </script>

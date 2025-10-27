@@ -37,8 +37,10 @@
 ├── public
 │   ├── controlador
 │   │   ├── AreaComunControlador.php
+│   │   ├── ComunicadoControlador.php
 │   │   ├── DashboardControlador.php
 │   │   ├── DepartamentoControlador.php
+│   │   ├── FacturaControlador.php
 │   │   ├── LoginControlador.php
 │   │   ├── PersonaControlador.php
 │   │   ├── RecuperarControlador.php
@@ -46,9 +48,11 @@
 │   │   └── RolControlador.php
 │   ├── modelo
 │   │   ├── AreaComunModelo.php
+│   │   ├── ComunicadoModelo.php
 │   │   ├── CorreoModelo.php
 │   │   ├── DashboardModelo.php
 │   │   ├── DepartamentoModelo.php
+│   │   ├── FacturaModelo.php
 │   │   ├── LoginModelo.php
 │   │   ├── PersonaModelo.php
 │   │   ├── RecuperarModelo.php
@@ -60,7 +64,9 @@
 │       ├── DashboardPersonalVista.php
 │       ├── DashboardResidenteVista.php
 │       ├── ListarAreasComunesVista.php
+│       ├── ListarComunicadosVista.php
 │       ├── ListarDepartamentoVista.php
+│       ├── listarFacturasVista.php
 │       ├── ListarPersonalVista.php
 │       ├── ListarPersonasEliminadasVista.php
 │       ├── listarReservasVista.php
@@ -70,11 +76,13 @@
 │       ├── LoginVista.php
 │       ├── RecuperarVista.php
 │       ├── RegistrarAreaVista.php
+│       ├── RegistrarComunicadoVista.php
 │       ├── RegistrarDepartamentoVista.php
 │       ├── RegistrarPersonaVista.php
 │       ├── RegistrarReservaAreaVista.php
 │       ├── RegistrarRolVista.php
 │       ├── RegistroVista.php
+│       ├── VerComunicadoVista.php
 │       ├── VerificacionVista.php
 │       ├── verReservasAreaVista.php
 │       ├── verReservasMesVista.php
@@ -82,4 +90,4 @@
 ├── README.md
 └── script.sql
 
-12 directories, 71 files
+12 directories, 79 files

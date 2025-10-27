@@ -117,7 +117,7 @@ class PersonaControlador{
                 $resultado = $this->personamodelo->registrarPersona($nombre,$apellido_paterno,$apellido_materno,$ci,$telefono,$email,$username,$password,$id_rol);
 
                 if($resultado){
-                    $this->correomodelo->notificarCredenciales($email,$nombre." ".$apellido_paterno." ".$apellido_materno,$username,$password);
+                 //   $this->correomodelo->notificarCredenciales($email,$nombre." ".$apellido_paterno." ".$apellido_materno,$username,$password);
                     $this->redirigirConExito("Persona registrada exitosamente como ".$rol['rol'] . ". Tiene 3 dias para verificar su cuenta.");
                 }else{
                     $this->redirigirConError("Error al registrar persona - No se pudo ejecutar la consulta");
@@ -371,10 +371,10 @@ class PersonaControlador{
             $recaptcha_response = $_POST['g-recaptcha-response'] ?? '';
 
             // 1. Validar reCAPTCHA primero
-            if (!$this->validarRecaptcha($recaptcha_response)) {
-                header("Location: ../vista/LoginVista.php?error=Por favor, verifica que no eres un robot");
-                exit();
-            }
+           // if (!$this->validarRecaptcha($recaptcha_response)) {
+             //   header("Location: ../vista/LoginVista.php?error=Por favor, verifica que no eres un robot");
+              //  exit();
+            //}
 
             // 2. Validar campos vacíos
             if (empty($username) || empty($password)) {
@@ -750,6 +750,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 break;
             case 'formularioPersona':
                 $controlador->formularioPersona();
+                break;
+            case 'logout':
+                $controlador->logout();
                 break;
             default:
                 header('Location: ../vista/DashboardVista.php?error=Accion no valida');
