@@ -10,6 +10,7 @@
 │   └── universo del discuros.md
 ├── db_edificio_v1 (1).sql
 ├── db_edificio_v1.sql
+├── db_edificio_v2.sql
 ├── estructura.txt
 ├── includes
 │   ├── css
@@ -37,10 +38,12 @@
 ├── public
 │   ├── controlador
 │   │   ├── AreaComunControlador.php
+│   │   ├── CargosFIjosControlador.php
 │   │   ├── ComunicadoControlador.php
 │   │   ├── DashboardControlador.php
 │   │   ├── DepartamentoControlador.php
 │   │   ├── FacturaControlador.php
+│   │   ├── IncidenteControlador.php
 │   │   ├── LoginControlador.php
 │   │   ├── PersonaControlador.php
 │   │   ├── RecuperarControlador.php
@@ -48,25 +51,28 @@
 │   │   └── RolControlador.php
 │   ├── modelo
 │   │   ├── AreaComunModelo.php
+│   │   ├── CargosFijosModelo.php
 │   │   ├── ComunicadoModelo.php
 │   │   ├── CorreoModelo.php
 │   │   ├── DashboardModelo.php
 │   │   ├── DepartamentoModelo.php
 │   │   ├── FacturaModelo.php
+│   │   ├── IncidenteModelo.php
 │   │   ├── LoginModelo.php
 │   │   ├── PersonaModelo.php
 │   │   ├── RecuperarModelo.php
 │   │   ├── RegistroModelo.php
 │   │   └── RolModelo.php
 │   └── vista
-│       ├── AsignarPersonasDepartamentoVista.php
 │       ├── DashboardAdministradorVista.php
 │       ├── DashboardPersonalVista.php
 │       ├── DashboardResidenteVista.php
 │       ├── ListarAreasComunesVista.php
+│       ├── ListarCargosFijosVista.php
 │       ├── ListarComunicadosVista.php
 │       ├── ListarDepartamentoVista.php
-│       ├── listarFacturasVista.php
+│       ├── ListarFacturasVista.php
+│       ├── ListarIncidentesVista.php
 │       ├── ListarPersonalVista.php
 │       ├── ListarPersonasEliminadasVista.php
 │       ├── listarReservasVista.php
@@ -76,18 +82,24 @@
 │       ├── LoginVista.php
 │       ├── RecuperarVista.php
 │       ├── RegistrarAreaVista.php
+│       ├── RegistrarCargosFijosVista.php
 │       ├── RegistrarComunicadoVista.php
 │       ├── RegistrarDepartamentoVista.php
+│       ├── RegistrarIncidenteVista.php
+│       ├── RegistrarPersonasDepartamentoVista.php
 │       ├── RegistrarPersonaVista.php
 │       ├── RegistrarReservaAreaVista.php
 │       ├── RegistrarRolVista.php
 │       ├── RegistroVista.php
 │       ├── VerComunicadoVista.php
+│       ├── VerHistorialIncidenteVista.php
 │       ├── VerificacionVista.php
+│       ├── VerIncidentesAsignadosVista.php
+│       ├── VerMisIncidentesVista.php
 │       ├── verReservasAreaVista.php
 │       ├── verReservasMesVista.php
 │       └── verReservasPendientesVista.php
 ├── README.md
 └── script.sql
 
-12 directories, 79 files
+12 directories, 91 files

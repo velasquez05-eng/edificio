@@ -261,6 +261,117 @@ CREATE TABLE notificacion_persona (
                                       FOREIGN KEY (id_persona) REFERENCES persona(id_persona)
 );
 
+CREATE TABLE cargos_fijos (
+                              id_cargo INT AUTO_INCREMENT PRIMARY KEY,
+                              nombre_cargo VARCHAR(255) NOT NULL,
+                              monto DECIMAL(10,2) NOT NULL,
+                              descripcion TEXT,
+                              estado ENUM('activo', 'inactivo') DEFAULT 'activo',
+                              fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+                              fecha_actualizacion DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+
+
+-- ============================================
+-- TRIGGER PARA CREAR CONCEPTOS AUTOMÁTICAMENTE
+-- ============================================
+
+DELIMITER $$
+
+-- Trigger que se ejecuta después de insertar en historial_consumo
+CREATE TRIGGER after_historial_consumo_insert
+    AFTER INSERT ON historial_consumo
+    FOR EACH ROW
+BEGIN
+    DECLARE v_id_departamento INT;
+    DECLARE v_id_persona INT;
+    DECLARE v_servicio_nombre VARCHAR(50);
+    DECLARE v_unidad_medida VARCHAR(50);
+    DECLARE v_costo_unitario DECIMAL(10,2);
+    DECLARE v_monto_total DECIMAL(10,2);
+    DECLARE v_descripcion TEXT;
+
+    -- Obtener información del departamento y servicio
+    SELECT
+        m.id_departamento,
+        s.nombre,
+        s.unidad_medida,
+        s.costo_unitario,
+        (NEW.consumo_total * s.costo_unitario) as monto_calculado
+    INTO
+        v_id_departamento,
+        v_servicio_nombre,
+        v_unidad_medida,
+        v_costo_unitario,
+        v_monto_total
+    FROM medidor m
+             JOIN servicio s ON m.id_servicio = s.id_servicio
+    WHERE m.id_medidor = NEW.id_medidor;
+
+    -- Obtener el ID de la persona principal del departamento
+    SELECT td.id_persona INTO v_id_persona
+    FROM tiene_departamento td
+    WHERE td.id_departamento = v_id_departamento
+      AND td.estado = 'activo'
+    LIMIT 1;
+
+    -- Si no encuentra persona activa, buscar cualquier persona del departamento
+    IF v_id_persona IS NULL THEN
+        SELECT td.id_persona INTO v_id_persona
+        FROM tiene_departamento td
+        WHERE td.id_departamento = v_id_departamento
+        LIMIT 1;
+    END IF;
+
+    -- Construir la descripción
+    SET v_descripcion = CONCAT(
+            'Consumo de ',
+            UPPER(v_servicio_nombre),
+            ' - Periodo: ',
+            DATE_FORMAT(NEW.fecha_inicio, '%d/%m/%Y'),
+            ' al ',
+            DATE_FORMAT(NEW.fecha_fin, '%d/%m/%Y'),
+            ' - Total: ',
+            NEW.consumo_total,
+            ' ',
+            v_unidad_medida,
+            ' x Bs. ',
+            v_costo_unitario,
+            ' = Bs. ',
+            v_monto_total
+                        );
+
+    -- Insertar el concepto en la tabla conceptos
+    INSERT INTO conceptos (
+        id_persona,
+        id_factura,  -- Se dejará NULL hasta que se cree la factura
+        concepto,
+        monto,
+        id_origen,
+        tipo_origen,
+        cantidad,
+        descripcion,
+        fecha_creacion,
+        estado
+    ) VALUES (
+                 v_id_persona,
+                 NULL,  -- id_factura se asignará cuando se genere la factura
+                 v_servicio_nombre,  -- agua, luz, gas
+                 v_monto_total,
+                 NEW.id_historial_consumo,  -- Referencia al registro de historial
+                 'consumo',  -- Tipo de origen
+                 1,
+                 v_descripcion,
+                 NOW(),
+                 'pendiente'  -- Estado hasta que se facture
+             );
+
+END$$
+
+DELIMITER ;
+
+
 
 -- ============================================
 -- TRIGGER PARA CALCULAR COSTO DE RESERVA

@@ -329,7 +329,32 @@ if (empty($_SESSION['id_persona'])) {
                             <?php }?>
                         </ul>
                     </li>
-                    
+
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="fas fa-bullhorn"></i>
+                            <p>
+                                Cargos Fijos
+                                <i class="nav-arrow fas fa-chevron-right float-end"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="../controlador/CargosFijosControlador.php?action=listarCargosVista" class="nav-link">
+                                    <i class="fas fa-list"></i>
+                                    <p>Listar Cargos Fijos</p>
+                                </a>
+                            </li>
+                            <?php if ($_SESSION['id_rol'] == '1') { ?>
+                                <li class="nav-item">
+                                    <a href="../controlador/CargosFijosControlador.php?action=formularioCrearCargo" class="nav-link">
+                                        <i class="fas fa-plus-circle"></i>
+                                        <p>Registrar Cargos Fijos</p>
+                                    </a>
+                                </li>
+                            <?php }?>
+                        </ul>
+                    </li>
                     <li class="nav-item">
                         <a href="#" class="nav-link">
                             <i class="fas fa-concierge-bell"></i>
