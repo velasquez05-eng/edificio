@@ -121,6 +121,8 @@ class FacturaControlador {
         header('Location: ../controlador/FacturaControlador.php?action=listarFacturas&error=' . urlencode($mensaje));
         exit;
     }
+
+
 }
 
 // =============================================

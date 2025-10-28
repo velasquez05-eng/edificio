@@ -2,26 +2,123 @@
 include("../../includes/header.php");
 
 // Verificar que las variables estén definidas
-$metricasFinancieras = $metricasFinancieras ?? [];
-$departamentosProblema = $departamentosProblema ?? ['riesgo' => [], 'corte' => []];
-$consumosPromedio = $consumosPromedio ?? [];
-$metricasSeguridad = $metricasSeguridad ?? ['no_verificados' => 0, 'login_fallidos' => []];
-$incidentesRecientes = $incidentesRecientes ?? [];
-$historialIncidentes = $historialIncidentes ?? [];
-$promedioPagos = $promedioPagos ?? [];
-$reservasProximas = $reservasProximas ?? [];
-$facturasVencidas = $facturasVencidas ?? [];
 $estadisticasGenerales = $estadisticasGenerales ?? [];
+$metricasFinancieras = $metricasFinancieras ?? [];
+$consumoMensualGeneral = $consumoMensualGeneral ?? [];
+$estadisticasConsumoGeneral = $estadisticasConsumoGeneral ?? [];
+$todosResidentes = $todosResidentes ?? [];
+$todosIncidentes = $todosIncidentes ?? [];
+$todasAreas = $todasAreas ?? [];
+$todasReservas = $todasReservas ?? [];
+$todosServicios = $todosServicios ?? [];
+$departamentosSelector = $departamentosSelector ?? [];
+$consumoDiarioDepartamento = $consumoDiarioDepartamento ?? [];
 
 // Parámetros de filtro
 $mes_filtro = $_GET['mes'] ?? date('m');
 $anio_filtro = $_GET['anio'] ?? date('Y');
+$departamento_filtro = $_GET['departamento'] ?? '';
+
+// Preparar datos para gráficos
+function prepararDatosConsumoMensualChart($consumoMensualGeneral) {
+    $datos = ['labels' => [], 'datasets' => []];
+    $departamentos = [];
+    $consumoPorDepartamento = [];
+
+    foreach ($consumoMensualGeneral as $consumo) {
+        $departamento = 'Dpto ' . $consumo['departamento'] . ' - P' . $consumo['piso'];
+        $servicio = $consumo['servicio'];
+
+        if (!in_array($departamento, $datos['labels'])) {
+            $datos['labels'][] = $departamento;
+        }
+
+        if (!in_array($servicio, $departamentos)) {
+            $departamentos[] = $servicio;
+        }
+
+        $consumoPorDepartamento[$servicio][$departamento] = $consumo['consumo_mensual'];
+    }
+
+    $colores = [
+            'agua' => 'rgba(54, 162, 235, 0.8)',
+            'luz' => 'rgba(255, 206, 86, 0.8)',
+            'gas' => 'rgba(255, 99, 132, 0.8)'
+    ];
+
+    foreach ($departamentos as $servicio) {
+        $dataset = [
+                'label' => ucfirst($servicio),
+                'data' => [],
+                'backgroundColor' => $colores[$servicio] ?? 'rgba(201, 203, 207, 0.8)',
+                'borderColor' => $colores[$servicio] ?? 'rgba(201, 203, 207, 1)',
+                'borderWidth' => 1
+        ];
+
+        foreach ($datos['labels'] as $departamento) {
+            $dataset['data'][] = $consumoPorDepartamento[$servicio][$departamento] ?? 0;
+        }
+
+        $datos['datasets'][] = $dataset;
+    }
+
+    return $datos;
+}
+
+function prepararDatosConsumoDiarioChart($consumoDiarioDepartamento) {
+    $datos = ['labels' => [], 'datasets' => []];
+    $servicios = [];
+    $consumoPorServicio = [];
+
+    foreach ($consumoDiarioDepartamento as $consumo) {
+        $servicio = $consumo['servicio'];
+        $fecha = date('d/m', strtotime($consumo['fecha']));
+
+        if (!in_array($fecha, $datos['labels'])) {
+            $datos['labels'][] = $fecha;
+        }
+
+        if (!in_array($servicio, $servicios)) {
+            $servicios[] = $servicio;
+        }
+
+        $consumoPorServicio[$servicio][$fecha] = $consumo['consumo_diario'];
+    }
+
+    $colores = [
+            'agua' => 'rgba(54, 162, 235, 0.8)',
+            'luz' => 'rgba(255, 206, 86, 0.8)',
+            'gas' => 'rgba(255, 99, 132, 0.8)'
+    ];
+
+    foreach ($servicios as $servicio) {
+        $dataset = [
+                'label' => ucfirst($servicio),
+                'data' => [],
+                'backgroundColor' => $colores[$servicio] ?? 'rgba(201, 203, 207, 0.8)',
+                'borderColor' => $colores[$servicio] ?? 'rgba(201, 203, 207, 1)',
+                'borderWidth' => 2,
+                'fill' => false
+        ];
+
+        foreach ($datos['labels'] as $fecha) {
+            $dataset['data'][] = $consumoPorServicio[$servicio][$fecha] ?? 0;
+        }
+
+        $datos['datasets'][] = $dataset;
+    }
+
+    return $datos;
+}
+
+$consumoMensualChart = prepararDatosConsumoMensualChart($consumoMensualGeneral);
+$consumoDiarioChart = prepararDatosConsumoDiarioChart($consumoDiarioDepartamento);
 ?>
 
     <!-- Page Header -->
     <div class="page-header fade-in">
         <div class="page-title">
-            <h1>Dashboard Administrador - Condominio Inteligente</h1>
+            <h1>Dashboard Administrador - SEINT</h1>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="#"><i class="fas fa-home"></i> Inicio</a></li>
@@ -31,7 +128,7 @@ $anio_filtro = $_GET['anio'] ?? date('Y');
         </div>
     </div>
 
-    <!-- Mostrar mensajes de éxito o error -->
+    <!-- Mostrar mensajes -->
 <?php if (isset($_GET['success'])): ?>
     <div class="alert alert-success alert-dismissible fade show" role="alert">
         <i class="fas fa-check-circle me-2"></i>
@@ -50,432 +147,496 @@ $anio_filtro = $_GET['anio'] ?? date('Y');
 
     <div class="container-fluid">
         <!-- Filtros -->
-        <div class="filter-section">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h4 class="mb-0 text-dark">
-                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard de Administración
-                    </h4>
-                    <p class="text-muted mb-0">Monitoreo integral del condominio</p>
-                </div>
-                <div class="col-md-4">
-                    <form method="GET" class="row g-2">
-                        <input type="hidden" name="action" value="dashboardAdministrador">
-                        <div class="col-4">
-                            <select name="mes" class="form-select form-select-sm">
-                                <?php for($i=1; $i<=12; $i++): ?>
-                                    <option value="<?= sprintf('%02d', $i) ?>" <?= $i == $mes_filtro ? 'selected' : '' ?>>
-                                        <?= DateTime::createFromFormat('!m', $i)->format('F') ?>
-                                    </option>
-                                <?php endfor; ?>
-                            </select>
-                        </div>
-                        <div class="col-4">
-                            <select name="anio" class="form-select form-select-sm">
-                                <?php for($i=2022; $i<=2025; $i++): ?>
-                                    <option value="<?= $i ?>" <?= $i == $anio_filtro ? 'selected' : '' ?>>
-                                        <?= $i ?>
-                                    </option>
-                                <?php endfor; ?>
-                            </select>
-                        </div>
-                        <div class="col-4">
-                            <button type="submit" class="btn btn-primary btn-sm w-100">
-                                <i class="fas fa-filter"></i> Filtrar
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Métricas Principales -->
-        <div class="row">
-            <div class="col-xl-3 col-md-6">
-                <div class="card metric-card primary">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <p class="stat-label">INGRESOS DEL MES</p>
-                                <h3 class="stat-number">Bs. <?= number_format($metricasFinancieras['ingresos_mes'] ?? 0, 2) ?></h3>
-                            </div>
-                            <div class="icon">
-                                <i class="fas fa-money-bill-wave fa-2x opacity-75"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xl-3 col-md-6">
-                <div class="card metric-card danger">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <p class="stat-label">DEUDA TOTAL</p>
-                                <h3 class="stat-number">Bs. <?= number_format($metricasFinancieras['deuda_total'] ?? 0, 2) ?></h3>
-                                <small><?= $metricasFinancieras['total_facturas_vencidas'] ?? 0 ?> facturas pendientes</small>
-                            </div>
-                            <div class="icon">
-                                <i class="fas fa-exclamation-triangle fa-2x opacity-75"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xl-3 col-md-6">
-                <div class="card metric-card warning">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <p class="stat-label">MOROSIDAD</p>
-                                <h3 class="stat-number">Bs. <?= number_format($metricasFinancieras['morosidad'] ?? 0, 2) ?></h3>
-                                <small><?= $metricasFinancieras['facturas_vencidas'] ?? 0 ?> facturas vencidas</small>
-                            </div>
-                            <div class="icon">
-                                <i class="fas fa-clock fa-2x opacity-75"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xl-3 col-md-6">
-                <div class="card metric-card success">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <p class="stat-label">DEPTOS. CON PROBLEMAS</p>
-                                <h3 class="stat-number"><?= count($departamentosProblema['riesgo']) + count($departamentosProblema['corte']) ?></h3>
-                                <small><?= count($departamentosProblema['corte']) ?> en corte</small>
-                            </div>
-                            <div class="icon">
-                                <i class="fas fa-home fa-2x opacity-75"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Alertas de Corte y Riesgo -->
-        <div class="row">
-            <div class="col-md-6">
+        <div class="row mb-4">
+            <div class="col-12">
                 <div class="card">
-                    <div class="card-header bg-danger text-white">
-                        <i class="fas fa-ban me-2"></i>Departamentos en Corte de Servicio
-                        <span class="badge bg-light text-dark ms-2"><?= count($departamentosProblema['corte']) ?></span>
-                    </div>
                     <div class="card-body">
-                        <?php if (count($departamentosProblema['corte']) > 0): ?>
-                            <?php foreach($departamentosProblema['corte'] as $depto): ?>
-                                <div class="alert alert-danger-custom alert-custom d-flex justify-content-between align-items-center mb-2">
-                                    <div>
-                                        <strong>Dpto. <?= $depto['numero'] ?></strong> (Piso <?= $depto['piso'] ?>)
-                                        <br>
-                                        <small><?= $depto['facturas_vencidas'] ?> facturas vencidas</small>
-                                    </div>
-                                    <div class="text-end">
-                                        <strong>Bs. <?= number_format($depto['deuda_departamento'], 2) ?></strong>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
+                        <form method="GET" class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Mes</label>
+                                <select name="mes" class="form-select">
+                                    <?php for ($i = 1; $i <= 12; $i++): ?>
+                                        <option value="<?php echo $i; ?>" <?php echo $i == $mes_filtro ? 'selected' : ''; ?>>
+                                            <?php echo DateTime::createFromFormat('!m', $i)->format('F'); ?>
+                                        </option>
+                                    <?php endfor; ?>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Año</label>
+                                <select name="anio" class="form-select">
+                                    <?php for ($i = date('Y') - 1; $i <= date('Y') + 1; $i++): ?>
+                                        <option value="<?php echo $i; ?>" <?php echo $i == $anio_filtro ? 'selected' : ''; ?>>
+                                            <?php echo $i; ?>
+                                        </option>
+                                    <?php endfor; ?>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Departamento (Consumo Diario)</label>
+                                <select name="departamento" class="form-select">
+                                    <option value="">Seleccionar departamento</option>
+                                    <?php foreach ($departamentosSelector as $depto): ?>
+                                        <option value="<?php echo $depto['id_departamento']; ?>"
+                                                <?php echo $depto['id_departamento'] == $departamento_filtro ? 'selected' : ''; ?>>
+                                            Dpto <?php echo $depto['numero']; ?> - Piso <?php echo $depto['piso']; ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estadísticas Generales -->
+        <div class="row mb-4">
+            <div class="col-xl-2 col-md-4">
+                <div class="info-card bg-gradient-primary">
+                    <div>
+                        <h3><?php echo $estadisticasGenerales['total_residentes'] ?? 0; ?></h3>
+                        <p>Residentes</p>
+                    </div>
+                    <i class="fas fa-users icon"></i>
+                </div>
+            </div>
+            <div class="col-xl-2 col-md-4">
+                <div class="info-card bg-gradient-success">
+                    <div>
+                        <h3><?php echo $estadisticasGenerales['total_departamentos'] ?? 0; ?></h3>
+                        <p>Departamentos</p>
+                    </div>
+                    <i class="fas fa-building icon"></i>
+                </div>
+            </div>
+            <div class="col-xl-2 col-md-4">
+                <div class="info-card bg-gradient-info">
+                    <div>
+                        <h3><?php echo $estadisticasGenerales['total_personal'] ?? 0; ?></h3>
+                        <p>Personal</p>
+                    </div>
+                    <i class="fas fa-user-tie icon"></i>
+                </div>
+            </div>
+            <div class="col-xl-2 col-md-4">
+                <div class="info-card bg-gradient-warning">
+                    <div>
+                        <h3><?php echo $estadisticasGenerales['total_incidentes_activos'] ?? 0; ?></h3>
+                        <p>Incidentes Activos</p>
+                    </div>
+                    <i class="fas fa-exclamation-triangle icon"></i>
+                </div>
+            </div>
+            <div class="col-xl-2 col-md-4">
+                <div class="info-card bg-gradient-danger">
+                    <div>
+                        <h3>S/ <?php echo number_format($metricasFinancieras['deuda_total'] ?? 0, 2); ?></h3>
+                        <p>Deuda Total</p>
+                    </div>
+                    <i class="fas fa-money-bill-wave icon"></i>
+                </div>
+            </div>
+            <div class="col-xl-2 col-md-4">
+                <div class="info-card bg-gradient-secondary">
+                    <div>
+                        <h3><?php echo $estadisticasGenerales['total_reservas_mes'] ?? 0; ?></h3>
+                        <p>Reservas Mes</p>
+                    </div>
+                    <i class="fas fa-calendar-check icon"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos de Consumo -->
+        <div class="row mb-4">
+            <!-- Consumo Mensual General -->
+            <div class="col-lg-8 mb-4">
+                <div class="content-box h-100">
+                    <div class="content-box-header">
+                        <h5><i class="fas fa-chart-bar me-2"></i>Consumo Mensual por Departamento</h5>
+                    </div>
+                    <div class="content-box-body">
+                        <canvas id="consumoMensualChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estadísticas de Consumo -->
+            <div class="col-lg-4 mb-4">
+                <div class="content-box h-100">
+                    <div class="content-box-header">
+                        <h5><i class="fas fa-chart-pie me-2"></i>Estadísticas de Consumo</h5>
+                    </div>
+                    <div class="content-box-body">
+                        <?php if (empty($estadisticasConsumoGeneral)): ?>
+                            <div class="text-center py-4">
+                                <p class="text-muted">No hay datos de consumo</p>
+                            </div>
                         <?php else: ?>
-                            <p class="text-muted text-center py-3">
-                                <i class="fas fa-check-circle me-2 text-success"></i>
-                                No hay departamentos en corte de servicio
-                            </p>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-warning text-dark">
-                        <i class="fas fa-exclamation-triangle me-2"></i>Departamentos en Riesgo de Corte
-                        <span class="badge bg-light text-dark ms-2"><?= count($departamentosProblema['riesgo']) ?></span>
-                    </div>
-                    <div class="card-body">
-                        <?php if (count($departamentosProblema['riesgo']) > 0): ?>
-                            <?php foreach($departamentosProblema['riesgo'] as $depto): ?>
-                                <div class="alert alert-warning-custom alert-custom d-flex justify-content-between align-items-center mb-2">
-                                    <div>
-                                        <strong>Dpto. <?= $depto['numero'] ?></strong> (Piso <?= $depto['piso'] ?>)
-                                        <br>
-                                        <small><?= $depto['facturas_vencidas'] ?> facturas vencidas</small>
-                                    </div>
-                                    <div class="text-end">
-                                        <strong>Bs. <?= number_format($depto['deuda_departamento'], 2) ?></strong>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <p class="text-muted text-center py-3">
-                                <i class="fas fa-check-circle me-2 text-success"></i>
-                                No hay departamentos en riesgo de corte
-                            </p>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Segunda Fila: Consumos y Seguridad -->
-        <div class="row mt-4">
-            <!-- Consumo por Servicio -->
-            <div class="col-md-8">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <i class="fas fa-chart-bar me-2"></i>Consumo Promedio - <?= DateTime::createFromFormat('!m', $mes_filtro)->format('F') ?> <?= $anio_filtro ?>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead class="table-light">
-                                <tr>
-                                    <th>Servicio</th>
-                                    <th>Consumo Promedio</th>
-                                    <th>Costo Promedio</th>
-                                    <th>Unidad</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <?php foreach($consumosPromedio as $consumo): ?>
-                                    <tr>
-                                        <td>
-                                            <i class="fas fa-<?= $consumo['servicio'] == 'agua' ? 'tint' : ($consumo['servicio'] == 'luz' ? 'bolt' : 'fire') ?> me-2 text-<?= $consumo['servicio'] == 'agua' ? 'primary' : ($consumo['servicio'] == 'luz' ? 'warning' : 'danger') ?>"></i>
-                                            <?= ucfirst($consumo['servicio']) ?>
-                                        </td>
-                                        <td><strong><?= number_format($consumo['consumo_promedio'], 2) ?></strong></td>
-                                        <td><strong class="text-success">Bs. <?= number_format($consumo['costo_promedio'], 2) ?></strong></td>
-                                        <td><span class="badge bg-secondary"><?= $consumo['unidad_medida'] ?></span></td>
-                                    </tr>
-                                <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Métricas de Seguridad -->
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header bg-dark text-white">
-                        <i class="fas fa-shield-alt me-2"></i>Métricas de Seguridad
-                    </div>
-                    <div class="card-body">
-                        <div class="alert alert-warning mb-3">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <i class="fas fa-user-clock me-2"></i>
-                                    <strong>Usuarios no verificados:</strong>
-                                </div>
-                                <span class="badge bg-warning"><?= $metricasSeguridad['no_verificados'] ?></span>
-                            </div>
-                        </div>
-
-                        <h6 class="border-bottom pb-2">
-                            <i class="fas fa-sign-in-alt me-2"></i>Intentos fallidos de login (30 días):
-                        </h6>
-                        <?php if (count($metricasSeguridad['login_fallidos']) > 0): ?>
-                            <?php foreach($metricasSeguridad['login_fallidos'] as $intento): ?>
-                                <div class="alert alert-danger py-2 mb-2">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <strong><?= $intento['username'] ?></strong>
-                                            <br>
-                                            <small class="text-muted"><?= $intento['rol'] ?></small>
+                            <?php foreach ($estadisticasConsumoGeneral as $servicio): ?>
+                                <div class="mb-3 p-3 border rounded">
+                                    <h6 class="text-primary"><?php echo ucfirst($servicio['servicio']); ?></h6>
+                                    <div class="row text-center">
+                                        <div class="col-6">
+                                            <small>Promedio</small>
+                                            <p class="fw-bold"><?php echo number_format($servicio['consumo_promedio'], 2); ?></p>
                                         </div>
-                                        <span class="badge bg-danger"><?= $intento['intentos_fallidos'] ?> intentos</span>
+                                        <div class="col-6">
+                                            <small>Total</small>
+                                            <p class="fw-bold"><?php echo number_format($servicio['consumo_total'], 2); ?></p>
+                                        </div>
                                     </div>
+                                    <small class="text-muted">
+                                        <?php echo $servicio['departamentos_con_consumo']; ?> departamentos
+                                    </small>
                                 </div>
                             <?php endforeach; ?>
-                        <?php else: ?>
-                            <p class="text-muted text-center py-3">
-                                <i class="fas fa-check-circle me-2 text-success"></i>
-                                No hay intentos fallidos recientes
-                            </p>
                         <?php endif; ?>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Tercera Fila: Incidentes y Pagos -->
-        <div class="row mt-4">
-            <!-- Incidentes Recientes -->
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-info text-white">
-                        <i class="fas fa-tools me-2"></i>Incidentes Recientes
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead class="table-light">
-                                <tr>
-                                    <th>Departamento</th>
-                                    <th>Descripción</th>
-                                    <th>Estado</th>
-                                    <th>Fecha</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <?php foreach($incidentesRecientes as $incidente): ?>
-                                    <tr>
-                                        <td><strong><?= $incidente['departamento'] ?></strong></td>
-                                        <td>
-                                            <small title="<?= $incidente['descripcion'] ?>">
-                                                <?= strlen($incidente['descripcion']) > 30 ? substr($incidente['descripcion'], 0, 30) . '...' : $incidente['descripcion'] ?>
-                                            </small>
-                                        </td>
-                                        <td>
-                                            <?php
-                                            $badge_class = [
-                                                    'pendiente' => 'bg-secondary',
-                                                    'en_proceso' => 'bg-warning',
-                                                    'resuelto' => 'bg-success',
-                                                    'cancelado' => 'bg-danger'
-                                            ][$incidente['estado']] ?? 'bg-secondary';
-                                            ?>
-                                            <span class="badge badge-estado <?= $badge_class ?>">
-                                                <?= str_replace('_', ' ', $incidente['estado']) ?>
-                                            </span>
-                                        </td>
-                                        <td><small><?= date('d/m/Y', strtotime($incidente['fecha_registro'])) ?></small></td>
-                                    </tr>
-                                <?php endforeach; ?>
-                                </tbody>
-                            </table>
+        <!-- Consumo Diario por Departamento -->
+        <?php if ($departamento_filtro && !empty($consumoDiarioDepartamento)): ?>
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="content-box">
+                        <div class="content-box-header">
+                            <h5><i class="fas fa-chart-line me-2"></i>Consumo Diario - Departamento Seleccionado</h5>
+                        </div>
+                        <div class="content-box-body">
+                            <canvas id="consumoDiarioChart" height="250"></canvas>
                         </div>
                     </div>
                 </div>
             </div>
+        <?php endif; ?>
 
-            <!-- Promedio de Pagos -->
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-success text-white">
-                        <i class="fas fa-chart-line me-2"></i>Top 10 - Promedio de Pagos por Departamento
+        <!-- Información de Residentes -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="content-box">
+                    <div class="content-box-header d-flex justify-content-between align-items-center">
+                        <h5><i class="fas fa-users me-2"></i>Residentes</h5>
+                        <span class="badge bg-primary"><?php echo count($todosResidentes); ?> residentes</span>
                     </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead class="table-light">
-                                <tr>
-                                    <th>Departamento</th>
-                                    <th>Promedio de Pago</th>
-                                    <th>Facturas Pagadas</th>
-                                    <th>Total Pagado</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <?php foreach($promedioPagos as $pago): ?>
+                    <div class="content-box-body">
+                        <?php if (empty($todosResidentes)): ?>
+                            <div class="text-center py-4">
+                                <p class="text-muted">No hay residentes registrados</p>
+                            </div>
+                        <?php else: ?>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
                                     <tr>
-                                        <td><strong><?= $pago['departamento'] ?></strong></td>
-                                        <td><strong class="text-success">Bs. <?= number_format($pago['promedio_pago'], 2) ?></strong></td>
-                                        <td><span class="badge bg-primary"><?= $pago['facturas_pagadas'] ?></span></td>
-                                        <td><small>Bs. <?= number_format($pago['total_pagado'], 2) ?></small></td>
+                                        <th>Nombre</th>
+                                        <th>CI</th>
+                                        <th>Email</th>
+                                        <th>Teléfono</th>
+                                        <th>Departamento</th>
+                                        <th>Estado</th>
                                     </tr>
-                                <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                        </div>
+                                    </thead>
+                                    <tbody>
+                                    <?php foreach($todosResidentes as $residente): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($residente['nombre'] . ' ' . $residente['apellido_paterno'] . ' ' . $residente['apellido_materno']); ?></td>
+                                            <td><?php echo htmlspecialchars($residente['ci']); ?></td>
+                                            <td><?php echo htmlspecialchars($residente['email']); ?></td>
+                                            <td><?php echo htmlspecialchars($residente['telefono'] ?? 'No registrado'); ?></td>
+                                            <td>Dpto <?php echo htmlspecialchars($residente['departamento']); ?> - Piso <?php echo htmlspecialchars($residente['piso']); ?></td>
+                                            <td><span class="badge bg-success">Activo</span></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Cuarta Fila: Historial y Facturas -->
-        <div class="row mt-4">
-            <!-- Historial de Incidentes -->
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-secondary text-white">
-                        <i class="fas fa-history me-2"></i>Historial de Incidentes
+        <!-- Incidentes y Reservas -->
+        <div class="row mb-4">
+            <!-- Incidentes -->
+            <div class="col-lg-6 mb-4">
+                <div class="content-box h-100">
+                    <div class="content-box-header d-flex justify-content-between align-items-center">
+                        <h5><i class="fas fa-exclamation-triangle me-2"></i>Incidentes Recientes</h5>
+                        <span class="badge bg-primary"><?php echo count($todosIncidentes); ?> incidentes</span>
                     </div>
-                    <div class="card-body" style="max-height: 400px; overflow-y: auto;">
-                        <div class="table-responsive">
-                            <table class="table table-sm">
-                                <thead class="table-light">
-                                <tr>
-                                    <th>Incidente</th>
-                                    <th>Persona</th>
-                                    <th>Acción</th>
-                                    <th>Estado</th>
-                                    <th>Fecha</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <?php foreach($historialIncidentes as $historial): ?>
+                    <div class="content-box-body">
+                        <?php if (empty($todosIncidentes)): ?>
+                            <div class="text-center py-4">
+                                <p class="text-muted">No hay incidentes registrados</p>
+                            </div>
+                        <?php else: ?>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
                                     <tr>
-                                        <td><small>#<?= $historial['id_incidente'] ?></small></td>
-                                        <td><small><?= $historial['persona'] ?></small></td>
-                                        <td>
-                                            <span class="badge bg-info"><?= $historial['accion'] ?></span>
-                                        </td>
-                                        <td>
-                                            <?php if ($historial['estado_anterior'] && $historial['estado_nuevo']): ?>
-                                                <small>
-                                                    <i class="fas fa-arrow-right text-muted"></i>
-                                                    <?= $historial['estado_anterior'] ?> → <?= $historial['estado_nuevo'] ?>
-                                                </small>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td><small><?= date('H:i d/m', strtotime($historial['fecha_accion'])) ?></small></td>
+                                        <th>Descripción</th>
+                                        <th>Departamento</th>
+                                        <th>Estado</th>
+                                        <th>Fecha</th>
                                     </tr>
-                                <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                        </div>
+                                    </thead>
+                                    <tbody>
+                                    <?php foreach($todosIncidentes as $incidente): ?>
+                                        <tr>
+                                            <td>
+                                                <?php
+                                                $descripcion = htmlspecialchars($incidente['descripcion']);
+                                                echo strlen($descripcion) > 30 ? substr($descripcion, 0, 30) . '...' : $descripcion;
+                                                ?>
+                                            </td>
+                                            <td>Dpto <?php echo htmlspecialchars($incidente['departamento']); ?></td>
+                                            <td>
+                                                <?php
+                                                $badge_class = '';
+                                                switch($incidente['estado']) {
+                                                    case 'pendiente': $badge_class = 'bg-warning'; break;
+                                                    case 'en_proceso': $badge_class = 'bg-info'; break;
+                                                    case 'resuelto': $badge_class = 'bg-success'; break;
+                                                    default: $badge_class = 'bg-secondary';
+                                                }
+                                                ?>
+                                                <span class="badge <?php echo $badge_class; ?>">
+                                                    <?php echo ucfirst(str_replace('_', ' ', $incidente['estado'])); ?>
+                                                </span>
+                                            </td>
+                                            <td><?php echo date('d/m/Y', strtotime($incidente['fecha_registro'])); ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
 
-            <!-- Facturas Vencidas -->
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-danger text-white">
-                        <i class="fas fa-exclamation-circle me-2"></i>Facturas Vencidas Recientes
+            <!-- Reservas -->
+            <div class="col-lg-6 mb-4">
+                <div class="content-box h-100">
+                    <div class="content-box-header d-flex justify-content-between align-items-center">
+                        <h5><i class="fas fa-calendar-check me-2"></i>Reservas Próximas</h5>
+                        <span class="badge bg-primary"><?php echo count($todasReservas); ?> reservas</span>
                     </div>
-                    <div class="card-body" style="max-height: 400px; overflow-y: auto;">
-                        <div class="table-responsive">
-                            <table class="table table-sm">
-                                <thead class="table-light">
-                                <tr>
-                                    <th>Departamento</th>
-                                    <th>Servicio</th>
-                                    <th>Monto</th>
-                                    <th>Días Vencida</th>
-                                    <th>Vencimiento</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <?php foreach($facturasVencidas as $factura): ?>
+                    <div class="content-box-body">
+                        <?php if (empty($todasReservas)): ?>
+                            <div class="text-center py-4">
+                                <p class="text-muted">No hay reservas próximas</p>
+                            </div>
+                        <?php else: ?>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
                                     <tr>
-                                        <td><strong><?= $factura['departamento'] ?></strong></td>
-                                        <td>
-                                            <span class="badge bg-<?= $factura['servicio'] == 'agua' ? 'primary' : ($factura['servicio'] == 'luz' ? 'warning' : 'danger') ?>">
-                                                <?= ucfirst($factura['servicio']) ?>
-                                            </span>
-                                        </td>
-                                        <td><strong>Bs. <?= number_format($factura['monto_total'], 2) ?></strong></td>
-                                        <td>
-                                            <span class="badge bg-danger"><?= $factura['dias_vencida'] ?> días</span>
-                                        </td>
-                                        <td><small><?= date('d/m/Y', strtotime($factura['fecha_vencimiento'])) ?></small></td>
+                                        <th>Área</th>
+                                        <th>Residente</th>
+                                        <th>Fecha</th>
+                                        <th>Horario</th>
+                                        <th>Estado</th>
                                     </tr>
-                                <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                        </div>
+                                    </thead>
+                                    <tbody>
+                                    <?php foreach($todasReservas as $reserva): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($reserva['area_comun']); ?></td>
+                                            <td><?php echo htmlspecialchars($reserva['residente']); ?></td>
+                                            <td><?php echo date('d/m/Y', strtotime($reserva['fecha_reserva'])); ?></td>
+                                            <td>
+                                                <?php echo date('H:i', strtotime($reserva['hora_inicio'])); ?> -
+                                                <?php echo date('H:i', strtotime($reserva['hora_fin'])); ?>
+                                            </td>
+                                            <td>
+                                                <?php
+                                                $badge_class = '';
+                                                switch($reserva['estado']) {
+                                                    case 'confirmada': $badge_class = 'bg-success'; break;
+                                                    case 'pendiente': $badge_class = 'bg-warning'; break;
+                                                    default: $badge_class = 'bg-secondary';
+                                                }
+                                                ?>
+                                                <span class="badge <?php echo $badge_class; ?>">
+                                                    <?php echo ucfirst($reserva['estado']); ?>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Áreas y Servicios -->
+        <div class="row">
+            <!-- Áreas Comunes -->
+            <div class="col-lg-6 mb-4">
+                <div class="content-box h-100">
+                    <div class="content-box-header d-flex justify-content-between align-items-center">
+                        <h5><i class="fas fa-map-marker-alt me-2"></i>Áreas Comunes</h5>
+                        <span class="badge bg-primary"><?php echo count($todasAreas); ?> áreas</span>
+                    </div>
+                    <div class="content-box-body">
+                        <?php if (empty($todasAreas)): ?>
+                            <div class="text-center py-4">
+                                <p class="text-muted">No hay áreas comunes registradas</p>
+                            </div>
+                        <?php else: ?>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Capacidad</th>
+                                        <th>Costo</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <?php foreach($todasAreas as $area): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($area['nombre']); ?></td>
+                                            <td><?php echo $area['capacidad'] ?? 'N/A'; ?></td>
+                                            <td>S/ <?php echo number_format($area['costo_reserva'], 2); ?></td>
+                                            <td>
+                                                <?php
+                                                $badge_class = '';
+                                                switch($area['estado']) {
+                                                    case 'disponible': $badge_class = 'bg-success'; break;
+                                                    case 'mantenimiento': $badge_class = 'bg-warning'; break;
+                                                    default: $badge_class = 'bg-secondary';
+                                                }
+                                                ?>
+                                                <span class="badge <?php echo $badge_class; ?>">
+                                                    <?php echo ucfirst($area['estado']); ?>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Servicios -->
+            <div class="col-lg-6 mb-4">
+                <div class="content-box h-100">
+                    <div class="content-box-header d-flex justify-content-between align-items-center">
+                        <h5><i class="fas fa-bolt me-2"></i>Servicios</h5>
+                        <span class="badge bg-primary"><?php echo count($todosServicios); ?> servicios</span>
+                    </div>
+                    <div class="content-box-body">
+                        <?php if (empty($todosServicios)): ?>
+                            <div class="text-center py-4">
+                                <p class="text-muted">No hay servicios registrados</p>
+                            </div>
+                        <?php else: ?>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                    <tr>
+                                        <th>Servicio</th>
+                                        <th>Unidad</th>
+                                        <th>Costo Unitario</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <?php foreach($todosServicios as $servicio): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars(ucfirst($servicio['nombre'])); ?></td>
+                                            <td><?php echo htmlspecialchars($servicio['unidad_medida']); ?></td>
+                                            <td>S/ <?php echo number_format($servicio['costo_unitario'], 2); ?></td>
+                                            <td>
+                                                <span class="badge bg-success">Activo</span>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Scripts para Gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Gráfico de Consumo Mensual
+        const consumoMensualData = <?php echo json_encode($consumoMensualChart); ?>;
+        if (document.getElementById('consumoMensualChart')) {
+            const ctx = document.getElementById('consumoMensualChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: consumoMensualData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Consumo Mensual por Departamento'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Consumo'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Gráfico de Consumo Diario
+        const consumoDiarioData = <?php echo json_encode($consumoDiarioChart); ?>;
+        if (document.getElementById('consumoDiarioChart') && consumoDiarioData.labels.length > 0) {
+            const ctx2 = document.getElementById('consumoDiarioChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'line',
+                data: consumoDiarioData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Consumo Diario - Últimos 7 días'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Consumo'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
 
 <?php include("../../includes/footer.php"); ?>

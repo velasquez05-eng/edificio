@@ -84,9 +84,9 @@ class FacturaModelo
 
                     // Construir nombre completo
                     $factura['residente'] = trim(
-                        $factura['nombre'] . ' ' .
-                        $factura['apellido_paterno'] . ' ' .
-                        ($factura['apellido_materno'] ?: '')
+                            $factura['nombre'] . ' ' .
+                            $factura['apellido_paterno'] . ' ' .
+                            ($factura['apellido_materno'] ?: '')
                     );
                 }
 
@@ -162,9 +162,9 @@ class FacturaModelo
 
             // Construir nombre completo del residente
             $factura['residente'] = trim(
-                $factura['nombre'] . ' ' .
-                $factura['apellido_paterno'] . ' ' .
-                ($factura['apellido_materno'] ?: '')
+                    $factura['nombre'] . ' ' .
+                    $factura['apellido_paterno'] . ' ' .
+                    ($factura['apellido_materno'] ?: '')
             );
 
             // Conceptos de la factura
@@ -210,9 +210,9 @@ class FacturaModelo
             }
 
             return [
-                'factura' => $factura,
-                'conceptos' => $conceptos,
-                'pagos' => $pagos
+                    'factura' => $factura,
+                    'conceptos' => $conceptos,
+                    'pagos' => $pagos
             ];
 
         } catch (PDOException $e) {

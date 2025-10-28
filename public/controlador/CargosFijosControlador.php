@@ -193,21 +193,41 @@ class CargosFijosControlador {
     // Métodos para generación de conceptos
     public function generarConceptosMantenimiento() {
         try {
-            $mes = $_POST['mes'] ?? date('Y-m');
+            // ✅ CORREGIR: Cambiar 'mes' por 'month'
+            $month = $_POST['month'] ?? date('n');  // n = mes sin ceros (1-12)
             $year = $_POST['year'] ?? date('Y');
 
-            if (!preg_match('/^\d{4}-\d{2}$/', $mes)) {
-                header('Location: CargosFijosControlador.php?action=vistaGenerarConceptos&error=Formato+de+mes+no+válido');
+            // Validar que los parámetros sean numéricos
+            if (!is_numeric($month) || !is_numeric($year)) {
+                header('Location: CargosFijosControlador.php?action=vistaGenerarConceptos&error=Mes+y+año+deben+ser+números+válidos');
+                exit;
+            }
+
+            // Convertir a enteros para evitar el error de mktime()
+            $month = (int)$month;
+            $year = (int)$year;
+
+            // Validar rango del mes
+            if ($month < 1 || $month > 12) {
+                header('Location: CargosFijosControlador.php?action=vistaGenerarConceptos&error=Mes+debe+estar+entre+1+y+12');
+                exit;
+            }
+
+            // Validar rango del año (ejemplo: últimos 10 años)
+            $currentYear = date('Y');
+            if ($year < ($currentYear - 10) || $year > ($currentYear + 1)) {
+                header('Location: CargosFijosControlador.php?action=vistaGenerarConceptos&error=Año+no+válido');
                 exit;
             }
 
             // Verificar si ya se generaron conceptos para este mes
-            if ($this->modelo->verificarConceptosGenerados($year, $mes)) {
+            if ($this->modelo->verificarConceptosGenerados($year, $month)) {
                 header('Location: CargosFijosControlador.php?action=vistaGenerarConceptos&error=Ya+se+generaron+conceptos+de+mantenimiento+para+este+mes');
                 exit;
             }
 
-            $resultado = $this->modelo->generarConceptosMantenimiento($year, $mes);
+            // Llamar al modelo con los parámetros corregidos
+            $resultado = $this->modelo->generarConceptosMantenimiento($year, $month);
 
             if ($resultado['success']) {
                 $mensaje = "Se generaron {$resultado['total_conceptos']} conceptos de mantenimiento para {$resultado['departamentos']} departamentos. Total: Bs. " . number_format($resultado['total_monto'], 2);

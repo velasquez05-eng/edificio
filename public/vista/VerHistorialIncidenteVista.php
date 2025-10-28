@@ -7,25 +7,39 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="#"><i class="fas fa-home"></i> Inicio</a></li>
-                    <?php if ($_SESSION['id_rol'] == '1'): ?>
+<?php if ($_SESSION['id_rol'] == '1'){ ?>
                         <li class="breadcrumb-item"><a href="IncidenteControlador.php?action=listarIncidentes">Incidentes</a></li>
-                    <?php else: ?>
+<?php }?>
+    <?php if ($_SESSION['id_rol'] == '1'){ ?>
                         <li class="breadcrumb-item"><a href="IncidenteControlador.php?action=verMisIncidentes">Mis Incidentes</a></li>
-                    <?php endif; ?>
+<?php }?>
+    <?php if ($_SESSION['id_rol'] != '2'&& $_SESSION['id_rol'] != '1' ){ ?>
+                        <li class="breadcrumb-item"><a href="IncidenteControlador.php?action=verIncidentesAsignados">Atender Inicidete</a></li>
+    <?php }?>
                     <li class="breadcrumb-item active">Historial</li>
                 </ol>
             </nav>
         </div>
         <div class="page-actions">
-            <?php if ($_SESSION['id_rol'] == '1'): ?>
+            <?php if ($_SESSION['id_rol'] == '1'){ ?>
                 <a href="IncidenteControlador.php?action=listarIncidentes" class="btn btn-outline-secondary">
                     <i class="fas fa-arrow-left me-2"></i>Volver
                 </a>
-            <?php else: ?>
-                <a href="IncidenteControlador.php?action=verMisIncidentes" class="btn btn-outline-secondary">
+    <?php }?>
+<?php if ($_SESSION['id_rol'] == '2'){ ?>
+
+    <a href="IncidenteControlador.php?action=verMisIncidentes" class="btn btn-outline-secondary">
                     <i class="fas fa-arrow-left me-2"></i>Volver
                 </a>
-            <?php endif; ?>
+<?php }?>
+
+<?php if ($_SESSION['id_rol'] != '2'&& $_SESSION['id_rol'] != '1' ){ ?>
+
+            <a href="IncidenteControlador.php?action=verIncidentesAsignados" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver
+            </a>
+<?php }?>
+
         </div>
     </div>
 

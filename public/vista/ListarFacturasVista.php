@@ -68,10 +68,10 @@
     <!-- Estadísticas de Facturas -->
 <?php
 $estadisticas = [
-    'total_facturas' => count($facturas),
-    'pendientes' => count(array_filter($facturas, function($f) { return $f['estado'] == 'pendiente'; })),
-    'pagadas' => count(array_filter($facturas, function($f) { return $f['estado'] == 'pagada'; })),
-    'vencidas' => count(array_filter($facturas, function($f) { return $f['estado'] == 'vencida'; }))
+        'total_facturas' => count($facturas),
+        'pendientes' => count(array_filter($facturas, function($f) { return $f['estado'] == 'pendiente'; })),
+        'pagadas' => count(array_filter($facturas, function($f) { return $f['estado'] == 'pagada'; })),
+        'vencidas' => count(array_filter($facturas, function($f) { return $f['estado'] == 'vencida'; }))
 ];
 ?>
 
@@ -201,19 +201,26 @@ $estadisticas = [
                                         </td>
                                         <td>
                                             <div class="btn-group" role="group">
-                                                <!-- Ver Detalles -->
-                                                <button class="btn btn-info btn-sm ver-detalle"
+                                                <!-- Ver Factura -->
+                                                <button class="btn btn-info btn-sm ver-factura"
                                                         data-id="<?php echo $factura['id_factura']; ?>"
-                                                        title="Ver detalles">
-                                                    <i class="fas fa-eye"></i>
+                                                        data-departamento="D<?php echo $factura['departamento']; ?>-P<?php echo $factura['piso']; ?>"
+                                                        data-residente="<?php echo htmlspecialchars($factura['residente']); ?>"
+                                                        data-monto="Bs. <?php echo number_format($factura['monto_total'], 2); ?>"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#confirmarVerFacturaModal"
+                                                        title="Ver factura">
+                                                    <i class="fas fa-eye"></i> Ver
                                                 </button>
 
-                                                <!-- Exportar PDF -->
-                                                <a href="../controlador/FacturaControlador.php?action=exportarPDF&id_factura=<?php echo $factura['id_factura']; ?>"
-                                                   class="btn btn-danger btn-sm"
-                                                   title="Exportar PDF">
-                                                    <i class="fas fa-file-pdf"></i>
-                                                </a>
+                                                <!-- Pago QR -->
+                                                <button class="btn btn-success btn-sm generar-qr"
+                                                        data-id="<?php echo $factura['id_factura']; ?>"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#generarQRModal"
+                                                        title="Pago con QR">
+                                                    <i class="fas fa-qrcode"></i> QR
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -227,18 +234,80 @@ $estadisticas = [
         </div>
     </div>
 
-    <!-- Modal Ver Detalles -->
-    <div class="modal fade" id="verDetalleModal" tabindex="-1" aria-labelledby="verDetalleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
+    <!-- Modal Confirmar Ver Factura -->
+    <div class="modal fade" id="confirmarVerFacturaModal" tabindex="-1" aria-labelledby="confirmarVerFacturaModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="verDetalleModalLabel">
-                        <i class="fas fa-file-invoice me-2"></i>Detalle de Factura
+                    <h5 class="modal-title" id="confirmarVerFacturaModalLabel">
+                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>Confirmar Apertura
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body" id="detalleFacturaContent">
-                    <!-- Contenido cargado por AJAX -->
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <strong>Advertencia:</strong> Está a punto de abrir la factura en una nueva vista.
+                    </div>
+
+                    <div class="factura-info p-3 border rounded">
+                        <p><strong>Factura #:</strong> <span id="confirmFacturaNumero"></span></p>
+                        <p><strong>Departamento:</strong> <span id="confirmDepartamento"></span></p>
+                        <p><strong>Residente:</strong> <span id="confirmResidente"></span></p>
+                        <p><strong>Monto Total:</strong> <span id="confirmMonto"></span></p>
+                    </div>
+
+                    <p class="mt-3 mb-0 text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Será redirigido a la vista detallada de la factura.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-primary" id="btnConfirmarVerFactura">
+                        <i class="fas fa-external-link-alt me-2"></i>Abrir Factura
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Pago QR -->
+    <div class="modal fade" id="generarQRModal" tabindex="-1" aria-labelledby="generarQRModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="generarQRModalLabel">
+                        <i class="fas fa-qrcode me-2"></i>Pago con QR - Factura #<span id="qrFacturaNumero"></span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div class="mb-3">
+                        <p class="text-muted">Escanea este código QR para realizar el pago de la factura</p>
+                    </div>
+
+                    <div class="qr-container position-relative d-inline-block">
+                        <div id="qrcode"></div>
+                        <div class="dino-icon">
+                            <img src="<?php echo $_ENV['APP_URL']; ?>assets/images/dino.png" alt="Dinosaurio" onerror="this.style.display='none'">
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <p class="text-muted small">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Este QR contiene información cifrada para el pago seguro
+                        </p>
+                    </div>
+
+                    <div class="mt-3">
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="descargarQR()">
+                            <i class="fas fa-download me-1"></i>Descargar QR
+                        </button>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
@@ -252,7 +321,10 @@ $estadisticas = [
     <!-- Incluir DataTables CSS y JS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
+
+    <!-- Incluir CryptoJS y QRCodeJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
@@ -292,126 +364,123 @@ $estadisticas = [
                 }
             });
 
-            // Modal Ver Detalle
-            const verDetalleModal = document.getElementById('verDetalleModal');
-            verDetalleModal.addEventListener('show.bs.modal', function(event) {
+            // Variables globales
+            const encryptionKey = "QuivoApp2024Key!";
+            let currentQRCode = null;
+            let currentFacturaId = null;
+            let facturaParaVer = null;
+
+            // Función para cifrar datos
+            function encryptData(data, key) {
+                const keyUtf8 = CryptoJS.enc.Utf8.parse(key);
+                const encrypted = CryptoJS.AES.encrypt(data, keyUtf8, {
+                    mode: CryptoJS.mode.ECB,
+                    padding: CryptoJS.pad.Pkcs7
+                });
+                return encrypted.toString();
+            }
+
+            // Función para generar QR
+            function generarQR(datosCifrados) {
+                const qrContainer = document.getElementById("qrcode");
+
+                // Limpiar QR anterior
+                qrContainer.innerHTML = '';
+
+                // Generar nuevo QR
+                currentQRCode = new QRCode(qrContainer, {
+                    text: datosCifrados,
+                    width: 200,
+                    height: 200,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            }
+
+            // Función para descargar QR
+            function descargarQR() {
+                const canvas = document.querySelector('#qrcode canvas');
+                if (canvas) {
+                    const link = document.createElement('a');
+                    link.download = `qr-factura-${currentFacturaId}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                }
+            }
+
+            // Modal Confirmar Ver Factura
+            const confirmarVerFacturaModal = document.getElementById('confirmarVerFacturaModal');
+            confirmarVerFacturaModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                facturaParaVer = {
+                    id: button.getAttribute('data-id'),
+                    departamento: button.getAttribute('data-departamento'),
+                    residente: button.getAttribute('data-residente'),
+                    monto: button.getAttribute('data-monto')
+                };
+
+                // Actualizar información en el modal
+                document.getElementById('confirmFacturaNumero').textContent = facturaParaVer.id;
+                document.getElementById('confirmDepartamento').textContent = facturaParaVer.departamento;
+                document.getElementById('confirmResidente').textContent = facturaParaVer.residente;
+                document.getElementById('confirmMonto').textContent = facturaParaVer.monto;
+            });
+
+            // Botón confirmar ver factura
+            document.getElementById('btnConfirmarVerFactura').addEventListener('click', function() {
+                if (facturaParaVer && facturaParaVer.id) {
+                    // Redirigir al controlador para ver la factura
+                    window.location.href = `../controlador/FacturaControlador.php?action=verFactura&id_factura=${facturaParaVer.id}`;
+                }
+            });
+
+            // Modal Pago QR
+            const generarQRModal = document.getElementById('generarQRModal');
+            generarQRModal.addEventListener('show.bs.modal', function(event) {
                 const button = event.relatedTarget;
                 const idFactura = button.getAttribute('data-id');
 
-                // Cargar detalles via AJAX
-                $.ajax({
-                    url: '../controlador/FacturaControlador.php',
-                    type: 'POST',
-                    data: {
-                        action: 'obtenerDetalleFactura',
-                        id_factura: idFactura
-                    },
-                    success: function(response) {
-                        const detalle = JSON.parse(response);
-                        let contenido = '';
+                // Guardar ID de factura actual
+                currentFacturaId = idFactura;
 
-                        if (detalle) {
-                            contenido = `
-                            <div class="factura-info bg-light p-3 rounded mb-3">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <p class="mb-2"><strong>Factura #:</strong> ${detalle.factura.id_factura}</p>
-                                        <p class="mb-2"><strong>Departamento:</strong> D${detalle.factura.departamento}-P${detalle.factura.piso}</p>
-                                        <p class="mb-2"><strong>Residente:</strong> ${detalle.factura.residente}</p>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <p class="mb-2"><strong>Emisión:</strong> ${new Date(detalle.factura.fecha_emision).toLocaleDateString('es-ES')}</p>
-                                        <p class="mb-2"><strong>Vencimiento:</strong> ${new Date(detalle.factura.fecha_vencimiento).toLocaleDateString('es-ES')}</p>
-                                        <p class="mb-2"><strong>Estado:</strong> <span class="badge ${getBadgeClass(detalle.factura.estado)}">${detalle.factura.estado}</span></p>
-                                    </div>
-                                </div>
-                            </div>
+                // Actualizar número de factura en el modal
+                document.getElementById('qrFacturaNumero').textContent = idFactura;
 
-                            <h6 class="mb-3">Conceptos:</h6>
-                            <div class="table-responsive">
-                                <table class="table table-sm table-bordered">
-                                    <thead>
-                                        <tr>
-                                            <th>Concepto</th>
-                                            <th>Descripción</th>
-                                            <th>Cantidad</th>
-                                            <th>Monto</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>`;
+                // Generar QR inmediatamente
+                generarQRParaFactura(idFactura);
+            });
 
-                            detalle.conceptos.forEach(concepto => {
-                                contenido += `
-                                <tr>
-                                    <td>${concepto.concepto}</td>
-                                    <td>${concepto.descripcion}</td>
-                                    <td>${concepto.cantidad}</td>
-                                    <td>Bs. ${parseFloat(concepto.monto).toFixed(2)}</td>
-                                </tr>`;
-                            });
-
-                            contenido += `
-                                    </tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <td colspan="3" class="text-end"><strong>Total:</strong></td>
-                                            <td><strong>Bs. ${parseFloat(detalle.factura.monto_total).toFixed(2)}</strong></td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>`;
-
-                            if (detalle.pagos && detalle.pagos.length > 0) {
-                                contenido += `
-                                <h6 class="mb-3 mt-4">Historial de Pagos:</h6>
-                                <div class="table-responsive">
-                                    <table class="table table-sm table-bordered">
-                                        <thead>
-                                            <tr>
-                                                <th>Fecha</th>
-                                                <th>Monto</th>
-                                                <th>Persona</th>
-                                                <th>Observación</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>`;
-
-                                detalle.pagos.forEach(pago => {
-                                    contenido += `
-                                    <tr>
-                                        <td>${new Date(pago.fecha_pago).toLocaleDateString('es-ES')}</td>
-                                        <td>Bs. ${parseFloat(pago.monto_pagado).toFixed(2)}</td>
-                                        <td>${pago.persona_pago}</td>
-                                        <td>${pago.observacion || '-'}</td>
-                                    </tr>`;
-                                });
-
-                                contenido += `
-                                        </tbody>
-                                    </table>
-                                </div>`;
-                            }
+            // Función para generar QR para una factura específica
+            function generarQRParaFactura(idFactura) {
+                // Obtener IP del servidor
+                let ipServidor = '<?php
+                        // Obtener IP local del servidor
+                        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+                            $output = shell_exec('ipconfig');
+                            preg_match('/IPv4[^:]*:\s*([0-9\.]+)/', $output, $matches);
+                            echo $matches[1] ?? '127.0.0.1';
                         } else {
-                            contenido = '<div class="alert alert-danger">Error al cargar los detalles de la factura</div>';
+                            echo trim(shell_exec("hostname -I | awk '{print $1}'")) ?: '127.0.0.1';
                         }
+                        ?>';
 
-                        document.getElementById('detalleFacturaContent').innerHTML = contenido;
-                    },
-                    error: function() {
-                        document.getElementById('detalleFacturaContent').innerHTML =
-                            '<div class="alert alert-danger">Error al cargar los detalles de la factura</div>';
-                    }
-                });
-            });
+                // Configuración de la base de datos
+                const dbname = 'db_edificio_v3';
+                const dbuser = 'root';
 
-            // Asignar evento a botones de ver detalle
-            document.addEventListener('click', function(e) {
-                if (e.target.closest('.ver-detalle')) {
-                    const button = e.target.closest('.ver-detalle');
-                    const idFactura = button.getAttribute('data-id');
-                    button.setAttribute('data-id', idFactura);
-                }
-            });
+                // Datos a cifrar: IP;DBNAME;USER;ID_FACTURA
+                const datos = `${ipServidor};${dbname};${dbuser};${idFactura}`;
+
+                console.log("Datos originales para QR:", datos);
+
+                // Cifrar datos
+                const datosCifrados = encryptData(datos, encryptionKey);
+                console.log("Datos cifrados:", datosCifrados);
+
+                // Generar QR
+                generarQR(datosCifrados);
+            }
 
             // Auto-ocultar alertas después de 5 segundos
             setTimeout(function() {
@@ -421,15 +490,6 @@ $estadisticas = [
                     bsAlert.close();
                 });
             }, 5000);
-
-            function getBadgeClass(estado) {
-                switch(estado) {
-                    case 'pagada': return 'bg-success';
-                    case 'pendiente': return 'bg-warning';
-                    case 'vencida': return 'bg-danger';
-                    default: return 'bg-secondary';
-                }
-            }
         });
     </script>
 
@@ -449,6 +509,7 @@ $estadisticas = [
 
         .btn-group .btn {
             margin: 0 2px;
+            min-width: 70px;
         }
 
         .content-box.text-center {
@@ -459,9 +520,54 @@ $estadisticas = [
             transform: translateY(-5px);
         }
 
+        .dino-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #dee2e6;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .dino-icon img {
+            width: 80%;
+            height: 80%;
+            object-fit: contain;
+        }
+
+        .qr-container {
+            position: relative;
+            display: inline-block;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .factura-info {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0d6efd;
+        }
+
         @media (max-width: 768px) {
             .table-container {
                 overflow-x: auto;
+            }
+
+            .qr-container {
+                transform: scale(0.8);
+            }
+
+            .btn-group .btn {
+                min-width: 60px;
+                font-size: 0.8rem;
             }
         }
     </style>

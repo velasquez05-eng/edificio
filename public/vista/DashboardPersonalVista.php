@@ -8,6 +8,16 @@ $estadisticasIncidentes = $estadisticasIncidentes ?? ['pendientes' => 0, 'atendi
 $reservasConfirmadas = $reservasConfirmadas ?? [];
 $residentes = $residentes ?? [];
 $consumoServicios = $consumoServicios ?? [];
+$consumoPorDepartamento = $consumoPorDepartamento ?? [];
+$estadisticasConsumo = $estadisticasConsumo ?? [];
+$infoPersonal = $infoPersonal ?? [];
+$resumenActividades = $resumenActividades ?? [];
+
+// Calcular porcentajes para las métricas
+$porcentajeAtendidos = $estadisticasIncidentes['total'] > 0 ?
+        round(($estadisticasIncidentes['atendidos'] / $estadisticasIncidentes['total']) * 100) : 0;
+$porcentajePendientes = $estadisticasIncidentes['total'] > 0 ?
+        round(($estadisticasIncidentes['pendientes'] / $estadisticasIncidentes['total']) * 100) : 0;
 ?>
 
     <!-- Page Header -->
@@ -41,10 +51,63 @@ $consumoServicios = $consumoServicios ?? [];
 <?php endif; ?>
 
     <div class="container-fluid">
-        <!-- Comunicados -->
+        <!-- Resumen de Actividades -->
         <div class="row mb-4">
-            <div class="col-12">
-                <div class="content-box">
+            <div class="col-xl-3 col-md-6">
+                <div class="info-card bg-gradient-azul">
+                    <div>
+                        <h3><?php echo $resumenActividades['incidentes_asignados'] ?? 0; ?></h3>
+                        <p>Incidentes Asignados</p>
+                    </div>
+                    <div class="card-progress">
+                        <div class="card-progress-bar" style="width: 100%"></div>
+                    </div>
+                    <i class="fas fa-tasks icon"></i>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="info-card bg-gradient-verde">
+                    <div>
+                        <h3><?php echo $resumenActividades['incidentes_resueltos'] ?? 0; ?></h3>
+                        <p>Incidentes Resueltos</p>
+                    </div>
+                    <div class="card-progress">
+                        <div class="card-progress-bar" style="width: 100%"></div>
+                    </div>
+                    <i class="fas fa-check-circle icon"></i>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="info-card bg-gradient-naranja">
+                    <div>
+                        <h3><?php echo $resumenActividades['reservas_supervisadas'] ?? 0; ?></h3>
+                        <p>Reservas del Mes</p>
+                    </div>
+                    <div class="card-progress">
+                        <div class="card-progress-bar" style="width: 100%"></div>
+                    </div>
+                    <i class="fas fa-calendar-check icon"></i>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="info-card bg-gradient-celeste">
+                    <div>
+                        <h3><?php echo count($residentes); ?></h3>
+                        <p>Residentes Activos</p>
+                    </div>
+                    <div class="card-progress">
+                        <div class="card-progress-bar" style="width: 100%"></div>
+                    </div>
+                    <i class="fas fa-users icon"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comunicados y Incidentes Asignados -->
+        <div class="row mb-4">
+            <!-- Comunicados -->
+            <div class="col-lg-6 mb-4">
+                <div class="content-box h-100">
                     <div class="content-box-header d-flex justify-content-between align-items-center">
                         <h5>
                             <i class="fas fa-bullhorn me-2"></i>Comunicados Recientes
@@ -58,66 +121,58 @@ $consumoServicios = $consumoServicios ?? [];
                                 <p class="text-muted">No hay comunicados recientes</p>
                             </div>
                         <?php else: ?>
-                            <div class="row">
+                            <div class="comunicados-list">
                                 <?php foreach ($comunicados as $comunicado): ?>
                                     <?php
                                     // Determinar clase de color según prioridad
                                     $prioridad_class = '';
+                                    $badge_class = '';
                                     switch($comunicado['prioridad']) {
                                         case 'urgente':
-                                            $prioridad_class = 'border-danger';
-                                            $icon_class = 'text-danger';
+                                            $prioridad_class = 'border-left-danger';
                                             $badge_class = 'bg-danger';
                                             break;
                                         case 'alta':
-                                            $prioridad_class = 'border-warning';
-                                            $icon_class = 'text-warning';
+                                            $prioridad_class = 'border-left-warning';
                                             $badge_class = 'bg-warning';
                                             break;
                                         case 'media':
-                                            $prioridad_class = 'border-info';
-                                            $icon_class = 'text-info';
+                                            $prioridad_class = 'border-left-info';
                                             $badge_class = 'bg-info';
                                             break;
                                         case 'baja':
-                                            $prioridad_class = 'border-success';
-                                            $icon_class = 'text-success';
+                                            $prioridad_class = 'border-left-success';
                                             $badge_class = 'bg-success';
                                             break;
                                         default:
-                                            $prioridad_class = 'border-secondary';
-                                            $icon_class = 'text-secondary';
+                                            $prioridad_class = 'border-left-secondary';
                                             $badge_class = 'bg-secondary';
                                     }
                                     ?>
-                                    <div class="col-md-6 col-lg-4 mb-3">
-                                        <div class="card h-100 <?php echo $prioridad_class; ?>">
-                                            <div class="card-header d-flex justify-content-between align-items-center">
-                                                <h6 class="mb-0 text-truncate" title="<?php echo htmlspecialchars($comunicado['titulo']); ?>">
-                                                    <?php echo htmlspecialchars($comunicado['titulo']); ?>
-                                                </h6>
-                                                <span class="badge <?php echo $badge_class; ?>">
-                                                    <?php echo ucfirst($comunicado['prioridad']); ?>
-                                                </span>
-                                            </div>
-                                            <div class="card-body">
-                                                <p class="card-text">
-                                                    <?php
-                                                    $contenido = htmlspecialchars($comunicado['contenido']);
-                                                    echo strlen($contenido) > 100 ? substr($contenido, 0, 100) . '...' : $contenido;
-                                                    ?>
-                                                </p>
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <small class="text-muted">
-                                                        <i class="fas fa-calendar me-1"></i>
-                                                        <?php echo date('d/m/Y', strtotime($comunicado['fecha_publicacion'])); ?>
-                                                    </small>
-                                                    <small class="text-muted">
-                                                        <i class="fas fa-users me-1"></i>
-                                                        <?php echo htmlspecialchars($comunicado['tipo_audiencia']); ?>
-                                                    </small>
-                                                </div>
-                                            </div>
+                                    <div class="comunicado-item <?php echo $prioridad_class; ?>">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h6 class="mb-0 text-truncate flex-grow-1" title="<?php echo htmlspecialchars($comunicado['titulo']); ?>">
+                                                <?php echo htmlspecialchars($comunicado['titulo']); ?>
+                                            </h6>
+                                            <span class="badge <?php echo $badge_class; ?> ms-2">
+                                                <?php echo ucfirst($comunicado['prioridad']); ?>
+                                            </span>
+                                        </div>
+                                        <p class="text-muted small mb-2">
+                                            <?php
+                                            $contenido = htmlspecialchars($comunicado['contenido']);
+                                            echo strlen($contenido) > 120 ? substr($contenido, 0, 120) . '...' : $contenido;
+                                            ?>
+                                        </p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">
+                                                <i class="fas fa-user me-1"></i>
+                                                <?php echo htmlspecialchars($comunicado['autor']); ?>
+                                            </small>
+                                            <small class="text-muted">
+                                                <i class="fas fa-calendar me-1"></i>
+                                                <?php echo date('d/m/Y', strtotime($comunicado['fecha_publicacion'])); ?>
+                                            </small>
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
@@ -126,66 +181,14 @@ $consumoServicios = $consumoServicios ?? [];
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Métricas de Incidentes -->
-        <div class="row mb-4">
-            <div class="col-xl-3 col-md-6">
-                <div class="info-card bg-gradient-celeste">
-                    <div>
-                        <h3><?php echo $estadisticasIncidentes['total']; ?></h3>
-                        <p>Total Incidentes</p>
-                    </div>
-                    <div class="card-progress">
-                        <div class="card-progress-bar" style="width: 100%"></div>
-                    </div>
-                    <i class="fas fa-tasks icon"></i>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6">
-                <div class="info-card bg-gradient-verde">
-                    <div>
-                        <h3><?php echo $estadisticasIncidentes['atendidos']; ?></h3>
-                        <p>Atendidos</p>
-                    </div>
-                    <div class="card-progress">
-                        <div class="card-progress-bar" style="width: <?php echo $estadisticasIncidentes['total'] > 0 ? ($estadisticasIncidentes['atendidos'] / $estadisticasIncidentes['total']) * 100 : 0; ?>%"></div>
-                    </div>
-                    <i class="fas fa-check-circle icon"></i>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6">
-                <div class="info-card bg-gradient-naranja">
-                    <div>
-                        <h3><?php echo $estadisticasIncidentes['pendientes']; ?></h3>
-                        <p>Pendientes</p>
-                    </div>
-                    <div class="card-progress">
-                        <div class="card-progress-bar" style="width: <?php echo $estadisticasIncidentes['total'] > 0 ? ($estadisticasIncidentes['pendientes'] / $estadisticasIncidentes['total']) * 100 : 0; ?>%"></div>
-                    </div>
-                    <i class="fas fa-clock icon"></i>
-                </div>
-            </div>
-            <div class="col-xl-3 col-md-6">
-                <div class="info-card bg-gradient-azul">
-                    <div>
-                        <h3><?php echo count($reservasConfirmadas); ?></h3>
-                        <p>Reservas Confirmadas</p>
-                    </div>
-                    <div class="card-progress">
-                        <div class="card-progress-bar" style="width: 100%"></div>
-                    </div>
-                    <i class="fas fa-calendar-check icon"></i>
-                </div>
-            </div>
-        </div>
-
-        <!-- Incidentes Asignados -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="content-box">
+            <!-- Incidentes Asignados -->
+            <div class="col-lg-6 mb-4">
+                <div class="content-box h-100">
                     <div class="content-box-header d-flex justify-content-between align-items-center">
-                        <h5>Mis Incidentes Asignados</h5>
+                        <h5>
+                            <i class="fas fa-tools me-2"></i>Mis Incidentes Asignados
+                        </h5>
                         <span class="badge bg-primary"><?php echo count($incidentesAsignados); ?> incidentes</span>
                     </div>
                     <div class="content-box-body">
@@ -195,44 +198,23 @@ $consumoServicios = $consumoServicios ?? [];
                                 <p class="text-muted">No tienes incidentes asignados</p>
                             </div>
                         <?php else: ?>
-                            <div class="table-responsive">
-                                <table class="table table-striped table-hover" id="incidentesTable" style="width:100%">
-                                    <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Departamento</th>
-                                        <th>Tipo</th>
-                                        <th>Descripción</th>
-                                        <th>Fecha Reporte</th>
-                                        <th>Estado</th>
-                                        <th>Prioridad</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <?php foreach($incidentesAsignados as $incidente): ?>
-                                        <tr>
-                                            <td><?php echo htmlspecialchars($incidente['id_incidente']); ?></td>
-                                            <td>
-                                                <strong><?php echo htmlspecialchars($incidente['departamento']); ?></strong>
-                                            </td>
-                                            <td>
-                                                    <span class="badge bg-secondary">
-                                                        <?php echo htmlspecialchars($incidente['tipo_incidente']); ?>
-                                                    </span>
-                                            </td>
-                                            <td>
-                                                <?php
-                                                $descripcion = htmlspecialchars($incidente['descripcion']);
-                                                echo strlen($descripcion) > 50 ? substr($descripcion, 0, 50) . '...' : $descripcion;
-                                                ?>
-                                            </td>
-                                            <td>
-                                                <i class="fas fa-calendar me-2 text-muted"></i>
-                                                <?php echo date('d/m/Y', strtotime($incidente['fecha_registro'])); ?>
-                                            </td>
-                                            <td>
+                            <div class="incidentes-list">
+                                <?php foreach($incidentesAsignados as $incidente): ?>
+                                    <div class="incidente-item">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1">Departamento <?php echo htmlspecialchars($incidente['departamento']); ?> - Piso <?php echo htmlspecialchars($incidente['piso']); ?></h6>
+                                                <p class="text-muted small mb-2">
+                                                    <?php
+                                                    $descripcion = htmlspecialchars($incidente['descripcion']);
+                                                    echo strlen($descripcion) > 100 ? substr($descripcion, 0, 100) . '...' : $descripcion;
+                                                    ?>
+                                                </p>
+                                            </div>
+                                            <div class="text-end">
                                                 <?php
                                                 $badge_class = '';
+                                                $icon = '';
                                                 switch($incidente['estado']) {
                                                     case 'pendiente':
                                                         $badge_class = 'bg-warning';
@@ -246,21 +228,16 @@ $consumoServicios = $consumoServicios ?? [];
                                                         $badge_class = 'bg-success';
                                                         $icon = 'fa-check';
                                                         break;
-                                                    case 'cancelado':
-                                                        $badge_class = 'bg-danger';
-                                                        $icon = 'fa-times';
-                                                        break;
                                                     default:
                                                         $badge_class = 'bg-secondary';
                                                         $icon = 'fa-question';
                                                 }
                                                 ?>
-                                                <span class="badge <?php echo $badge_class; ?>">
-                                                        <i class="fas <?php echo $icon; ?> me-1"></i>
-                                                        <?php echo ucfirst(str_replace('_', ' ', $incidente['estado'])); ?>
-                                                    </span>
-                                            </td>
-                                            <td>
+                                                <span class="badge <?php echo $badge_class; ?> mb-2">
+                                                    <i class="fas <?php echo $icon; ?> me-1"></i>
+                                                    <?php echo ucfirst(str_replace('_', ' ', $incidente['estado'])); ?>
+                                                </span>
+                                                <br>
                                                 <?php
                                                 $prioridad_class = '';
                                                 switch($incidente['prioridad']) {
@@ -278,15 +255,69 @@ $consumoServicios = $consumoServicios ?? [];
                                                 }
                                                 ?>
                                                 <span class="badge <?php echo $prioridad_class; ?>">
-                                                        <?php echo ucfirst($incidente['prioridad']); ?>
-                                                    </span>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                    </tbody>
-                                </table>
+                                                    <?php echo ucfirst($incidente['prioridad']); ?>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">
+                                                <i class="fas fa-user me-1"></i>
+                                                <?php echo htmlspecialchars($incidente['residente']); ?>
+                                            </small>
+                                            <small class="text-muted">
+                                                <i class="fas fa-calendar me-1"></i>
+                                                <?php echo date('d/m/Y', strtotime($incidente['fecha_registro'])); ?>
+                                            </small>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
                             </div>
                         <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Métricas de Incidentes -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="content-box">
+                    <div class="content-box-header">
+                        <h5><i class="fas fa-chart-pie me-2"></i>Estadísticas de Incidentes</h5>
+                    </div>
+                    <div class="content-box-body">
+                        <div class="row text-center">
+                            <div class="col-md-3 mb-3">
+                                <div class="metric-card">
+                                    <h3 class="text-primary"><?php echo $estadisticasIncidentes['total']; ?></h3>
+                                    <p class="text-muted">Total Incidentes</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="metric-card">
+                                    <h3 class="text-success"><?php echo $estadisticasIncidentes['atendidos']; ?></h3>
+                                    <p class="text-muted">Atendidos (<?php echo $porcentajeAtendidos; ?>%)</p>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar bg-success" style="width: <?php echo $porcentajeAtendidos; ?>%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="metric-card">
+                                    <h3 class="text-warning"><?php echo $estadisticasIncidentes['pendientes']; ?></h3>
+                                    <p class="text-muted">Pendientes (<?php echo $porcentajePendientes; ?>%)</p>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar bg-warning" style="width: <?php echo $porcentajePendientes; ?>%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="metric-card">
+                                    <h3 class="text-info"><?php echo $estadisticasIncidentes['en_proceso'] ?? 0; ?></h3>
+                                    <p class="text-muted">En Proceso</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -297,14 +328,14 @@ $consumoServicios = $consumoServicios ?? [];
             <div class="col-12">
                 <div class="content-box">
                     <div class="content-box-header d-flex justify-content-between align-items-center">
-                        <h5>Reservas Confirmadas</h5>
+                        <h5><i class="fas fa-calendar-check me-2"></i>Reservas Confirmadas del Mes</h5>
                         <span class="badge bg-primary"><?php echo count($reservasConfirmadas); ?> reservas</span>
                     </div>
                     <div class="content-box-body">
                         <?php if (empty($reservasConfirmadas)): ?>
                             <div class="text-center py-4">
                                 <i class="fas fa-calendar-check fa-3x text-muted mb-3"></i>
-                                <p class="text-muted">No hay reservas confirmadas</p>
+                                <p class="text-muted">No hay reservas confirmadas para este mes</p>
                             </div>
                         <?php else: ?>
                             <div class="table-responsive">
@@ -314,9 +345,9 @@ $consumoServicios = $consumoServicios ?? [];
                                         <th>ID</th>
                                         <th>Área Común</th>
                                         <th>Residente</th>
+                                        <th>Departamento</th>
                                         <th>Fecha</th>
-                                        <th>Hora Inicio</th>
-                                        <th>Hora Fin</th>
+                                        <th>Horario</th>
                                         <th>Estado</th>
                                     </tr>
                                     </thead>
@@ -326,9 +357,15 @@ $consumoServicios = $consumoServicios ?? [];
                                             <td><?php echo htmlspecialchars($reserva['id_reserva']); ?></td>
                                             <td>
                                                 <strong><?php echo htmlspecialchars($reserva['nombre_area']); ?></strong>
+                                                <?php if (!empty($reserva['descripcion_area'])): ?>
+                                                    <br><small class="text-muted"><?php echo htmlspecialchars($reserva['descripcion_area']); ?></small>
+                                                <?php endif; ?>
                                             </td>
+                                            <td><?php echo htmlspecialchars($reserva['nombre_residente']); ?></td>
                                             <td>
-                                                <?php echo htmlspecialchars($reserva['nombre_residente'] . ' ' . $reserva['apellido_residente']); ?>
+                                                <span class="badge bg-azul">
+                                                    <?php echo htmlspecialchars($reserva['departamento']); ?>
+                                                </span>
                                             </td>
                                             <td>
                                                 <i class="fas fa-calendar me-2 text-muted"></i>
@@ -336,16 +373,13 @@ $consumoServicios = $consumoServicios ?? [];
                                             </td>
                                             <td>
                                                 <i class="fas fa-clock me-2 text-muted"></i>
-                                                <?php echo date('H:i', strtotime($reserva['hora_inicio'])); ?>
-                                            </td>
-                                            <td>
-                                                <i class="fas fa-clock me-2 text-muted"></i>
+                                                <?php echo date('H:i', strtotime($reserva['hora_inicio'])); ?> -
                                                 <?php echo date('H:i', strtotime($reserva['hora_fin'])); ?>
                                             </td>
                                             <td>
-                                                    <span class="badge bg-success">
-                                                        <i class="fas fa-check-circle me-1"></i>Confirmada
-                                                    </span>
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check-circle me-1"></i>Confirmada
+                                                </span>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -363,7 +397,7 @@ $consumoServicios = $consumoServicios ?? [];
             <div class="col-12">
                 <div class="content-box">
                     <div class="content-box-header d-flex justify-content-between align-items-center">
-                        <h5>Información General de Residentes</h5>
+                        <h5><i class="fas fa-users me-2"></i>Información General de Residentes</h5>
                         <span class="badge bg-primary"><?php echo count($residentes); ?> residentes</span>
                     </div>
                     <div class="content-box-body">
@@ -379,6 +413,7 @@ $consumoServicios = $consumoServicios ?? [];
                                     <tr>
                                         <th>ID</th>
                                         <th>Nombre Completo</th>
+                                        <th>CI</th>
                                         <th>Email</th>
                                         <th>Teléfono</th>
                                         <th>Departamento</th>
@@ -388,10 +423,11 @@ $consumoServicios = $consumoServicios ?? [];
                                     <tbody>
                                     <?php foreach($residentes as $residente): ?>
                                         <tr>
-                                            <td><?php echo htmlspecialchars($residente['id_residente']); ?></td>
+                                            <td><?php echo htmlspecialchars($residente['id_persona']); ?></td>
                                             <td>
-                                                <strong><?php echo htmlspecialchars($residente['nombre'] . ' ' . $residente['apellido']); ?></strong>
+                                                <strong><?php echo htmlspecialchars($residente['nombre'] . ' ' . $residente['apellido_paterno'] . ' ' . $residente['apellido_materno']); ?></strong>
                                             </td>
+                                            <td><?php echo htmlspecialchars($residente['ci']); ?></td>
                                             <td>
                                                 <i class="fas fa-envelope me-2 text-muted"></i>
                                                 <?php echo htmlspecialchars($residente['email']); ?>
@@ -401,15 +437,15 @@ $consumoServicios = $consumoServicios ?? [];
                                                 <?php echo htmlspecialchars($residente['telefono'] ?? 'No registrado'); ?>
                                             </td>
                                             <td>
-                                                    <span class="badge bg-azul">
-                                                        <i class="fas fa-door-closed me-1"></i>
-                                                        <?php echo htmlspecialchars($residente['departamento']); ?>
-                                                    </span>
+                                                <span class="badge bg-azul">
+                                                    <i class="fas fa-door-closed me-1"></i>
+                                                    Dpto. <?php echo htmlspecialchars($residente['departamento']); ?> - Piso <?php echo htmlspecialchars($residente['piso']); ?>
+                                                </span>
                                             </td>
                                             <td>
-                                                    <span class="badge bg-success">
-                                                        <i class="fas fa-check-circle me-1"></i>Activo
-                                                    </span>
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check-circle me-1"></i>Activo
+                                                </span>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -422,68 +458,151 @@ $consumoServicios = $consumoServicios ?? [];
             </div>
         </div>
 
-        <!-- Estadísticas de Consumo -->
-        <div class="row">
+        <!-- Consumo de Servicios por Departamento -->
+        <div class="row mb-4">
             <div class="col-12">
                 <div class="content-box">
                     <div class="content-box-header d-flex justify-content-between align-items-center">
-                        <h5>Estadísticas de Consumo Mensual</h5>
-                        <span class="badge bg-primary"><?php echo date('F Y'); ?></span>
+                        <h5><i class="fas fa-chart-bar me-2"></i>Consumo de Servicios por Departamento</h5>
+                        <span class="badge bg-primary"><?php echo count($consumoPorDepartamento); ?> departamentos</span>
                     </div>
                     <div class="content-box-body">
-                        <?php if (empty($consumoServicios)): ?>
+                        <?php if (empty($consumoPorDepartamento)): ?>
                             <div class="text-center py-4">
                                 <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
                                 <p class="text-muted">No hay datos de consumo disponibles</p>
                             </div>
                         <?php else: ?>
                             <div class="row">
-                                <?php foreach($consumoServicios as $servicio): ?>
+                                <?php foreach($consumoPorDepartamento as $departamento): ?>
+                                    <div class="col-md-6 col-lg-4 mb-4">
+                                        <div class="card h-100">
+                                            <div class="card-header bg-light">
+                                                <h6 class="mb-0">
+                                                    <i class="fas fa-building me-2"></i>
+                                                    Departamento <?php echo htmlspecialchars($departamento['departamento']); ?> - Piso <?php echo htmlspecialchars($departamento['piso']); ?>
+                                                </h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <?php foreach($departamento['servicios'] as $servicio): ?>
+                                                    <div class="servicio-consumo mb-3">
+                                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                                            <span class="fw-bold">
+                                                                <?php echo ucfirst($servicio['servicio']); ?>
+                                                            </span>
+                                                            <span class="text-primary fw-bold">
+                                                                <?php echo number_format($servicio['consumo_mensual'], 2); ?>
+                                                                <?php echo htmlspecialchars($servicio['unidad_medida']); ?>
+                                                            </span>
+                                                        </div>
+                                                        <div class="progress" style="height: 8px;">
+                                                            <?php
+                                                            $porcentaje = min(100, ($servicio['consumo_mensual'] / max(1, $servicio['consumo_mensual'])) * 100);
+                                                            $bg_class = '';
+                                                            switch($servicio['servicio']) {
+                                                                case 'agua': $bg_class = 'bg-primary'; break;
+                                                                case 'luz': $bg_class = 'bg-warning'; break;
+                                                                case 'gas': $bg_class = 'bg-danger'; break;
+                                                                default: $bg_class = 'bg-secondary';
+                                                            }
+                                                            ?>
+                                                            <div class="progress-bar <?php echo $bg_class; ?>"
+                                                                 style="width: <?php echo $porcentaje; ?>%">
+                                                            </div>
+                                                        </div>
+                                                        <small class="text-muted">
+                                                            Costo: $<?php echo number_format($servicio['costo_mensual'], 2); ?>
+                                                            <?php if ($servicio['estado_medidor'] != 'activo'): ?>
+                                                                <span class="badge bg-warning float-end">
+                                                                    <?php echo ucfirst($servicio['estado_medidor']); ?>
+                                                                </span>
+                                                            <?php endif; ?>
+                                                        </small>
+                                                    </div>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estadísticas de Consumo General -->
+        <div class="row">
+            <div class="col-12">
+                <div class="content-box">
+                    <div class="content-box-header d-flex justify-content-between align-items-center">
+                        <h5><i class="fas fa-chart-line me-2"></i>Estadísticas de Consumo Mensual</h5>
+                        <span class="badge bg-primary"><?php echo date('F Y'); ?></span>
+                    </div>
+                    <div class="content-box-body">
+                        <?php if (empty($estadisticasConsumo)): ?>
+                            <div class="text-center py-4">
+                                <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">No hay estadísticas de consumo disponibles</p>
+                            </div>
+                        <?php else: ?>
+                            <div class="row">
+                                <?php foreach($estadisticasConsumo as $servicio): ?>
                                     <div class="col-md-4 mb-3">
                                         <div class="card h-100">
                                             <div class="card-body text-center">
                                                 <?php
                                                 $icon_class = '';
                                                 $bg_class = '';
+                                                $text_class = '';
                                                 switch($servicio['servicio']) {
                                                     case 'agua':
-                                                        $icon_class = 'fa-tint text-primary';
+                                                        $icon_class = 'fa-tint';
                                                         $bg_class = 'bg-primary';
+                                                        $text_class = 'text-primary';
                                                         break;
                                                     case 'luz':
-                                                        $icon_class = 'fa-bolt text-warning';
+                                                        $icon_class = 'fa-bolt';
                                                         $bg_class = 'bg-warning';
+                                                        $text_class = 'text-warning';
                                                         break;
                                                     case 'gas':
-                                                        $icon_class = 'fa-fire text-danger';
+                                                        $icon_class = 'fa-fire';
                                                         $bg_class = 'bg-danger';
+                                                        $text_class = 'text-danger';
                                                         break;
                                                     default:
-                                                        $icon_class = 'fa-chart-bar text-secondary';
+                                                        $icon_class = 'fa-chart-bar';
                                                         $bg_class = 'bg-secondary';
+                                                        $text_class = 'text-secondary';
                                                 }
                                                 ?>
                                                 <div class="mb-3">
-                                                    <span class="badge <?php echo $bg_class; ?> p-2">
+                                                    <span class="badge <?php echo $bg_class; ?> p-3">
                                                         <i class="fas <?php echo $icon_class; ?> fa-2x"></i>
                                                     </span>
                                                 </div>
                                                 <h5 class="card-title"><?php echo ucfirst($servicio['servicio']); ?></h5>
-                                                <h3 class="text-primary"><?php echo number_format($servicio['consumo'], 2); ?></h3>
-                                                <p class="text-muted"><?php echo htmlspecialchars($servicio['unidad_medida']); ?></p>
-                                                <div class="progress mb-2">
-                                                    <div class="progress-bar <?php echo $bg_class; ?>"
-                                                         role="progressbar"
-                                                         style="width: <?php echo min(100, ($servicio['consumo'] / max(1, $servicio['consumo_max'])) * 100); ?>%"
-                                                         aria-valuenow="<?php echo $servicio['consumo']; ?>"
-                                                         aria-valuemin="0"
-                                                         aria-valuemax="<?php echo $servicio['consumo_max']; ?>">
+                                                <h3 class="<?php echo $text_class; ?>"><?php echo number_format($servicio['consumo_promedio'], 2); ?></h3>
+                                                <p class="text-muted"><?php echo htmlspecialchars($servicio['unidad_medida']); ?> promedio</p>
+
+                                                <div class="row text-center mt-3">
+                                                    <div class="col-6">
+                                                        <small class="text-muted">Máximo</small>
+                                                        <p class="fw-bold <?php echo $text_class; ?>"><?php echo number_format($servicio['consumo_maximo'], 2); ?></p>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <small class="text-muted">Mínimo</small>
+                                                        <p class="fw-bold <?php echo $text_class; ?>"><?php echo number_format($servicio['consumo_minimo'], 2); ?></p>
                                                     </div>
                                                 </div>
-                                                <small class="text-muted">
-                                                    Consumo promedio: <?php echo number_format($servicio['consumo_promedio'], 2); ?>
-                                                    <?php echo htmlspecialchars($servicio['unidad_medida']); ?>
-                                                </small>
+
+                                                <div class="mt-2">
+                                                    <small class="text-muted">
+                                                        Total: <?php echo number_format($servicio['consumo_total'], 2); ?>
+                                                        <?php echo htmlspecialchars($servicio['unidad_medida']); ?>
+                                                    </small>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -496,7 +615,7 @@ $consumoServicios = $consumoServicios ?? [];
         </div>
     </div>
 
-    <!-- Scripts para DataTables -->
+    <!-- Scripts para DataTables y Gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
@@ -505,16 +624,6 @@ $consumoServicios = $consumoServicios ?? [];
     <script>
         // Inicializar DataTables
         $(document).ready(function() {
-            // Tabla de Incidentes
-            $('#incidentesTable').DataTable({
-                "language": {
-                    "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json"
-                },
-                "pageLength": 10,
-                "responsive": true,
-                "order": [[0, 'desc']]
-            });
-
             // Tabla de Reservas
             $('#reservasTable').DataTable({
                 "language": {
@@ -522,7 +631,7 @@ $consumoServicios = $consumoServicios ?? [];
                 },
                 "pageLength": 10,
                 "responsive": true,
-                "order": [[0, 'desc']]
+                "order": [[4, 'asc']] // Ordenar por fecha
             });
 
             // Tabla de Residentes
@@ -532,11 +641,11 @@ $consumoServicios = $consumoServicios ?? [];
                 },
                 "pageLength": 10,
                 "responsive": true,
-                "order": [[0, 'desc']]
+                "order": [[1, 'asc']] // Ordenar por nombre
             });
         });
 
-        // Asegurar que las animaciones funcionen
+        // Animaciones de entrada
         document.addEventListener('DOMContentLoaded', function() {
             const observerOptions = {
                 threshold: 0.1,
@@ -551,7 +660,7 @@ $consumoServicios = $consumoServicios ?? [];
                 });
             }, observerOptions);
 
-            document.querySelectorAll('.content-box, .info-card').forEach(el => {
+            document.querySelectorAll('.content-box, .info-card, .card').forEach(el => {
                 observer.observe(el);
             });
         });
@@ -562,6 +671,65 @@ $consumoServicios = $consumoServicios ?? [];
         .info-card.bg-gradient-naranja {
             background: linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%);
             color: white;
+        }
+
+        .info-card.bg-gradient-azul {
+            background: linear-gradient(135deg, #4A90E2 0%, #67B26F 100%);
+            color: white;
+        }
+
+        .info-card.bg-gradient-verde {
+            background: linear-gradient(135deg, #67B26F 0%, #4ca2cd 100%);
+            color: white;
+        }
+
+        .info-card.bg-gradient-celeste {
+            background: linear-gradient(135deg, #4ca2cd 0%, #67B26F 100%);
+            color: white;
+        }
+
+        /* Estilos para las listas de comunicados e incidentes */
+        .comunicados-list .comunicado-item,
+        .incidentes-list .incidente-item {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+            transition: background-color 0.3s ease;
+        }
+
+        .comunicados-list .comunicado-item:hover,
+        .incidentes-list .incidente-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .comunicados-list .comunicado-item:last-child,
+        .incidentes-list .incidente-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Bordes izquierdos para prioridad */
+        .border-left-danger { border-left: 4px solid #dc3545 !important; }
+        .border-left-warning { border-left: 4px solid #ffc107 !important; }
+        .border-left-info { border-left: 4px solid #0dcaf0 !important; }
+        .border-left-success { border-left: 4px solid #198754 !important; }
+        .border-left-secondary { border-left: 4px solid #6c757d !important; }
+
+        /* Tarjetas de métricas */
+        .metric-card {
+            padding: 20px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            transition: transform 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .servicio-consumo {
+            padding: 10px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            margin-bottom: 10px;
         }
 
         .dataTables_wrapper .dataTables_filter input {
@@ -577,29 +745,6 @@ $consumoServicios = $consumoServicios ?? [];
             padding: 5px;
         }
 
-        .dataTables_info {
-            color: #6c757d;
-            padding-top: 10px !important;
-        }
-
-        .dataTables_paginate .paginate_button {
-            border-radius: 5px !important;
-            margin: 0 2px;
-            padding: 5px 10px !important;
-        }
-
-        .dataTables_paginate .paginate_button.current {
-            background: var(--verde) !important;
-            border-color: var(--verde) !important;
-            color: white !important;
-        }
-
-        .dataTables_paginate .paginate_button:hover {
-            background: var(--azul) !important;
-            border-color: var(--azul) !important;
-            color: white !important;
-        }
-
         .bg-azul {
             background-color: var(--azul) !important;
         }
@@ -612,25 +757,16 @@ $consumoServicios = $consumoServicios ?? [];
             color: var(--celeste) !important;
         }
 
-        /* Estilos para las tarjetas de comunicados */
-        .card.border-danger {
-            border-left: 4px solid #dc3545 !important;
-        }
+        /* Responsive */
+        @media (max-width: 768px) {
+            .content-box-header {
+                flex-direction: column;
+                align-items: flex-start !important;
+            }
 
-        .card.border-warning {
-            border-left: 4px solid #ffc107 !important;
-        }
-
-        .card.border-info {
-            border-left: 4px solid #0dcaf0 !important;
-        }
-
-        .card.border-success {
-            border-left: 4px solid #198754 !important;
-        }
-
-        .card.border-secondary {
-            border-left: 4px solid #6c757d !important;
+            .content-box-header .badge {
+                margin-top: 10px;
+            }
         }
     </style>
 

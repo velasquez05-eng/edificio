@@ -361,7 +361,7 @@
                 </div>
                 <form method="POST" action="IncidenteControlador.php">
                     <div class="modal-body">
-                        <input type="hidden" name="action" value="actualizarProgreso">
+                        <input type="hidden" name="action" value="actualizarProgresoPersonal">
                         <input type="hidden" name="id_incidente" id="actualizarProgresoId">
 
                         <div class="text-center mb-3">

@@ -59,6 +59,8 @@
                                     <th>Número</th>
                                     <th>Piso</th>
                                     <th>Estado</th>
+                                    <th>Residentes</th>
+                                    <th>Medidores</th>
                                     <th>Opciones</th>
                                 </tr>
                                 </thead>
@@ -92,19 +94,32 @@
                                             }
                                             ?>
                                             <span class="badge <?php echo $badge_class; ?>">
-                                                <i class="fas <?php echo $icon; ?> me-1"></i>
-                                                <?php echo ucfirst(htmlspecialchars($departamento['estado'])); ?>
-                                            </span>
+                                            <i class="fas <?php echo $icon; ?> me-1"></i>
+                                            <?php echo ucfirst(htmlspecialchars($departamento['estado'])); ?>
+                                        </span>
+                                        </td>
+                                        <td>
+                                        <span class="badge bg-info">
+                                            <i class="fas fa-users me-1"></i>
+                                            <?php echo $departamento['total_residentes'] ?? 0; ?>
+                                        </span>
+                                        </td>
+                                        <td>
+                                        <span class="badge bg-purple">
+                                            <i class="fas fa-tachometer-alt me-1"></i>
+                                            <?php echo $departamento['total_medidores'] ?? 0; ?>
+                                        </span>
                                         </td>
                                         <td>
                                             <div class="btn-group" role="group">
                                                 <button class="btn btn-info btn-sm"
                                                         data-bs-toggle="modal"
-                                                        data-bs-target="#verPersonasModal"
+                                                        data-bs-target="#detalleDepartamentoModal"
                                                         data-id="<?php echo htmlspecialchars($departamento['id_departamento']); ?>"
                                                         data-numero="<?php echo htmlspecialchars($departamento['numero']); ?>"
                                                         data-piso="<?php echo htmlspecialchars($departamento['piso']); ?>"
-                                                        title="Ver personas del departamento">
+                                                        data-estado="<?php echo htmlspecialchars($departamento['estado']); ?>"
+                                                        title="Ver detalles del departamento">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
                                                 <button class="btn btn-warning btn-sm"
@@ -130,35 +145,85 @@
         </div>
     </div>
 
-    <!-- Modal Ver Personas del Departamento -->
-    <div class="modal fade" id="verPersonasModal" tabindex="-1" aria-labelledby="verPersonasModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
+    <!-- Modal Detalles del Departamento -->
+    <div class="modal fade" id="detalleDepartamentoModal" tabindex="-1" aria-labelledby="detalleDepartamentoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="verPersonasModalLabel">
-                        <i class="fas fa-users me-2"></i>Personas del Departamento
+                    <h5 class="modal-title" id="detalleDepartamentoModalLabel">
+                        <i class="fas fa-building me-2"></i>Detalles del Departamento
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="container-fluid">
+                        <!-- Información del Departamento -->
                         <div class="row mb-4">
                             <div class="col-12">
                                 <div class="departamento-info bg-light p-3 rounded">
-                                    <h6 class="mb-0">
-                                        <i class="fas fa-building text-primary me-2"></i>
-                                        Departamento: <span id="numeroDepartamento" class="fw-bold"></span> -
-                                        Piso: <span id="pisoDepartamento" class="fw-bold"></span>
-                                    </h6>
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <h6 class="mb-1">
+                                                <i class="fas fa-hashtag text-primary me-2"></i>
+                                                Departamento: <span id="numeroDepartamento" class="fw-bold"></span>
+                                            </h6>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <h6 class="mb-1">
+                                                <i class="fas fa-stairs text-info me-2"></i>
+                                                Piso: <span id="pisoDepartamento" class="fw-bold"></span>
+                                            </h6>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <h6 class="mb-1">
+                                                <i class="fas fa-circle me-2"></i>
+                                                Estado: <span id="estadoDepartamento" class="fw-bold"></span>
+                                            </h6>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div id="listaPersonas">
-                            <!-- Aquí se cargarán las personas dinámicamente -->
-                            <div class="text-center py-4">
-                                <i class="fas fa-spinner fa-spin fa-2x text-muted mb-3"></i>
-                                <p class="text-muted">Cargando información...</p>
+                        <div class="row">
+                            <!-- Sección Residentes -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-users me-2"></i>Residentes
+                                            <span id="contadorResidentes" class="badge bg-light text-dark ms-2">0</span>
+                                        </h6>
+                                    </div>
+                                    <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+                                        <div id="listaPersonas">
+                                            <div class="text-center py-4">
+                                                <i class="fas fa-spinner fa-spin fa-2x text-muted mb-3"></i>
+                                                <p class="text-muted">Cargando residentes...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Sección Medidores -->
+                            <div class="col-md-6 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header bg-purple text-white">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-tachometer-alt me-2"></i>Medidores
+                                            <span id="contadorMedidores" class="badge bg-light text-dark ms-2">0</span>
+                                        </h6>
+                                    </div>
+                                    <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+                                        <div id="listaMedidores">
+                                            <div class="text-center py-4">
+                                                <i class="fas fa-spinner fa-spin fa-2x text-muted mb-3"></i>
+                                                <p class="text-muted">Cargando medidores...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -244,11 +309,11 @@
                 columnDefs: [
                     {
                         orderable: false,
-                        targets: [4] // Columna de opciones no ordenable
+                        targets: [4, 5, 6] // Columnas no ordenables
                     },
                     {
                         searchable: false,
-                        targets: [4] // Columna de opciones no buscable
+                        targets: [4, 5, 6] // Columnas no buscables
                     },
                     {
                         width: 'auto',
@@ -265,20 +330,23 @@
                 }
             });
 
-            // Cargar datos en el modal de ver personas
-            const verPersonasModal = document.getElementById('verPersonasModal');
-            verPersonasModal.addEventListener('show.bs.modal', function(event) {
+            // Cargar datos en el modal de detalles
+            const detalleModal = document.getElementById('detalleDepartamentoModal');
+            detalleModal.addEventListener('show.bs.modal', function(event) {
                 const button = event.relatedTarget;
                 const idDepartamento = button.getAttribute('data-id');
                 const numero = button.getAttribute('data-numero');
                 const piso = button.getAttribute('data-piso');
+                const estado = button.getAttribute('data-estado');
 
                 // Actualizar información del departamento
                 document.getElementById('numeroDepartamento').textContent = numero;
                 document.getElementById('pisoDepartamento').textContent = piso;
+                document.getElementById('estadoDepartamento').textContent = estado.charAt(0).toUpperCase() + estado.slice(1);
 
-                // Cargar personas del departamento
-                cargarPersonasDepartamento(idDepartamento);
+                // Cargar residentes y medidores
+                cargarResidentesDepartamento(idDepartamento);
+                cargarMedidoresDepartamento(idDepartamento);
             });
 
             // Cargar datos en el modal de editar departamento
@@ -288,87 +356,198 @@
                 const idDepartamento = button.getAttribute('data-id');
                 const numero = button.getAttribute('data-numero');
                 const piso = button.getAttribute('data-piso');
-                const estado = button.getAttribute('data-estado');
 
                 // Llenar el formulario con los datos actuales
                 document.getElementById('editIdDepartamento').value = idDepartamento;
                 document.getElementById('editNumero').value = numero;
                 document.getElementById('editPiso').value = piso;
-                document.getElementById('editEstado').value = estado;
             });
 
-            // Función para cargar personas del departamento
-            function cargarPersonasDepartamento(idDepartamento) {
+            // Función para cargar residentes del departamento
+            function cargarResidentesDepartamento(idDepartamento) {
                 const listaPersonas = document.getElementById('listaPersonas');
 
                 // Mostrar loading
                 listaPersonas.innerHTML = `
                     <div class="text-center py-4">
                         <i class="fas fa-spinner fa-spin fa-2x text-muted mb-3"></i>
-                        <p class="text-muted">Cargando información...</p>
+                        <p class="text-muted">Cargando residentes...</p>
                     </div>
                 `;
 
-                // Simular carga de datos (aquí deberías hacer una petición AJAX real)
-                setTimeout(() => {
-                    // Esto es un ejemplo - reemplaza con tu lógica real
-                    const personasEjemplo = [
-                        { nombre: 'Juan Pérez', rol: 'Propietario', telefono: '123456789' },
-                        { nombre: 'María García', rol: 'Residente', telefono: '987654321' }
-                    ];
+                // Hacer petición AJAX real al controlador
+                fetch(`DepartamentoControlador.php?action=obtenerDetallesDepartamento&id_departamento=${idDepartamento}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            const residentes = data.departamento.residentes || [];
 
-                    if (personasEjemplo.length > 0) {
-                        let html = '<div class="row">';
-                        personasEjemplo.forEach(persona => {
-                            html += `
-                                <div class="col-md-6 mb-3">
-                                    <div class="card">
-                                        <div class="card-body">
-                                            <h6 class="card-title">
-                                                <i class="fas fa-user text-primary me-2"></i>
-                                                ${persona.nombre}
-                                            </h6>
-                                            <p class="card-text mb-1">
-                                                <small class="text-muted">
-                                                    <i class="fas fa-user-tag me-1"></i>
-                                                    ${persona.rol}
-                                                </small>
-                                            </p>
-                                            <p class="card-text mb-0">
-                                                <small class="text-muted">
-                                                    <i class="fas fa-phone me-1"></i>
-                                                    ${persona.telefono}
-                                                </small>
-                                            </p>
+                            if (residentes.length > 0) {
+                                let html = '';
+                                residentes.forEach(residente => {
+                                    html += `
+                                        <div class="card mb-3">
+                                            <div class="card-body">
+                                                <h6 class="card-title mb-2">
+                                                    <i class="fas fa-user text-primary me-2"></i>
+                                                    ${residente.nombre_completo || residente.nombre + ' ' + residente.apellido_paterno}
+                                                </h6>
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-user-tag me-1"></i>
+                                                            ${residente.rol || 'Residente'}
+                                                        </small>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-phone me-1"></i>
+                                                            ${residente.telefono || 'No disponible'}
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                                ${residente.email ? `
+                                                <div class="mt-2">
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-envelope me-1"></i>
+                                                        ${residente.email}
+                                                    </small>
+                                                </div>
+                                                ` : ''}
+                                            </div>
                                         </div>
+                                    `;
+                                });
+                                listaPersonas.innerHTML = html;
+                                document.getElementById('contadorResidentes').textContent = residentes.length;
+                            } else {
+                                listaPersonas.innerHTML = `
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-users-slash fa-3x text-muted mb-3"></i>
+                                        <p class="text-muted">No hay residentes asignados a este departamento</p>
                                     </div>
+                                `;
+                                document.getElementById('contadorResidentes').textContent = '0';
+                            }
+                        } else {
+                            listaPersonas.innerHTML = `
+                                <div class="text-center py-4">
+                                    <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                                    <p class="text-danger">Error: ${data.error}</p>
                                 </div>
                             `;
-                        });
-                        html += '</div>';
-                        listaPersonas.innerHTML = html;
-                    } else {
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
                         listaPersonas.innerHTML = `
                             <div class="text-center py-4">
-                                <i class="fas fa-users-slash fa-3x text-muted mb-3"></i>
-                                <p class="text-muted">No hay personas asignadas a este departamento</p>
+                                <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                                <p class="text-danger">Error al cargar los residentes</p>
                             </div>
                         `;
-                    }
-                }, 1000);
+                    });
+            }
+
+            // Función para cargar medidores del departamento
+            function cargarMedidoresDepartamento(idDepartamento) {
+                const listaMedidores = document.getElementById('listaMedidores');
+
+                // Mostrar loading
+                listaMedidores.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="fas fa-spinner fa-spin fa-2x text-muted mb-3"></i>
+                        <p class="text-muted">Cargando medidores...</p>
+                    </div>
+                `;
+
+                // Hacer petición AJAX real al controlador
+                fetch(`DepartamentoControlador.php?action=obtenerDetallesDepartamento&id_departamento=${idDepartamento}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            const medidores = data.departamento.medidores || [];
+
+                            if (medidores.length > 0) {
+                                let html = '';
+                                medidores.forEach(medidor => {
+                                    const estadoClass = medidor.estado_medidor === 'activo' ? 'bg-success' :
+                                        medidor.estado_medidor === 'mantenimiento' ? 'bg-warning' : 'bg-danger';
+
+                                    html += `
+                                        <div class="card mb-3">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <h6 class="card-title mb-0">
+                                                        <i class="fas fa-tachometer-alt text-purple me-2"></i>
+                                                        ${medidor.servicio}
+                                                    </h6>
+                                                    <span class="badge ${estadoClass}">
+                                                        ${medidor.estado_medidor}
+                                                    </span>
+                                                </div>
+                                                <p class="card-text mb-1">
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-barcode me-1"></i>
+                                                        Código: ${medidor.codigo}
+                                                    </small>
+                                                </p>
+                                                <p class="card-text mb-1">
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-ruler me-1"></i>
+                                                        Unidad: ${medidor.unidad_medida}
+                                                    </small>
+                                                </p>
+                                                ${medidor.costo_unitario ? `
+                                                <p class="card-text mb-2">
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-dollar-sign me-1"></i>
+                                                        Costo: $${medidor.costo_unitario}
+                                                    </small>
+                                                </p>
+                                                ` : ''}
+                                                <a href="DepartamentoControlador.php?action=verHistorialConsumo&id_medidor=${medidor.id_medidor}"
+                                                   class="btn btn-outline-info btn-sm w-100" >
+                                                    <i class="fas fa-chart-line me-1"></i>Ver Historial
+                                                </a>
+                                            </div>
+                                        </div>
+                                    `;
+                                });
+                                listaMedidores.innerHTML = html;
+                                document.getElementById('contadorMedidores').textContent = medidores.length;
+                            } else {
+                                listaMedidores.innerHTML = `
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-tachometer-alt fa-3x text-muted mb-3"></i>
+                                        <p class="text-muted">No hay medidores asignados a este departamento</p>
+                                    </div>
+                                `;
+                                document.getElementById('contadorMedidores').textContent = '0';
+                            }
+                        } else {
+                            listaMedidores.innerHTML = `
+                                <div class="text-center py-4">
+                                    <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                                    <p class="text-danger">Error: ${data.error}</p>
+                                </div>
+                            `;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        listaMedidores.innerHTML = `
+                            <div class="text-center py-4">
+                                <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                                <p class="text-danger">Error al cargar los medidores</p>
+                            </div>
+                        `;
+                    });
             }
 
             // Manejar el envío del formulario de edición
             document.getElementById('formEditarDepartamento').addEventListener('submit', function(e) {
                 e.preventDefault();
-
-                // Aquí puedes agregar validaciones adicionales si es necesario
-                const formData = new FormData(this);
-
-                // Simular envío del formulario (reemplaza con tu lógica real)
-                console.log('Datos a enviar:', Object.fromEntries(formData));
-
-                // En un caso real, aquí harías una petición AJAX o dejarías que el formulario se envíe normalmente
                 this.submit();
             });
 
@@ -429,6 +608,14 @@
             box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
         }
 
+        .bg-purple {
+            background-color: #6f42c1 !important;
+        }
+
+        .text-purple {
+            color: #6f42c1 !important;
+        }
+
         /* Estilos para DataTable */
         .dataTables_wrapper .dataTables_filter input {
             border: 1px solid #dee2e6;
@@ -483,6 +670,16 @@
         .form-control:focus, .form-select:focus {
             border-color: var(--azul-oscuro);
             box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        .card-header {
+            border-bottom: 1px solid rgba(0,0,0,0.125);
+        }
+
+        .btn-outline-info:hover {
+            background-color: #0dcaf0;
+            border-color: #0dcaf0;
+            color: white;
         }
     </style>
 
