@@ -292,7 +292,7 @@ $estadisticas = [
                     <div class="qr-container position-relative d-inline-block">
                         <div id="qrcode"></div>
                         <div class="dino-icon">
-                            <img src="<?php echo $_ENV['APP_URL']; ?>assets/images/dino.png" alt="Dinosaurio" onerror="this.style.display='none'">
+                            <img src="dino.png" alt="Dinosaurio" onerror="this.style.display='none'">
                         </div>
                     </div>
 
@@ -303,11 +303,6 @@ $estadisticas = [
                         </p>
                     </div>
 
-                    <div class="mt-3">
-                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="descargarQR()">
-                            <i class="fas fa-download me-1"></i>Descargar QR
-                        </button>
-                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">

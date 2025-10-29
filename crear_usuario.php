@@ -3,7 +3,7 @@
 class Database
 {
     private $host = 'localhost';
-    private $db_name = 'db_edificio_v2';
+    private $db_name = 'db_edificio_v3';
     private $username = 'root';
     private $password = '';
     public $conn;
@@ -630,6 +630,109 @@ class DataSeeder
         }
     }
 
+    private function crearServicios() {
+        try {
+            echo "💧 Creando servicios (agua, luz, gas)...\n";
+
+            $servicios = [
+                ['id_servicio' => 1, 'nombre' => 'agua', 'unidad_medida' => 'm³', 'costo_unitario' => 2.00, 'estado' => 'activo'],
+                ['id_servicio' => 2, 'nombre' => 'luz', 'unidad_medida' => 'kWh', 'costo_unitario' => 2.00, 'estado' => 'activo'],
+                ['id_servicio' => 3, 'nombre' => 'gas', 'unidad_medida' => 'm³', 'costo_unitario' => 22.50, 'estado' => 'activo']
+            ];
+
+            foreach ($servicios as $servicio) {
+                $query = "SELECT id_servicio FROM servicio WHERE id_servicio = :id_servicio";
+                $stmt = $this->db->prepare($query);
+                $stmt->bindParam(':id_servicio', $servicio['id_servicio']);
+                $stmt->execute();
+
+                if ($stmt->rowCount() == 0) {
+                    $query = "INSERT INTO servicio (id_servicio, nombre, unidad_medida, costo_unitario, estado) 
+                             VALUES (:id_servicio, :nombre, :unidad_medida, :costo_unitario, :estado)";
+                    $stmt = $this->db->prepare($query);
+                    $stmt->bindParam(':id_servicio', $servicio['id_servicio']);
+                    $stmt->bindParam(':nombre', $servicio['nombre']);
+                    $stmt->bindParam(':unidad_medida', $servicio['unidad_medida']);
+                    $stmt->bindParam(':costo_unitario', $servicio['costo_unitario']);
+                    $stmt->bindParam(':estado', $servicio['estado']);
+
+                    if ($stmt->execute()) {
+                        echo "✅ Servicio '{$servicio['nombre']}' creado exitosamente.\n";
+                    } else {
+                        throw new Exception("Error al crear el servicio {$servicio['nombre']}");
+                    }
+                } else {
+                    echo "✅ El servicio '{$servicio['nombre']}' ya existe.\n";
+                }
+            }
+            return true;
+
+        } catch (Exception $e) {
+            echo "❌ Error al crear servicios: " . $e->getMessage() . "\n";
+            return false;
+        }
+    }
+
+    private function crearMedidores() {
+        try {
+            echo "📊 Creando medidores para cada departamento y servicio...\n";
+
+            $medidores = [
+                // Departamento 101 (agua, luz, gas)
+                ['id_medidor' => 1, 'codigo' => 'AGUA-101-001', 'id_servicio' => 1, 'id_departamento' => 1, 'fecha_instalacion' => '2024-01-15', 'estado' => 'activo'],
+                ['id_medidor' => 2, 'codigo' => 'LUZ-101-001', 'id_servicio' => 2, 'id_departamento' => 1, 'fecha_instalacion' => '2024-01-15', 'estado' => 'activo'],
+                ['id_medidor' => 3, 'codigo' => 'GAS-101-001', 'id_servicio' => 3, 'id_departamento' => 1, 'fecha_instalacion' => '2024-01-15', 'estado' => 'activo'],
+
+                // Departamento 102 (agua, luz, gas)
+                ['id_medidor' => 4, 'codigo' => 'AGUA-102-001', 'id_servicio' => 1, 'id_departamento' => 2, 'fecha_instalacion' => '2024-01-15', 'estado' => 'activo'],
+                ['id_medidor' => 5, 'codigo' => 'LUZ-102-001', 'id_servicio' => 2, 'id_departamento' => 2, 'fecha_instalacion' => '2024-01-15', 'estado' => 'activo'],
+                ['id_medidor' => 6, 'codigo' => 'GAS-102-001', 'id_servicio' => 3, 'id_departamento' => 2, 'fecha_instalacion' => '2024-01-15', 'estado' => 'activo'],
+
+                // Departamento 201 (agua, luz, gas)
+                ['id_medidor' => 7, 'codigo' => 'AGUA-201-001', 'id_servicio' => 1, 'id_departamento' => 3, 'fecha_instalacion' => '2024-01-15', 'estado' => 'activo'],
+                ['id_medidor' => 8, 'codigo' => 'LUZ-201-001', 'id_servicio' => 2, 'id_departamento' => 3, 'fecha_instalacion' => '2024-01-15', 'estado' => 'activo'],
+                ['id_medidor' => 9, 'codigo' => 'GAS-201-001', 'id_servicio' => 3, 'id_departamento' => 3, 'fecha_instalacion' => '2024-01-15', 'estado' => 'activo'],
+
+                // Departamento 202 (agua, luz, gas)
+                ['id_medidor' => 10, 'codigo' => 'AGUA-202-001', 'id_servicio' => 1, 'id_departamento' => 4, 'fecha_instalacion' => '2024-01-15', 'estado' => 'activo'],
+                ['id_medidor' => 11, 'codigo' => 'LUZ-202-001', 'id_servicio' => 2, 'id_departamento' => 4, 'fecha_instalacion' => '2024-01-15', 'estado' => 'activo'],
+                ['id_medidor' => 12, 'codigo' => 'GAS-202-001', 'id_servicio' => 3, 'id_departamento' => 4, 'fecha_instalacion' => '2024-01-15', 'estado' => 'activo']
+            ];
+
+            foreach ($medidores as $medidor) {
+                $query = "SELECT id_medidor FROM medidor WHERE id_medidor = :id_medidor";
+                $stmt = $this->db->prepare($query);
+                $stmt->bindParam(':id_medidor', $medidor['id_medidor']);
+                $stmt->execute();
+
+                if ($stmt->rowCount() == 0) {
+                    $query = "INSERT INTO medidor (id_medidor, codigo, id_servicio, id_departamento, fecha_instalacion, estado) 
+                             VALUES (:id_medidor, :codigo, :id_servicio, :id_departamento, :fecha_instalacion, :estado)";
+                    $stmt = $this->db->prepare($query);
+                    $stmt->bindParam(':id_medidor', $medidor['id_medidor']);
+                    $stmt->bindParam(':codigo', $medidor['codigo']);
+                    $stmt->bindParam(':id_servicio', $medidor['id_servicio']);
+                    $stmt->bindParam(':id_departamento', $medidor['id_departamento']);
+                    $stmt->bindParam(':fecha_instalacion', $medidor['fecha_instalacion']);
+                    $stmt->bindParam(':estado', $medidor['estado']);
+
+                    if ($stmt->execute()) {
+                        echo "✅ Medidor '{$medidor['codigo']}' creado exitosamente.\n";
+                    } else {
+                        throw new Exception("Error al crear el medidor {$medidor['codigo']}");
+                    }
+                } else {
+                    echo "✅ El medidor '{$medidor['codigo']}' ya existe.\n";
+                }
+            }
+            return true;
+
+        } catch (Exception $e) {
+            echo "❌ Error al crear medidores: " . $e->getMessage() . "\n";
+            return false;
+        }
+    }
+
     public function seedData() {
         echo "🚀 INICIANDO CARGA DE DATOS DE PRUEBA\n";
         echo "=============================================\n\n";
@@ -670,6 +773,16 @@ class DataSeeder
                 throw new Exception("Error en la asignación de departamentos");
             }
 
+            // Crear servicios
+            if (!$this->crearServicios()) {
+                throw new Exception("Error en la creación de servicios");
+            }
+
+            // Crear medidores
+            if (!$this->crearMedidores()) {
+                throw new Exception("Error en la creación de medidores");
+            }
+
             echo "\n🎉 ¡DATOS DE PRUEBA CARGADOS EXITOSAMENTE!\n";
             echo "=============================================\n";
             echo "📊 RESUMEN:\n";
@@ -678,6 +791,8 @@ class DataSeeder
             echo "   🏢 4 departamentos creados (2 por piso)\n";
             echo "   🏊 3 áreas comunes creadas\n";
             echo "   🔗 4 asignaciones de departamentos\n";
+            echo "   💧 3 servicios creados (agua, luz, gas)\n";
+            echo "   📊 12 medidores creados (3 por departamento)\n";
             echo "=============================================\n";
             return true;
 
@@ -765,7 +880,9 @@ class DataSeeder
                 'usuarios' => "SELECT COUNT(*) as total FROM persona",
                 'departamentos' => "SELECT COUNT(*) as total FROM departamento",
                 'areas' => "SELECT COUNT(*) as total FROM area_comun",
-                'asignaciones' => "SELECT COUNT(*) as total FROM tiene_departamento"
+                'asignaciones' => "SELECT COUNT(*) as total FROM tiene_departamento",
+                'servicios' => "SELECT COUNT(*) as total FROM servicio",
+                'medidores' => "SELECT COUNT(*) as total FROM medidor"
             ];
 
             foreach ($stats as $key => $query) {
@@ -917,6 +1034,83 @@ class DataSeeder
                         <td>{$area['capacidad']} personas</td>
                         <td style=\"color: blue; font-weight: bold;\">$ {$area['costo_reserva']}</td>
                         <td style=\"{$estado_color}\">{$area['estado']}</td>
+                      </tr>";
+            }
+            echo '</tbody></table></div>';
+
+            // Tabla de Servicios
+            echo '<div class="section">
+                    <div class="section-title">
+                        <h2>💧 TABLA DE SERVICIOS</h2>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Unidad Medida</th>
+                                <th>Costo Unitario</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>';
+
+            $query = "SELECT id_servicio, nombre, unidad_medida, costo_unitario, estado 
+                      FROM servicio 
+                      ORDER BY id_servicio";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute();
+            $servicios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($servicios as $servicio) {
+                $estado_color = ($servicio['estado'] == 'activo') ? 'color: green; font-weight: bold;' : 'color: red;';
+                echo "<tr>
+                        <td>{$servicio['id_servicio']}</td>
+                        <td><strong>{$servicio['nombre']}</strong></td>
+                        <td>{$servicio['unidad_medida']}</td>
+                        <td style=\"color: blue; font-weight: bold;\">$ {$servicio['costo_unitario']}</td>
+                        <td style=\"{$estado_color}\">{$servicio['estado']}</td>
+                      </tr>";
+            }
+            echo '</tbody></table></div>';
+
+            // Tabla de Medidores
+            echo '<div class="section">
+                    <div class="section-title">
+                        <h2>📊 TABLA DE MEDIDORES</h2>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Código</th>
+                                <th>Servicio</th>
+                                <th>Departamento</th>
+                                <th>Fecha Instalación</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>';
+
+            $query = "SELECT m.id_medidor, m.codigo, s.nombre as servicio, 
+                             d.numero as departamento, m.fecha_instalacion, m.estado
+                      FROM medidor m
+                      INNER JOIN servicio s ON m.id_servicio = s.id_servicio
+                      INNER JOIN departamento d ON m.id_departamento = d.id_departamento
+                      ORDER BY m.id_medidor";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute();
+            $medidores = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($medidores as $medidor) {
+                $estado_color = ($medidor['estado'] == 'activo') ? 'color: green; font-weight: bold;' : 'color: red;';
+                echo "<tr>
+                        <td>{$medidor['id_medidor']}</td>
+                        <td><strong>{$medidor['codigo']}</strong></td>
+                        <td>{$medidor['servicio']}</td>
+                        <td>{$medidor['departamento']}</td>
+                        <td>{$medidor['fecha_instalacion']}</td>
+                        <td style=\"{$estado_color}\">{$medidor['estado']}</td>
                       </tr>";
             }
             echo '</tbody></table></div>';

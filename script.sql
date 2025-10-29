@@ -898,5 +898,145 @@ END//
 
 DELIMITER ;
 
+-- pagos
+
+DROP TRIGGER IF EXISTS after_pago_factura;
+
+DELIMITER //
+
+CREATE TRIGGER after_pago_factura
+    AFTER INSERT ON persona_paga_factura
+    FOR EACH ROW
+BEGIN
+    DECLARE v_fecha_vencimiento DATE;
+    DECLARE v_puntualidad VARCHAR(20);
+    DECLARE v_monto_total DECIMAL(10,2);
+    DECLARE v_total_pagado DECIMAL(10,2);
+    DECLARE v_dias_retraso INT;
+
+    -- Obtener fecha de vencimiento y monto total de la factura
+    SELECT fecha_vencimiento, monto_total
+    INTO v_fecha_vencimiento, v_monto_total
+    FROM factura
+    WHERE id_factura = NEW.id_factura;
+
+    -- Calcular total pagado hasta ahora (INCLUYENDO el nuevo pago)
+    SELECT COALESCE(SUM(monto_pagado), 0)
+    INTO v_total_pagado
+    FROM persona_paga_factura
+    WHERE id_factura = NEW.id_factura;
+
+    -- Calcular días de retraso
+    SET v_dias_retraso = DATEDIFF(NEW.fecha_pago, v_fecha_vencimiento);
+
+    -- Determinar puntualidad
+    IF NEW.fecha_pago <= v_fecha_vencimiento THEN
+        SET v_puntualidad = 'a tiempo';
+    ELSE
+        SET v_puntualidad = 'atrasado';
+    END IF;
+
+    -- Registrar en historial
+    INSERT INTO historial_pago (id_factura, id_persona, monto_pagado, observacion)
+    VALUES (
+               NEW.id_factura,
+               NEW.id_persona,
+               NEW.monto_pagado,
+               CONCAT(
+                       'PAGO ', v_puntualidad,
+                       ' | Factura #', NEW.id_factura,
+                       ' | Monto: Bs', NEW.monto_pagado,
+                       ' | Fecha Venc: ', DATE_FORMAT(v_fecha_vencimiento, '%d/%m/%Y'),
+                       ' | Fecha Pago: ', DATE_FORMAT(NEW.fecha_pago, '%d/%m/%Y'),
+                       CASE WHEN v_dias_retraso > 0 THEN CONCAT(' | Retraso: ', v_dias_retraso, ' días') ELSE '' END
+               )
+           );
+
+    -- ACTUALIZAR ESTADO DE FACTURA SI ESTÁ COMPLETAMENTE PAGADA
+    IF v_total_pagado >= v_monto_total THEN
+        UPDATE factura
+        SET estado = 'pagada'
+        WHERE id_factura = NEW.id_factura;
+    END IF;
+END//
+
+DELIMITER ;
 
 
+-- Eliminar trigger si existe
+DROP TRIGGER IF EXISTS after_factura_pagada_qr;
+
+-- Crear trigger corregido para pagos QR
+DELIMITER //
+
+CREATE TRIGGER after_factura_pagada_qr
+    AFTER UPDATE ON factura
+    FOR EACH ROW
+BEGIN
+    DECLARE v_fecha_vencimiento DATE;
+    DECLARE v_puntualidad VARCHAR(20);
+    DECLARE v_dias_retraso INT;
+    DECLARE v_id_persona INT;
+    DECLARE v_existe_pago_normal INT;
+
+    -- Solo ejecutar si el estado cambió a 'pagada'
+    IF NEW.estado = 'pagada' AND OLD.estado != 'pagada' THEN
+
+        -- Verificar si ya existe un pago normal registrado en historial_pago
+        -- Usar fecha_pago en lugar de created_at
+        SELECT COUNT(*) INTO v_existe_pago_normal
+        FROM historial_pago
+        WHERE id_factura = NEW.id_factura
+          AND fecha_pago >= DATE_SUB(NOW(), INTERVAL 5 MINUTE);
+
+        -- Solo proceder si NO hay pagos normales recientes (es un pago QR directo)
+        IF v_existe_pago_normal = 0 THEN
+
+            -- Obtener fecha de vencimiento
+            SET v_fecha_vencimiento = NEW.fecha_vencimiento;
+
+            -- Obtener ID de persona del departamento
+            SELECT td.id_persona INTO v_id_persona
+            FROM tiene_departamento td
+            WHERE td.id_departamento = NEW.id_departamento
+              AND td.estado = 'activo'
+            LIMIT 1;
+
+            -- Si no encontramos persona, usar un valor por defecto
+            IF v_id_persona IS NULL THEN
+                SET v_id_persona = 0;
+            END IF;
+
+            -- Calcular días de retraso (usando fecha actual como fecha de pago)
+            SET v_dias_retraso = DATEDIFF(CURDATE(), v_fecha_vencimiento);
+
+            -- Determinar puntualidad
+            IF CURDATE() <= v_fecha_vencimiento THEN
+                SET v_puntualidad = 'a tiempo';
+            ELSE
+                SET v_puntualidad = 'atrasado';
+            END IF;
+
+            -- Registrar en historial como pago QR
+            INSERT INTO historial_pago (id_factura, id_persona, monto_pagado, observacion)
+            VALUES (
+                       NEW.id_factura,
+                       v_id_persona,
+                       NEW.monto_total,
+                       CONCAT(
+                               'PAGO QR ', v_puntualidad,
+                               ' | Factura #', NEW.id_factura,
+                               ' | Monto: Bs', NEW.monto_total,
+                               ' | Fecha Venc: ', DATE_FORMAT(v_fecha_vencimiento, '%d/%m/%Y'),
+                               ' | Fecha Pago: ', DATE_FORMAT(CURDATE(), '%d/%m/%Y'),
+                               CASE WHEN v_dias_retraso > 0 THEN CONCAT(' | Retraso: ', v_dias_retraso, ' días') ELSE '' END,
+                               ' | Método: QR'
+                       )
+                   );
+
+        END IF;
+
+    END IF;
+END//
+
+DELIMITER ;

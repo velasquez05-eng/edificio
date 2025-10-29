@@ -38,7 +38,7 @@
 ├── public
 │   ├── controlador
 │   │   ├── AreaComunControlador.php
-│   │   ├── CargosFIjosControlador.php
+│   │   ├── CargosFijosControlador.php
 │   │   ├── ComunicadoControlador.php
 │   │   ├── DashboardControlador.php
 │   │   ├── DepartamentoControlador.php
@@ -48,7 +48,8 @@
 │   │   ├── PersonaControlador.php
 │   │   ├── RecuperarControlador.php
 │   │   ├── RegistroControlador.php
-│   │   └── RolControlador.php
+│   │   ├── RolControlador.php
+│   │   └── ServicioControlador.php
 │   ├── modelo
 │   │   ├── AreaComunModelo.php
 │   │   ├── CargosFijosModelo.php
@@ -62,11 +63,13 @@
 │   │   ├── PersonaModelo.php
 │   │   ├── RecuperarModelo.php
 │   │   ├── RegistroModelo.php
-│   │   └── RolModelo.php
+│   │   ├── RolModelo.php
+│   │   └── ServicioModelo.php
 │   └── vista
 │       ├── DashboardAdministradorVista.php
 │       ├── DashboardPersonalVista.php
 │       ├── DashboardResidenteVista.php
+│       ├── GenerarConsumoServicioVista.php
 │       ├── ListarAreasComunesVista.php
 │       ├── ListarCargosFijosVista.php
 │       ├── ListarComunicadosVista.php
@@ -78,18 +81,21 @@
 │       ├── listarReservasVista.php
 │       ├── ListarResidenteVista.php
 │       ├── ListarRolVista.php
+│       ├── ListarServiciosVista.php
 │       ├── LoginRecuperarVista.php
 │       ├── LoginVista.php
 │       ├── RecuperarVista.php
 │       ├── RegistrarAreaVista.php
-│       ├── RegistrarCargosFijosVista.php
+│       ├── RegistrarCargoFijoVista.php
 │       ├── RegistrarComunicadoVista.php
+│       ├── RegistrarConceptosMantenimientoVista.php
 │       ├── RegistrarDepartamentoVista.php
 │       ├── RegistrarIncidenteVista.php
 │       ├── RegistrarPersonasDepartamentoVista.php
 │       ├── RegistrarPersonaVista.php
 │       ├── RegistrarReservaAreaVista.php
 │       ├── RegistrarRolVista.php
+│       ├── RegistrarServicioVista.php
 │       ├── RegistroVista.php
 │       ├── VerComunicadoVista.php
 │       ├── VerHistorialIncidenteVista.php
@@ -102,4 +108,4 @@
 ├── README.md
 └── script.sql
 
-12 directories, 91 files
+12 directories, 97 files

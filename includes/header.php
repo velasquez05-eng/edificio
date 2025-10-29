@@ -329,7 +329,7 @@ if (empty($_SESSION['id_persona'])) {
                             <?php }?>
                         </ul>
                     </li>
-
+                    <?php if ($_SESSION['id_rol'] == '1') { ?>
                     <li class="nav-item">
                         <a href="#" class="nav-link">
                             <i class="fas fa-bullhorn"></i>
@@ -355,6 +355,9 @@ if (empty($_SESSION['id_persona'])) {
                             <?php }?>
                         </ul>
                     </li>
+
+                    <?php }?>
+                    <?php if ($_SESSION['id_rol'] == '1') { ?>
                     <li class="nav-item">
                         <a href="#" class="nav-link">
                             <i class="fas fa-concierge-bell"></i>
@@ -364,9 +367,9 @@ if (empty($_SESSION['id_persona'])) {
                             </p>
                         </a>
                         <ul class="nav nav-treeview">
-                            <?php if ($_SESSION['id_rol'] == '1') { ?>
+
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
+                                <a href="../controlador/ServicioControlador.php?action=listarServicios" class="nav-link">
                                     <i class="fas fa-list"></i>
                                     <p>Listar Servicios</p>
                                 </a>
@@ -377,7 +380,6 @@ if (empty($_SESSION['id_persona'])) {
                                     <p>Registrar Servicio</p>
                                 </a>
                             </li>
-                            <?php }?>
                             <li class="nav-item">
                                 <a href="#" class="nav-link">
                                     <i class="fas fa-chart-line"></i>
@@ -386,7 +388,8 @@ if (empty($_SESSION['id_persona'])) {
                             </li>
                         </ul>
                     </li>
-                    
+
+                    <?php }?>
                     <li class="nav-item">
                         <a href="#" class="nav-link">
                             <i class="fas fa-file-invoice-dollar"></i>
@@ -396,32 +399,48 @@ if (empty($_SESSION['id_persona'])) {
                             </p>
                         </a>
                         <ul class="nav nav-treeview">
-                            <li class="nav-item">
+                            <?php if ($_SESSION['id_rol'] == '1') { ?>
+
+                                <li class="nav-item">
                                 <a href="../controlador/FacturaControlador.php?action=listarFacturas" class="nav-link">
                                     <i class="fas fa-list"></i>
                                     <p>Listar Facturas</p>
                                 </a>
                             </li>
-                            <?php if ($_SESSION['id_rol'] == '1') { ?>
                             <li class="nav-item">
-                                <a href="#" class="nav-link">
-                                    <i class="fas fa-plus-circle"></i>
-                                    <p>Registrar Factura</p>
-                                </a>
-                            </li>
-                            <?php }?>
-                            <li class="nav-item">
-                                <a href="#" class="nav-link">
-                                    <i class="fas fa-money-check"></i>
-                                    <p>Pagar Factura</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="#" class="nav-link">
+                                <a href="../controlador/FacturaControlador.php?action=historialPagosCompleto" class="nav-link">
                                     <i class="fas fa-history"></i>
                                     <p>Historial Pagos</p>
                                 </a>
                             </li>
+                                <li class="nav-item">
+                                    <a href="../controlador/FacturaControlador.php?action=conceptosCompletos" class="nav-link">
+                                        <i class="fas fa-history"></i>
+                                        <p>Conceptos</p>
+                                    </a>
+                                </li>
+                            <?php }?>
+                            <?php if ($_SESSION['id_rol'] == '2') { ?>
+
+                            <li class="nav-item">
+                                <a href="../controlador/FacturaControlador.php?action=verMisFacturas" class="nav-link">
+                                    <i class="fas fa-chart-line"></i>
+                                    <p>Mis Facturas</p>
+                                </a>
+                            </li>
+                                <li class="nav-item">
+                                    <a href="../controlador/FacturaControlador.php?action=misConceptos" class="nav-link">
+                                        <i class="fas fa-chart-line"></i>
+                                        <p>Mis Conceptos</p>
+                                    </a>
+                                </li>
+                            <li class="nav-item">
+                                <a href="../controlador/FacturaControlador.php?action=verMiHistorialPagos" class="nav-link">
+                                    <i class="fas fa-chart-line"></i>
+                                    <p>Mi Historial de Pagos</p>
+                                </a>
+                            </li>
+                            <?php }?>
                         </ul>
                     </li>
                 </ul>
