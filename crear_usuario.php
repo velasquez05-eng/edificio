@@ -3,7 +3,7 @@
 class Database
 {
     private $host = 'localhost';
-    private $db_name = 'db_edificio_v3';
+    private $db_name = 'db_edificio_v5';
     private $username = 'root';
     private $password = '';
     public $conn;
@@ -165,30 +165,46 @@ class DataSeeder
         $this->personaModelo = new PersonaModelo($this->db);
     }
 
-    private function crearRolAdministrador() {
+    private function crearRoles() {
         try {
-            $query = "SELECT id_rol FROM rol WHERE rol = 'Administrador'";
-            $stmt = $this->db->prepare($query);
-            $stmt->execute();
+            echo "📋 Creando roles...\n";
 
-            if ($stmt->rowCount() > 0) {
-                echo "✅ El rol 'Administrador' ya existe.\n";
-                return $stmt->fetch(PDO::FETCH_ASSOC)['id_rol'];
+            $roles = [
+                ['id_rol' => 1, 'rol' => 'Administrador', 'descripcion' => 'Administrador del sistema', 'salario_base' => 5000.00],
+                ['id_rol' => 2, 'rol' => 'Residente', 'descripcion' => 'Residente de área', 'salario_base' => 0.00],
+                ['id_rol' => 3, 'rol' => 'Soporte Externo', 'descripcion' => 'Soporte técnico externo', 'salario_base' => 0.00],
+                ['id_rol' => 4, 'rol' => 'Soporte Interno', 'descripcion' => 'Soporte técnico interno', 'salario_base' => 3200.00],
+                ['id_rol' => 5, 'rol' => 'Limpieza', 'descripcion' => 'Personal de limpieza', 'salario_base' => 2650.00],
+                ['id_rol' => 6, 'rol' => 'Portero', 'descripcion' => 'Personal de vigilancia', 'salario_base' => 2850.00]
+            ];
+
+            foreach ($roles as $rol) {
+                $query = "SELECT id_rol FROM rol WHERE id_rol = :id_rol";
+                $stmt = $this->db->prepare($query);
+                $stmt->bindParam(':id_rol', $rol['id_rol']);
+                $stmt->execute();
+
+                if ($stmt->rowCount() == 0) {
+                    $query = "INSERT INTO rol (id_rol, rol, descripcion, salario_base) VALUES (:id_rol, :rol, :descripcion, :salario_base)";
+                    $stmt = $this->db->prepare($query);
+                    $stmt->bindParam(':id_rol', $rol['id_rol']);
+                    $stmt->bindParam(':rol', $rol['rol']);
+                    $stmt->bindParam(':descripcion', $rol['descripcion']);
+                    $stmt->bindParam(':salario_base', $rol['salario_base']);
+
+                    if ($stmt->execute()) {
+                        echo "✅ Rol '{$rol['rol']}' creado exitosamente.\n";
+                    } else {
+                        throw new Exception("Error al crear el rol {$rol['rol']}");
+                    }
+                } else {
+                    echo "✅ El rol '{$rol['rol']}' ya existe.\n";
+                }
             }
-
-            $query = "INSERT INTO rol (rol, descripcion) VALUES ('Administrador', 'Usuario con acceso total al sistema')";
-            $stmt = $this->db->prepare($query);
-
-            if ($stmt->execute()) {
-                $id_rol = $this->db->lastInsertId();
-                echo "✅ Rol 'Administrador' creado exitosamente. ID: " . $id_rol . "\n";
-                return $id_rol;
-            } else {
-                throw new Exception("Error al crear el rol Administrador");
-            }
+            return true;
 
         } catch (Exception $e) {
-            echo "❌ Error al crear el rol: " . $e->getMessage() . "\n";
+            echo "❌ Error al crear roles: " . $e->getMessage() . "\n";
             return false;
         }
     }
@@ -198,11 +214,16 @@ class DataSeeder
         echo "=============================================\n\n";
 
         try {
-            $id_rol = $this->crearRolAdministrador();
+            // Verificar si el rol Administrador existe
+            $query = "SELECT id_rol FROM rol WHERE rol = 'Administrador'";
+            $stmt = $this->db->prepare($query);
+            $stmt->execute();
 
-            if (!$id_rol) {
-                throw new Exception("No se pudo obtener el ID del rol Administrador");
+            if ($stmt->rowCount() == 0) {
+                throw new Exception("El rol Administrador no existe. Ejecuta primero crearRoles()");
             }
+
+            $id_rol = $stmt->fetch(PDO::FETCH_ASSOC)['id_rol'];
 
             // Datos del administrador por defecto
             $datosAdmin = [
@@ -272,46 +293,6 @@ class DataSeeder
         }
     }
 
-    private function crearRolesAdicionales() {
-        try {
-            echo "📋 Creando roles adicionales...\n";
-
-            $roles = [
-                ['id_rol' => 2, 'rol' => 'Residente', 'descripcion' => 'Residente del edificio'],
-                ['id_rol' => 3, 'rol' => 'Soporte Externo', 'descripcion' => 'Personal externo de mantenimiento'],
-                ['id_rol' => 4, 'rol' => 'Soporte Interno', 'descripcion' => 'Personal de mantenimiento interno']
-            ];
-
-            foreach ($roles as $rol) {
-                $query = "SELECT id_rol FROM rol WHERE id_rol = :id_rol";
-                $stmt = $this->db->prepare($query);
-                $stmt->bindParam(':id_rol', $rol['id_rol']);
-                $stmt->execute();
-
-                if ($stmt->rowCount() == 0) {
-                    $query = "INSERT INTO rol (id_rol, rol, descripcion) VALUES (:id_rol, :rol, :descripcion)";
-                    $stmt = $this->db->prepare($query);
-                    $stmt->bindParam(':id_rol', $rol['id_rol']);
-                    $stmt->bindParam(':rol', $rol['rol']);
-                    $stmt->bindParam(':descripcion', $rol['descripcion']);
-
-                    if ($stmt->execute()) {
-                        echo "✅ Rol '{$rol['rol']}' creado exitosamente.\n";
-                    } else {
-                        throw new Exception("Error al crear el rol {$rol['rol']}");
-                    }
-                } else {
-                    echo "✅ El rol '{$rol['rol']}' ya existe.\n";
-                }
-            }
-            return true;
-
-        } catch (Exception $e) {
-            echo "❌ Error al crear roles adicionales: " . $e->getMessage() . "\n";
-            return false;
-        }
-    }
-
     private function crearPersonasAdicionales() {
         try {
             echo "👥 Creando personas adicionales...\n";
@@ -349,13 +330,34 @@ class DataSeeder
                     'username' => 'pedro',
                     'password' => 'pedro123',
                     'id_rol' => 4
+                ],
+                [
+                    'nombre' => 'Ana',
+                    'apellido_paterno' => 'Limpieza',
+                    'apellido_materno' => 'García',
+                    'ci' => '87654324',
+                    'telefono' => '77777774',
+                    'email' => 'ana@limpieza.com',
+                    'username' => 'ana',
+                    'password' => 'ana123',
+                    'id_rol' => 5
+                ],
+                [
+                    'nombre' => 'Carlos',
+                    'apellido_paterno' => 'Portero',
+                    'apellido_materno' => 'Martínez',
+                    'ci' => '87654325',
+                    'telefono' => '77777775',
+                    'email' => 'carlos@portero.com',
+                    'username' => 'carlos',
+                    'password' => 'carlos123',
+                    'id_rol' => 6
                 ]
             ];
 
             $personas_ids = [];
 
             foreach ($personas as $persona) {
-                // Verificar si el usuario ya existe por username
                 if (!$this->personaModelo->verificarUsuarioExistente($persona['username'])) {
                     $id_persona = $this->personaModelo->registrarPersona(
                         $persona['nombre'],
@@ -376,7 +378,6 @@ class DataSeeder
                         throw new Exception("Error al crear la persona {$persona['nombre']}");
                     }
                 } else {
-                    // Obtener el ID de la persona existente
                     $query = "SELECT id_persona FROM persona WHERE username = :username";
                     $stmt = $this->db->prepare($query);
                     $stmt->bindParam(':username', $persona['username']);
@@ -507,38 +508,38 @@ class DataSeeder
 
             $residentes = [
                 [
-                    'nombre' => 'Carlos',
+                    'nombre' => 'Luis',
                     'apellido_paterno' => 'Gómez',
                     'apellido_materno' => 'Pérez',
-                    'ci' => '87654324',
-                    'telefono' => '77777774',
-                    'email' => 'carlos@residente.com',
-                    'username' => 'carlos',
-                    'password' => 'carlos123',
-                    'id_rol' => 2,
-                    'id_departamento' => 2
-                ],
-                [
-                    'nombre' => 'Ana',
-                    'apellido_paterno' => 'Martínez',
-                    'apellido_materno' => 'Rodríguez',
-                    'ci' => '87654325',
-                    'telefono' => '77777775',
-                    'email' => 'ana@residente.com',
-                    'username' => 'ana',
-                    'password' => 'ana123',
-                    'id_rol' => 2,
-                    'id_departamento' => 3
-                ],
-                [
-                    'nombre' => 'Luis',
-                    'apellido_paterno' => 'Hernández',
-                    'apellido_materno' => 'García',
                     'ci' => '87654326',
                     'telefono' => '77777776',
                     'email' => 'luis@residente.com',
                     'username' => 'luis',
                     'password' => 'luis123',
+                    'id_rol' => 2,
+                    'id_departamento' => 2
+                ],
+                [
+                    'nombre' => 'Sofia',
+                    'apellido_paterno' => 'Martínez',
+                    'apellido_materno' => 'Rodríguez',
+                    'ci' => '87654327',
+                    'telefono' => '77777777',
+                    'email' => 'sofia@residente.com',
+                    'username' => 'sofia',
+                    'password' => 'sofia123',
+                    'id_rol' => 2,
+                    'id_departamento' => 3
+                ],
+                [
+                    'nombre' => 'Miguel',
+                    'apellido_paterno' => 'Hernández',
+                    'apellido_materno' => 'García',
+                    'ci' => '87654328',
+                    'telefono' => '77777778',
+                    'email' => 'miguel@residente.com',
+                    'username' => 'miguel',
+                    'password' => 'miguel123',
                     'id_rol' => 2,
                     'id_departamento' => 4
                 ]
@@ -567,7 +568,6 @@ class DataSeeder
                         throw new Exception("Error al crear el residente {$residente['nombre']}");
                     }
                 } else {
-                    // Obtener el ID del residente existente
                     $query = "SELECT id_persona FROM persona WHERE username = :username";
                     $stmt = $this->db->prepare($query);
                     $stmt->bindParam(':username', $residente['username']);
@@ -578,7 +578,6 @@ class DataSeeder
                 }
             }
 
-            // Combinar todos los IDs
             return array_merge($personas_ids, $nuevos_ids);
 
         } catch (Exception $e) {
@@ -591,7 +590,6 @@ class DataSeeder
         try {
             echo "🔗 Asignando departamentos a residentes...\n";
 
-            // Primero limpiar asignaciones existentes para evitar duplicados
             $query = "DELETE FROM tiene_departamento";
             $stmt = $this->db->prepare($query);
             $stmt->execute();
@@ -599,9 +597,9 @@ class DataSeeder
 
             $asignaciones = [
                 ['id_departamento' => 1, 'username' => 'maria'],
-                ['id_departamento' => 2, 'username' => 'carlos'],
-                ['id_departamento' => 3, 'username' => 'ana'],
-                ['id_departamento' => 4, 'username' => 'luis']
+                ['id_departamento' => 2, 'username' => 'luis'],
+                ['id_departamento' => 3, 'username' => 'sofia'],
+                ['id_departamento' => 4, 'username' => 'miguel']
             ];
 
             foreach ($asignaciones as $asignacion) {
@@ -738,13 +736,13 @@ class DataSeeder
         echo "=============================================\n\n";
 
         try {
-            // Crear administrador primero
-            $this->crearAdministrador();
-
-            // Crear roles adicionales
-            if (!$this->crearRolesAdicionales()) {
+            // Crear roles primero
+            if (!$this->crearRoles()) {
                 throw new Exception("Error en la creación de roles");
             }
+
+            // Crear administrador
+            $this->crearAdministrador();
 
             // Crear personas adicionales y obtener sus IDs
             $personas_ids = $this->crearPersonasAdicionales();
@@ -786,8 +784,8 @@ class DataSeeder
             echo "\n🎉 ¡DATOS DE PRUEBA CARGADOS EXITOSAMENTE!\n";
             echo "=============================================\n";
             echo "📊 RESUMEN:\n";
-            echo "   📋 4 roles creados\n";
-            echo "   👥 7 personas creadas (1 admin + 3 personal + 3 residentes)\n";
+            echo "   📋 6 roles creados\n";
+            echo "   👥 9 personas creadas (1 admin + 5 personal + 3 residentes)\n";
             echo "   🏢 4 departamentos creados (2 por piso)\n";
             echo "   🏊 3 áreas comunes creadas\n";
             echo "   🔗 4 asignaciones de departamentos\n";
@@ -804,75 +802,7 @@ class DataSeeder
 
     public function mostrarInfoBaseDatos() {
         try {
-            echo '<!DOCTYPE html>
-            <html lang="es">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Información Base de Datos</title>
-                <style>
-                    body { 
-                        font-family: Arial, sans-serif; 
-                        margin: 20px; 
-                        background-color: #f5f5f5;
-                    }
-                    .container { 
-                        max-width: 1200px; 
-                        margin: 0 auto; 
-                        background: white;
-                        padding: 20px;
-                        border-radius: 10px;
-                        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-                    }
-                    h1, h2 { 
-                        color: #333; 
-                        text-align: center;
-                    }
-                    .stats { 
-                        background: #e8f4fd; 
-                        padding: 15px; 
-                        border-radius: 5px; 
-                        margin: 20px 0; 
-                        text-align: center;
-                    }
-                    table { 
-                        width: 100%; 
-                        border-collapse: collapse; 
-                        margin: 20px 0; 
-                        background: white;
-                    }
-                    th, td { 
-                        border: 1px solid #ddd; 
-                        padding: 12px; 
-                        text-align: left; 
-                    }
-                    th { 
-                        background-color: #4CAF50; 
-                        color: white; 
-                        font-weight: bold;
-                    }
-                    tr:nth-child(even) { 
-                        background-color: #f2f2f2; 
-                    }
-                    tr:hover { 
-                        background-color: #e9f7e9; 
-                    }
-                    .section { 
-                        margin: 30px 0; 
-                    }
-                    .section-title { 
-                        background: #2c3e50; 
-                        color: white; 
-                        padding: 10px; 
-                        border-radius: 5px; 
-                        margin-bottom: 10px;
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <h1>📊 INFORMACIÓN DE LA BASE DE DATOS</h1>
-                    <div class="stats">';
+            echo "<h1>INFORMACIÓN DE LA BASE DE DATOS</h1>";
 
             // Estadísticas generales
             $stats = [
@@ -889,56 +819,39 @@ class DataSeeder
                 $stmt = $this->db->prepare($query);
                 $stmt->execute();
                 $result = $stmt->fetch(PDO::FETCH_ASSOC);
-                echo "<strong>Total de " . str_replace('_', ' ', $key) . ":</strong> " . $result['total'] . " | ";
+                echo "<p><strong>Total de " . str_replace('_', ' ', $key) . ":</strong> " . $result['total'] . "</p>";
             }
 
-            echo '</div>';
-
             // Tabla de Roles
-            echo '<div class="section">
-                    <div class="section-title">
-                        <h2>📋 TABLA DE ROLES</h2>
-                    </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Rol</th>
-                                <th>Descripción</th>
-                            </tr>
-                        </thead>
-                        <tbody>';
+            echo "<h2>TABLA DE ROLES</h2>";
+            echo "<table border='1'>";
+            echo "<thead>";
+            echo "<tr><th>ID</th><th>Rol</th><th>Descripción</th><th>Salario Base</th></tr>";
+            echo "</thead>";
+            echo "<tbody>";
 
-            $query = "SELECT id_rol, rol, descripcion FROM rol ORDER BY id_rol";
+            $query = "SELECT id_rol, rol, descripcion, salario_base FROM rol ORDER BY id_rol";
             $stmt = $this->db->prepare($query);
             $stmt->execute();
             $roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($roles as $rol) {
-                echo "<tr>
-                        <td>{$rol['id_rol']}</td>
-                        <td><strong>{$rol['rol']}</strong></td>
-                        <td>{$rol['descripcion']}</td>
-                      </tr>";
+                echo "<tr>";
+                echo "<td>{$rol['id_rol']}</td>";
+                echo "<td><strong>{$rol['rol']}</strong></td>";
+                echo "<td>{$rol['descripcion']}</td>";
+                echo "<td>$ {$rol['salario_base']}</td>";
+                echo "</tr>";
             }
-            echo '</tbody></table></div>';
+            echo "</tbody></table>";
 
             // Tabla de Usuarios
-            echo '<div class="section">
-                    <div class="section-title">
-                        <h2>👥 TABLA DE USUARIOS</h2>
-                    </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Usuario</th>
-                                <th>Email</th>
-                                <th>Rol</th>
-                                <th>Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody>';
+            echo "<h2>TABLA DE USUARIOS</h2>";
+            echo "<table border='1'>";
+            echo "<thead>";
+            echo "<tr><th>ID</th><th>Usuario</th><th>Email</th><th>Rol</th><th>Estado</th></tr>";
+            echo "</thead>";
+            echo "<tbody>";
 
             $query = "SELECT p.id_persona, p.username, p.email, r.rol 
                      FROM persona p 
@@ -949,33 +862,24 @@ class DataSeeder
             $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($usuarios as $usuario) {
-                $estado = ($usuario['username'] == 'admin') ? '<span style="color: red; font-weight: bold;">Administrador</span>' : '<span style="color: green;">Activo</span>';
-                echo "<tr>
-                        <td>{$usuario['id_persona']}</td>
-                        <td><strong>{$usuario['username']}</strong></td>
-                        <td>{$usuario['email']}</td>
-                        <td>{$usuario['rol']}</td>
-                        <td>{$estado}</td>
-                      </tr>";
+                $estado = ($usuario['username'] == 'admin') ? 'Administrador' : 'Activo';
+                echo "<tr>";
+                echo "<td>{$usuario['id_persona']}</td>";
+                echo "<td><strong>{$usuario['username']}</strong></td>";
+                echo "<td>{$usuario['email']}</td>";
+                echo "<td>{$usuario['rol']}</td>";
+                echo "<td>{$estado}</td>";
+                echo "</tr>";
             }
-            echo '</tbody></table></div>';
+            echo "</tbody></table>";
 
             // Tabla de Departamentos
-            echo '<div class="section">
-                    <div class="section-title">
-                        <h2>🏢 TABLA DE DEPARTAMENTOS</h2>
-                    </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Número</th>
-                                <th>Piso</th>
-                                <th>Estado</th>
-                                <th>Residente</th>
-                            </tr>
-                        </thead>
-                        <tbody>';
+            echo "<h2>TABLA DE DEPARTAMENTOS</h2>";
+            echo "<table border='1'>";
+            echo "<thead>";
+            echo "<tr><th>ID</th><th>Número</th><th>Piso</th><th>Estado</th><th>Residente</th></tr>";
+            echo "</thead>";
+            echo "<tbody>";
 
             $query = "SELECT d.id_departamento, d.numero, d.piso, d.estado, 
                              p.username
@@ -988,35 +892,24 @@ class DataSeeder
             $deptos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($deptos as $depto) {
-                $residente = $depto['username'] ? $depto['username'] : '<span style="color: #999;">Sin asignar</span>';
-                $estado_color = ($depto['estado'] == 'ocupado') ? 'color: green; font-weight: bold;' : 'color: orange;';
-                echo "<tr>
-                        <td>{$depto['id_departamento']}</td>
-                        <td><strong>{$depto['numero']}</strong></td>
-                        <td>{$depto['piso']}</td>
-                        <td style=\"{$estado_color}\">{$depto['estado']}</td>
-                        <td>{$residente}</td>
-                      </tr>";
+                $residente = $depto['username'] ? $depto['username'] : 'Sin asignar';
+                echo "<tr>";
+                echo "<td>{$depto['id_departamento']}</td>";
+                echo "<td><strong>{$depto['numero']}</strong></td>";
+                echo "<td>{$depto['piso']}</td>";
+                echo "<td>{$depto['estado']}</td>";
+                echo "<td>{$residente}</td>";
+                echo "</tr>";
             }
-            echo '</tbody></table></div>';
+            echo "</tbody></table>";
 
             // Tabla de Áreas Comunes
-            echo '<div class="section">
-                    <div class="section-title">
-                        <h2>🏊 TABLA DE ÁREAS COMUNES</h2>
-                    </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Nombre</th>
-                                <th>Descripción</th>
-                                <th>Capacidad</th>
-                                <th>Costo Reserva</th>
-                                <th>Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody>';
+            echo "<h2>TABLA DE ÁREAS COMUNES</h2>";
+            echo "<table border='1'>";
+            echo "<thead>";
+            echo "<tr><th>ID</th><th>Nombre</th><th>Descripción</th><th>Capacidad</th><th>Costo Reserva</th><th>Estado</th></tr>";
+            echo "</thead>";
+            echo "<tbody>";
 
             $query = "SELECT id_area, nombre, descripcion, capacidad, costo_reserva, estado 
                       FROM area_comun 
@@ -1026,34 +919,24 @@ class DataSeeder
             $areas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($areas as $area) {
-                $estado_color = ($area['estado'] == 'disponible') ? 'color: green; font-weight: bold;' : 'color: red;';
-                echo "<tr>
-                        <td>{$area['id_area']}</td>
-                        <td><strong>{$area['nombre']}</strong></td>
-                        <td>{$area['descripcion']}</td>
-                        <td>{$area['capacidad']} personas</td>
-                        <td style=\"color: blue; font-weight: bold;\">$ {$area['costo_reserva']}</td>
-                        <td style=\"{$estado_color}\">{$area['estado']}</td>
-                      </tr>";
+                echo "<tr>";
+                echo "<td>{$area['id_area']}</td>";
+                echo "<td><strong>{$area['nombre']}</strong></td>";
+                echo "<td>{$area['descripcion']}</td>";
+                echo "<td>{$area['capacidad']} personas</td>";
+                echo "<td>$ {$area['costo_reserva']}</td>";
+                echo "<td>{$area['estado']}</td>";
+                echo "</tr>";
             }
-            echo '</tbody></table></div>';
+            echo "</tbody></table>";
 
             // Tabla de Servicios
-            echo '<div class="section">
-                    <div class="section-title">
-                        <h2>💧 TABLA DE SERVICIOS</h2>
-                    </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Nombre</th>
-                                <th>Unidad Medida</th>
-                                <th>Costo Unitario</th>
-                                <th>Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody>';
+            echo "<h2>TABLA DE SERVICIOS</h2>";
+            echo "<table border='1'>";
+            echo "<thead>";
+            echo "<tr><th>ID</th><th>Nombre</th><th>Unidad Medida</th><th>Costo Unitario</th><th>Estado</th></tr>";
+            echo "</thead>";
+            echo "<tbody>";
 
             $query = "SELECT id_servicio, nombre, unidad_medida, costo_unitario, estado 
                       FROM servicio 
@@ -1063,34 +946,23 @@ class DataSeeder
             $servicios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($servicios as $servicio) {
-                $estado_color = ($servicio['estado'] == 'activo') ? 'color: green; font-weight: bold;' : 'color: red;';
-                echo "<tr>
-                        <td>{$servicio['id_servicio']}</td>
-                        <td><strong>{$servicio['nombre']}</strong></td>
-                        <td>{$servicio['unidad_medida']}</td>
-                        <td style=\"color: blue; font-weight: bold;\">$ {$servicio['costo_unitario']}</td>
-                        <td style=\"{$estado_color}\">{$servicio['estado']}</td>
-                      </tr>";
+                echo "<tr>";
+                echo "<td>{$servicio['id_servicio']}</td>";
+                echo "<td><strong>{$servicio['nombre']}</strong></td>";
+                echo "<td>{$servicio['unidad_medida']}</td>";
+                echo "<td>$ {$servicio['costo_unitario']}</td>";
+                echo "<td>{$servicio['estado']}</td>";
+                echo "</tr>";
             }
-            echo '</tbody></table></div>';
+            echo "</tbody></table>";
 
             // Tabla de Medidores
-            echo '<div class="section">
-                    <div class="section-title">
-                        <h2>📊 TABLA DE MEDIDORES</h2>
-                    </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Código</th>
-                                <th>Servicio</th>
-                                <th>Departamento</th>
-                                <th>Fecha Instalación</th>
-                                <th>Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody>';
+            echo "<h2>TABLA DE MEDIDORES</h2>";
+            echo "<table border='1'>";
+            echo "<thead>";
+            echo "<tr><th>ID</th><th>Código</th><th>Servicio</th><th>Departamento</th><th>Fecha Instalación</th><th>Estado</th></tr>";
+            echo "</thead>";
+            echo "<tbody>";
 
             $query = "SELECT m.id_medidor, m.codigo, s.nombre as servicio, 
                              d.numero as departamento, m.fecha_instalacion, m.estado
@@ -1103,125 +975,51 @@ class DataSeeder
             $medidores = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($medidores as $medidor) {
-                $estado_color = ($medidor['estado'] == 'activo') ? 'color: green; font-weight: bold;' : 'color: red;';
-                echo "<tr>
-                        <td>{$medidor['id_medidor']}</td>
-                        <td><strong>{$medidor['codigo']}</strong></td>
-                        <td>{$medidor['servicio']}</td>
-                        <td>{$medidor['departamento']}</td>
-                        <td>{$medidor['fecha_instalacion']}</td>
-                        <td style=\"{$estado_color}\">{$medidor['estado']}</td>
-                      </tr>";
+                echo "<tr>";
+                echo "<td>{$medidor['id_medidor']}</td>";
+                echo "<td><strong>{$medidor['codigo']}</strong></td>";
+                echo "<td>{$medidor['servicio']}</td>";
+                echo "<td>{$medidor['departamento']}</td>";
+                echo "<td>{$medidor['fecha_instalacion']}</td>";
+                echo "<td>{$medidor['estado']}</td>";
+                echo "</tr>";
             }
-            echo '</tbody></table></div>';
-
-            echo '</div></body></html>';
+            echo "</tbody></table>";
 
         } catch (Exception $e) {
-            echo "<div style='color: red; padding: 20px; background: #ffe6e6; border-radius: 5px;'>❌ Error al obtener información de la base de datos: " . $e->getMessage() . "</div>";
+            echo "<p>Error al obtener información de la base de datos: " . $e->getMessage() . "</p>";
         }
     }
 }
 
 // Ejecución principal
-echo "<!DOCTYPE html>
-<html lang='es'>
-<head>
-    <meta charset='UTF-8'>
-    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <title>Sistema de Carga de Datos</title>
-    <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            margin: 0; 
-            padding: 20px; 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
-        .main-container { 
-            max-width: 1200px; 
-            margin: 0 auto; 
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-        .header { 
-            text-align: center; 
-            background: linear-gradient(135deg, #2c3e50, #34495e);
-            color: white;
-            padding: 30px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-        }
-        .header h1 { 
-            margin: 0; 
-            font-size: 2.5em; 
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-        .console {
-            background: #1e1e1e;
-            color: #00ff00;
-            padding: 20px;
-            border-radius: 10px;
-            font-family: 'Courier New', monospace;
-            margin: 20px 0;
-            max-height: 400px;
-            overflow-y: auto;
-            border: 2px solid #333;
-        }
-        .success { color: #4CAF50; font-weight: bold; }
-        .error { color: #f44336; font-weight: bold; }
-        .warning { color: #ff9800; font-weight: bold; }
-        .info { color: #2196F3; font-weight: bold; }
-    </style>
-</head>
-<body>
-    <div class='main-container'>
-        <div class='header'>
-            <h1>🏢 SISTEMA DE CARGA DE DATOS DE PRUEBA</h1>
-            <p>Sistema de gestión de edificios - Base de datos</p>
-        </div>";
+echo "<h1>SISTEMA DE CARGA DE DATOS DE PRUEBA</h1>";
+echo "<p>Sistema de gestión de edificios - Base de datos</p>";
 
 try {
-    ob_start(); // Capturar la salida del proceso
+    echo "<h2>📊 Mostrando información actual de la base de datos...</h2>";
 
     $dataSeeder = new DataSeeder();
-
-    echo "<div class='console'>";
-    echo "<div class='info'>📊 Mostrando información actual de la base de datos...</div>\n";
-    echo "</div>";
 
     // Mostrar información actual en HTML
     $dataSeeder->mostrarInfoBaseDatos();
 
-    echo "<div class='console'>";
-    echo "\n<div class='info'>🚀 INICIANDO CARGA DE DATOS DE PRUEBA...</div>\n";
+    echo "<h2>🚀 INICIANDO CARGA DE DATOS DE PRUEBA...</h2>";
 
     // Cargar datos de prueba
     $resultado = $dataSeeder->seedData();
 
     if ($resultado) {
-        echo "<div class='success'>\n✅ Proceso completado exitosamente.</div>\n";
+        echo "<p>✅ Proceso completado exitosamente.</p>";
     } else {
-        echo "<div class='warning'>\n⚠️ Hubo problemas al cargar los datos de prueba.</div>\n";
+        echo "<p>⚠️ Hubo problemas al cargar los datos de prueba.</p>";
     }
 
-    echo "</div>";
-
     // Mostrar información final en HTML
-    echo "<div class='console'>";
-    echo "<div class='info'>📊 Mostrando información final de la base de datos...</div>\n";
-    echo "</div>";
+    echo "<h2>📊 Mostrando información final de la base de datos...</h2>";
     $dataSeeder->mostrarInfoBaseDatos();
 
 } catch (Exception $e) {
-    echo "<div class='console'>";
-    echo "<div class='error'>❌ Error fatal: " . $e->getMessage() . "</div>\n";
-    echo "</div>";
+    echo "<p>❌ Error fatal: " . $e->getMessage() . "</p>";
 }
-
-echo "    </div>
-</body>
-</html>";
 ?>

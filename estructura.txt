@@ -11,6 +11,7 @@
 ├── db_edificio_v1 (1).sql
 ├── db_edificio_v1.sql
 ├── db_edificio_v2.sql
+├── db_edificio_v3.sql
 ├── estructura.txt
 ├── includes
 │   ├── css
@@ -30,10 +31,402 @@
 │   │   ├── bootstrap.min.js
 │   │   ├── dashboard_backup.js
 │   │   └── dashboard.js
-│   └── phpmailer
-│       ├── Exception.php
-│       ├── PHPMailer.php
-│       └── SMTP.php
+│   ├── phpmailer
+│   │   ├── Exception.php
+│   │   ├── PHPMailer.php
+│   │   └── SMTP.php
+│   └── tcpdf
+│       ├── CHANGELOG.TXT
+│       ├── composer.json
+│       ├── config
+│       │   └── tcpdf_config.php
+│       ├── examples
+│       │   ├── barcodes
+│       │   │   ├── example_1d_html.php
+│       │   │   ├── example_1d_png.php
+│       │   │   ├── example_1d_svgi.php
+│       │   │   ├── example_1d_svg.php
+│       │   │   ├── example_2d_datamatrix_html.php
+│       │   │   ├── example_2d_datamatrix_png.php
+│       │   │   ├── example_2d_datamatrix_svgi.php
+│       │   │   ├── example_2d_datamatrix_svg.php
+│       │   │   ├── example_2d_pdf417_html.php
+│       │   │   ├── example_2d_pdf417_png.php
+│       │   │   ├── example_2d_pdf417_svgi.php
+│       │   │   ├── example_2d_pdf417_svg.php
+│       │   │   ├── example_2d_qrcode_html.php
+│       │   │   ├── example_2d_qrcode_png.php
+│       │   │   ├── example_2d_qrcode_svgi.php
+│       │   │   ├── example_2d_qrcode_svg.php
+│       │   │   ├── tcpdf_barcodes_1d_include.php
+│       │   │   └── tcpdf_barcodes_2d_include.php
+│       │   ├── config
+│       │   │   └── tcpdf_config_alt.php
+│       │   ├── data
+│       │   │   ├── cert
+│       │   │   │   ├── tcpdf.crt
+│       │   │   │   ├── tcpdf.fdf
+│       │   │   │   └── tcpdf.p12
+│       │   │   ├── chapter_demo_1.txt
+│       │   │   ├── chapter_demo_2.txt
+│       │   │   ├── table_data_demo.txt
+│       │   │   └── utf8test.txt
+│       │   ├── example_001.php
+│       │   ├── example_002.php
+│       │   ├── example_003.php
+│       │   ├── example_004.php
+│       │   ├── example_005.php
+│       │   ├── example_006.php
+│       │   ├── example_007.php
+│       │   ├── example_008.php
+│       │   ├── example_009.php
+│       │   ├── example_010.php
+│       │   ├── example_011.php
+│       │   ├── example_012.pdf
+│       │   ├── example_012.php
+│       │   ├── example_013.php
+│       │   ├── example_014.php
+│       │   ├── example_015.php
+│       │   ├── example_016.php
+│       │   ├── example_017.php
+│       │   ├── example_018.php
+│       │   ├── example_019.php
+│       │   ├── example_020.php
+│       │   ├── example_021.php
+│       │   ├── example_022.php
+│       │   ├── example_023.php
+│       │   ├── example_024.php
+│       │   ├── example_025.php
+│       │   ├── example_026.php
+│       │   ├── example_027.php
+│       │   ├── example_028.php
+│       │   ├── example_029.php
+│       │   ├── example_030.php
+│       │   ├── example_031.php
+│       │   ├── example_032.php
+│       │   ├── example_033.php
+│       │   ├── example_034.php
+│       │   ├── example_035.php
+│       │   ├── example_036.php
+│       │   ├── example_037.php
+│       │   ├── example_038.php
+│       │   ├── example_039.php
+│       │   ├── example_040.php
+│       │   ├── example_041.php
+│       │   ├── example_042.php
+│       │   ├── example_043.php
+│       │   ├── example_044.php
+│       │   ├── example_045.php
+│       │   ├── example_046.php
+│       │   ├── example_047.php
+│       │   ├── example_048.php
+│       │   ├── example_049.php
+│       │   ├── example_050.php
+│       │   ├── example_051.php
+│       │   ├── example_052.php
+│       │   ├── example_053.php
+│       │   ├── example_054.php
+│       │   ├── example_055.php
+│       │   ├── example_056.php
+│       │   ├── example_057.php
+│       │   ├── example_058.php
+│       │   ├── example_059.php
+│       │   ├── example_060.php
+│       │   ├── example_061.php
+│       │   ├── example_062.php
+│       │   ├── example_063.php
+│       │   ├── example_064.php
+│       │   ├── example_065.php
+│       │   ├── example_066.php
+│       │   ├── example_067.php
+│       │   ├── images
+│       │   │   ├── alpha.png
+│       │   │   ├── _blank.png
+│       │   │   ├── image_demo.jpg
+│       │   │   ├── image_with_alpha.png
+│       │   │   ├── img.png
+│       │   │   ├── logo_example.gif
+│       │   │   ├── logo_example.jpg
+│       │   │   ├── logo_example.png
+│       │   │   ├── tcpdf_box.ai
+│       │   │   ├── tcpdf_box.svg
+│       │   │   ├── tcpdf_cell.png
+│       │   │   ├── tcpdf_logo.jpg
+│       │   │   ├── tcpdf_signature.png
+│       │   │   ├── testsvg.svg
+│       │   │   └── tux.svg
+│       │   ├── index.php
+│       │   ├── lang
+│       │   │   ├── afr.php
+│       │   │   ├── ara.php
+│       │   │   ├── aze.php
+│       │   │   ├── bel.php
+│       │   │   ├── bra.php
+│       │   │   ├── bul.php
+│       │   │   ├── cat.php
+│       │   │   ├── ces.php
+│       │   │   ├── chi.php
+│       │   │   ├── cym.php
+│       │   │   ├── dan.php
+│       │   │   ├── eng.php
+│       │   │   ├── est.php
+│       │   │   ├── eus.php
+│       │   │   ├── far.php
+│       │   │   ├── fra.php
+│       │   │   ├── ger.php
+│       │   │   ├── gle.php
+│       │   │   ├── glg.php
+│       │   │   ├── hat.php
+│       │   │   ├── heb.php
+│       │   │   ├── hrv.php
+│       │   │   ├── hun.php
+│       │   │   ├── hye.php
+│       │   │   ├── ind.php
+│       │   │   ├── ita.php
+│       │   │   ├── jpn.php
+│       │   │   ├── kat.php
+│       │   │   ├── kor.php
+│       │   │   ├── mkd.php
+│       │   │   ├── mlt.php
+│       │   │   ├── msa.php
+│       │   │   ├── nld.php
+│       │   │   ├── nob.php
+│       │   │   ├── pol.php
+│       │   │   ├── por.php
+│       │   │   ├── ron.php
+│       │   │   ├── rus.php
+│       │   │   ├── slv.php
+│       │   │   ├── spa.php
+│       │   │   ├── sqi.php
+│       │   │   ├── srp.php
+│       │   │   ├── swa.php
+│       │   │   ├── swe.php
+│       │   │   ├── ukr.php
+│       │   │   ├── urd.php
+│       │   │   ├── yid.php
+│       │   │   └── zho.php
+│       │   └── tcpdf_include.php
+│       ├── fonts
+│       │   ├── aealarabiya.ctg.z
+│       │   ├── aealarabiya.php
+│       │   ├── aealarabiya.z
+│       │   ├── ae_fonts_2.0
+│       │   │   ├── ChangeLog
+│       │   │   ├── COPYING
+│       │   │   └── README
+│       │   ├── aefurat.ctg.z
+│       │   ├── aefurat.php
+│       │   ├── aefurat.z
+│       │   ├── cid0cs.php
+│       │   ├── cid0ct.php
+│       │   ├── cid0jp.php
+│       │   ├── cid0kr.php
+│       │   ├── courierbi.php
+│       │   ├── courierb.php
+│       │   ├── courieri.php
+│       │   ├── courier.php
+│       │   ├── dejavu-fonts-ttf-2.33
+│       │   │   ├── AUTHORS
+│       │   │   ├── BUGS
+│       │   │   ├── langcover.txt
+│       │   │   ├── LICENSE
+│       │   │   ├── NEWS
+│       │   │   ├── README
+│       │   │   └── unicover.txt
+│       │   ├── dejavu-fonts-ttf-2.34
+│       │   │   ├── AUTHORS
+│       │   │   ├── BUGS
+│       │   │   ├── langcover.txt
+│       │   │   ├── LICENSE
+│       │   │   ├── NEWS
+│       │   │   ├── README
+│       │   │   └── unicover.txt
+│       │   ├── dejavusansb.ctg.z
+│       │   ├── dejavusansbi.ctg.z
+│       │   ├── dejavusansbi.php
+│       │   ├── dejavusansbi.z
+│       │   ├── dejavusansb.php
+│       │   ├── dejavusansb.z
+│       │   ├── dejavusanscondensedb.ctg.z
+│       │   ├── dejavusanscondensedbi.ctg.z
+│       │   ├── dejavusanscondensedbi.php
+│       │   ├── dejavusanscondensedbi.z
+│       │   ├── dejavusanscondensedb.php
+│       │   ├── dejavusanscondensedb.z
+│       │   ├── dejavusanscondensed.ctg.z
+│       │   ├── dejavusanscondensedi.ctg.z
+│       │   ├── dejavusanscondensedi.php
+│       │   ├── dejavusanscondensedi.z
+│       │   ├── dejavusanscondensed.php
+│       │   ├── dejavusanscondensed.z
+│       │   ├── dejavusans.ctg.z
+│       │   ├── dejavusansextralight.ctg.z
+│       │   ├── dejavusansextralight.php
+│       │   ├── dejavusansextralight.z
+│       │   ├── dejavusansi.ctg.z
+│       │   ├── dejavusansi.php
+│       │   ├── dejavusansi.z
+│       │   ├── dejavusansmonob.ctg.z
+│       │   ├── dejavusansmonobi.ctg.z
+│       │   ├── dejavusansmonobi.php
+│       │   ├── dejavusansmonobi.z
+│       │   ├── dejavusansmonob.php
+│       │   ├── dejavusansmonob.z
+│       │   ├── dejavusansmono.ctg.z
+│       │   ├── dejavusansmonoi.ctg.z
+│       │   ├── dejavusansmonoi.php
+│       │   ├── dejavusansmonoi.z
+│       │   ├── dejavusansmono.php
+│       │   ├── dejavusansmono.z
+│       │   ├── dejavusans.php
+│       │   ├── dejavusans.z
+│       │   ├── dejavuserifb.ctg.z
+│       │   ├── dejavuserifbi.ctg.z
+│       │   ├── dejavuserifbi.php
+│       │   ├── dejavuserifbi.z
+│       │   ├── dejavuserifb.php
+│       │   ├── dejavuserifb.z
+│       │   ├── dejavuserifcondensedb.ctg.z
+│       │   ├── dejavuserifcondensedbi.ctg.z
+│       │   ├── dejavuserifcondensedbi.php
+│       │   ├── dejavuserifcondensedbi.z
+│       │   ├── dejavuserifcondensedb.php
+│       │   ├── dejavuserifcondensedb.z
+│       │   ├── dejavuserifcondensed.ctg.z
+│       │   ├── dejavuserifcondensedi.ctg.z
+│       │   ├── dejavuserifcondensedi.php
+│       │   ├── dejavuserifcondensedi.z
+│       │   ├── dejavuserifcondensed.php
+│       │   ├── dejavuserifcondensed.z
+│       │   ├── dejavuserif.ctg.z
+│       │   ├── dejavuserifi.ctg.z
+│       │   ├── dejavuserifi.php
+│       │   ├── dejavuserifi.z
+│       │   ├── dejavuserif.php
+│       │   ├── dejavuserif.z
+│       │   ├── freefont-20100919
+│       │   │   ├── AUTHORS
+│       │   │   ├── ChangeLog
+│       │   │   ├── COPYING
+│       │   │   ├── CREDITS
+│       │   │   ├── INSTALL
+│       │   │   └── README
+│       │   ├── freefont-20120503
+│       │   │   ├── AUTHORS
+│       │   │   ├── ChangeLog
+│       │   │   ├── COPYING
+│       │   │   ├── CREDITS
+│       │   │   ├── INSTALL
+│       │   │   ├── README
+│       │   │   ├── TROUBLESHOOTING
+│       │   │   └── USAGE
+│       │   ├── freemonob.ctg.z
+│       │   ├── freemonobi.ctg.z
+│       │   ├── freemonobi.php
+│       │   ├── freemonobi.z
+│       │   ├── freemonob.php
+│       │   ├── freemonob.z
+│       │   ├── freemono.ctg.z
+│       │   ├── freemonoi.ctg.z
+│       │   ├── freemonoi.php
+│       │   ├── freemonoi.z
+│       │   ├── freemono.php
+│       │   ├── freemono.z
+│       │   ├── freesansb.ctg.z
+│       │   ├── freesansbi.ctg.z
+│       │   ├── freesansbi.php
+│       │   ├── freesansbi.z
+│       │   ├── freesansb.php
+│       │   ├── freesansb.z
+│       │   ├── freesans.ctg.z
+│       │   ├── freesansi.ctg.z
+│       │   ├── freesansi.php
+│       │   ├── freesansi.z
+│       │   ├── freesans.php
+│       │   ├── freesans.z
+│       │   ├── freeserifb.ctg.z
+│       │   ├── freeserifbi.ctg.z
+│       │   ├── freeserifbi.php
+│       │   ├── freeserifbi.z
+│       │   ├── freeserifb.php
+│       │   ├── freeserifb.z
+│       │   ├── freeserif.ctg.z
+│       │   ├── freeserifi.ctg.z
+│       │   ├── freeserifi.php
+│       │   ├── freeserifi.z
+│       │   ├── freeserif.php
+│       │   ├── freeserif.z
+│       │   ├── helveticabi.php
+│       │   ├── helveticab.php
+│       │   ├── helveticai.php
+│       │   ├── helvetica.php
+│       │   ├── hysmyeongjostdmedium.php
+│       │   ├── kozgopromedium.php
+│       │   ├── kozminproregular.php
+│       │   ├── msungstdlight.php
+│       │   ├── pdfacourierbi.php
+│       │   ├── pdfacourierbi.z
+│       │   ├── pdfacourierb.php
+│       │   ├── pdfacourierb.z
+│       │   ├── pdfacourieri.php
+│       │   ├── pdfacourieri.z
+│       │   ├── pdfacourier.php
+│       │   ├── pdfacourier.z
+│       │   ├── pdfahelveticabi.php
+│       │   ├── pdfahelveticabi.z
+│       │   ├── pdfahelveticab.php
+│       │   ├── pdfahelveticab.z
+│       │   ├── pdfahelveticai.php
+│       │   ├── pdfahelveticai.z
+│       │   ├── pdfahelvetica.php
+│       │   ├── pdfahelvetica.z
+│       │   ├── pdfasymbol.php
+│       │   ├── pdfasymbol.z
+│       │   ├── pdfatimesbi.php
+│       │   ├── pdfatimesbi.z
+│       │   ├── pdfatimesb.php
+│       │   ├── pdfatimesb.z
+│       │   ├── pdfatimesi.php
+│       │   ├── pdfatimesi.z
+│       │   ├── pdfatimes.php
+│       │   ├── pdfatimes.z
+│       │   ├── pdfazapfdingbats.php
+│       │   ├── pdfazapfdingbats.z
+│       │   ├── stsongstdlight.php
+│       │   ├── symbol.php
+│       │   ├── timesbi.php
+│       │   ├── timesb.php
+│       │   ├── timesi.php
+│       │   ├── times.php
+│       │   ├── uni2cid_ac15.php
+│       │   ├── uni2cid_ag15.php
+│       │   ├── uni2cid_aj16.php
+│       │   ├── uni2cid_ak12.php
+│       │   └── zapfdingbats.php
+│       ├── include
+│       │   ├── barcodes
+│       │   │   ├── datamatrix.php
+│       │   │   ├── pdf417.php
+│       │   │   └── qrcode.php
+│       │   ├── sRGB.icc
+│       │   ├── tcpdf_colors.php
+│       │   ├── tcpdf_filters.php
+│       │   ├── tcpdf_font_data.php
+│       │   ├── tcpdf_fonts.php
+│       │   ├── tcpdf_images.php
+│       │   └── tcpdf_static.php
+│       ├── LICENSE.TXT
+│       ├── README.md
+│       ├── tcpdf_autoconfig.php
+│       ├── tcpdf_barcodes_1d.php
+│       ├── tcpdf_barcodes_2d.php
+│       ├── tcpdf_import.php
+│       ├── tcpdf_parser.php
+│       ├── tcpdf.php
+│       ├── tools
+│       │   ├── convert_fonts_examples.txt
+│       │   └── tcpdf_addfont.php
+│       └── VERSION
 ├── index.php
 ├── public
 │   ├── controlador
@@ -42,6 +435,7 @@
 │   │   ├── ComunicadoControlador.php
 │   │   ├── DashboardControlador.php
 │   │   ├── DepartamentoControlador.php
+│   │   ├── dino.png
 │   │   ├── FacturaControlador.php
 │   │   ├── IncidenteControlador.php
 │   │   ├── LoginControlador.php
@@ -66,9 +460,12 @@
 │   │   ├── RolModelo.php
 │   │   └── ServicioModelo.php
 │   └── vista
+│       ├── AsignarServicioDepartamentoVista.php
+│       ├── ConceptosCompletosVista.php
 │       ├── DashboardAdministradorVista.php
 │       ├── DashboardPersonalVista.php
 │       ├── DashboardResidenteVista.php
+│       ├── dino.png
 │       ├── GenerarConsumoServicioVista.php
 │       ├── ListarAreasComunesVista.php
 │       ├── ListarCargosFijosVista.php
@@ -84,6 +481,7 @@
 │       ├── ListarServiciosVista.php
 │       ├── LoginRecuperarVista.php
 │       ├── LoginVista.php
+│       ├── MisConceptosVista.php
 │       ├── RecuperarVista.php
 │       ├── RegistrarAreaVista.php
 │       ├── RegistrarCargoFijoVista.php
@@ -98,9 +496,14 @@
 │       ├── RegistrarServicioVista.php
 │       ├── RegistroVista.php
 │       ├── VerComunicadoVista.php
+│       ├── VerFacturaVista.php
+│       ├── verHistorialConsumoVista.php
 │       ├── VerHistorialIncidenteVista.php
+│       ├── VerHistorialPagosVista.php
 │       ├── VerificacionVista.php
 │       ├── VerIncidentesAsignadosVista.php
+│       ├── VerMiHistorialPagosVista.php
+│       ├── VerMisFacturasVista.php
 │       ├── VerMisIncidentesVista.php
 │       ├── verReservasAreaVista.php
 │       ├── verReservasMesVista.php
@@ -108,4 +511,4 @@
 ├── README.md
 └── script.sql
 
-12 directories, 97 files
+30 directories, 482 files

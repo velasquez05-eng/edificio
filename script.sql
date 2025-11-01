@@ -2,11 +2,11 @@
 -- CREACIÓN DE TABLAS EN ORDEN CORRECTO
 -- ============================================
 
--- 1️⃣ Tabla: rol
 CREATE TABLE rol (
                      id_rol INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
                      rol VARCHAR(150) NOT NULL,
-                     descripcion TEXT DEFAULT NULL
+                     descripcion TEXT DEFAULT NULL,
+                     salario_base DECIMAL(10, 2) NOT NULL
 );
 
 -- 2️⃣ Tabla: persona
@@ -31,7 +31,25 @@ CREATE TABLE persona (
                          id_rol INT,
                          FOREIGN KEY (id_rol) REFERENCES rol(id_rol)
 );
-
+-- 3️⃣ Tabla: planilla_empleado
+CREATE TABLE planilla_empleado (
+                                   id_planilla_emp INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                                   id_persona INT NOT NULL,
+                                   id_rol INT NOT NULL,
+                                   periodo DATE NOT NULL,
+                                   haber_basico DECIMAL(10,2) NOT NULL,
+                                   dias_trabajados DECIMAL(5,2) NOT NULL,
+                                   total_ganado DECIMAL(10,2) NOT NULL,
+                                   descuento_gestora DECIMAL(10,2) NOT NULL,
+                                   total_descuentos DECIMAL(10,2) NOT NULL,
+                                   liquido_pagable DECIMAL(10,2) NOT NULL,
+                                   estado ENUM('procesada', 'pagada', 'cancelada') DEFAULT 'procesada',
+                                   metodo_pago ENUM('transferencia', 'qr', 'efectivo', 'cheque') DEFAULT 'transferencia',
+                                   fecha_pago DATETIME DEFAULT NULL,
+                                   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                   FOREIGN KEY (id_persona) REFERENCES persona(id_persona),
+                                   FOREIGN KEY (id_rol) REFERENCES rol(id_rol)
+);
 -- 3️⃣ Tabla: historial_login
 CREATE TABLE historial_login (
                                  id_historial_login INT AUTO_INCREMENT PRIMARY KEY,
@@ -1038,5 +1056,296 @@ BEGIN
 
     END IF;
 END//
+
+DELIMITER ;
+
+-- ============================================
+-- PROCEDIMIENTO: GenerarPlanillaCompleta (ACTUALIZADO)
+-- ============================================
+DELIMITER //
+
+CREATE PROCEDURE GenerarPlanillaCompleta(
+    IN p_mes INT,
+    IN p_anio INT,
+    IN p_metodo_pago ENUM('transferencia', 'qr', 'efectivo', 'cheque') DEFAULT 'transferencia',
+    IN p_forzar_generacion BOOLEAN DEFAULT FALSE
+)
+BEGIN
+    DECLARE v_periodo DATE;
+    DECLARE v_dias_base INT DEFAULT 30;
+    DECLARE v_existe_planilla INT DEFAULT 0;
+    DECLARE v_estado ENUM('procesada', 'pagada', 'cancelada');
+
+    -- Calcular la fecha del periodo
+    SET v_periodo = DATE(CONCAT(p_anio, '-', LPAD(p_mes, 2, '0'), '-01'));
+
+    -- Determinar estado según método de pago
+    IF p_metodo_pago = 'qr' THEN
+        SET v_estado = 'procesada';
+    ELSE
+        SET v_estado = 'pagada';
+    END IF;
+
+    -- Verificar si ya existe planilla
+    SELECT COUNT(*) INTO v_existe_planilla
+    FROM planilla_empleado
+    WHERE periodo = v_periodo;
+
+    IF v_existe_planilla > 0 AND p_forzar_generacion = FALSE THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ya existe planilla para este periodo. Use forzar_generacion=TRUE para regenerar.';
+    END IF;
+
+    -- Eliminar planilla existente si se fuerza regeneración
+    IF v_existe_planilla > 0 AND p_forzar_generacion = TRUE THEN
+        DELETE FROM planilla_empleado WHERE periodo = v_periodo;
+    END IF;
+
+    -- Generar nuevas planillas (ACTUALIZADO: incluye método_pago y estado)
+    INSERT INTO planilla_empleado (
+        id_persona,
+        id_rol,
+        periodo,
+        haber_basico,
+        dias_trabajados,
+        total_ganado,
+        descuento_gestora,
+        total_descuentos,
+        liquido_pagable,
+        estado,
+        metodo_pago,
+        fecha_pago
+    )
+    SELECT
+        p.id_persona,
+        p.id_rol,
+        v_periodo,
+        r.salario_base,
+        v_dias_base,
+        r.salario_base,
+        ROUND(r.salario_base * 0.1271, 2),    -- Gestora sobre SALARIO BASE
+        ROUND(r.salario_base * 0.1271, 2),    -- Total descuentos
+        ROUND(r.salario_base - (r.salario_base * 0.1271), 2), -- Líquido
+        v_estado,                             -- Estado según método de pago
+        p_metodo_pago,                        -- Método de pago recibido como parámetro
+        CASE WHEN v_estado = 'pagada' THEN NOW() ELSE NULL END -- Fecha de pago si está pagada
+    FROM persona p
+             JOIN rol r ON p.id_rol = r.id_rol
+    WHERE p.estado = 'activo'
+      AND r.salario_base > 0;
+
+    -- Devolver reporte
+    SELECT
+        'Planilla generada exitosamente' as mensaje,
+        v_periodo as periodo,
+        p_metodo_pago as metodo_pago,
+        v_estado as estado,
+        COUNT(*) as total_empleados,
+        SUM(pe.total_ganado) as total_ganado,
+        SUM(pe.descuento_gestora) as total_gestora,
+        SUM(pe.total_descuentos) as total_descuentos,
+        SUM(pe.liquido_pagable) as total_liquido_pagable,
+        NOW() as fecha_generacion
+    FROM planilla_empleado pe
+    WHERE pe.periodo = v_periodo;
+
+END //
+
+DELIMITER ;
+
+-- ============================================
+-- PROCEDIMIENTO: GenerarPlanillaPersonalizada (ACTUALIZADO)
+-- ============================================
+DELIMITER //
+
+CREATE PROCEDURE GenerarPlanillaPersonalizada(
+    IN p_id_persona INT,
+    IN p_mes INT,
+    IN p_anio INT,
+    IN p_dias_descuento DECIMAL(3,1),
+    IN p_metodo_pago ENUM('transferencia', 'qr', 'efectivo', 'cheque') DEFAULT 'transferencia',
+    IN p_forzar_generacion BOOLEAN DEFAULT FALSE
+)
+BEGIN
+    DECLARE v_periodo DATE;
+    DECLARE v_dias_base DECIMAL(5,2) DEFAULT 30.00;
+    DECLARE v_dias_trabajados DECIMAL(5,2);
+    DECLARE v_salario_base DECIMAL(10,2);
+    DECLARE v_id_rol INT;
+    DECLARE v_existe_planilla INT DEFAULT 0;
+    DECLARE v_total_ganado DECIMAL(10,2);
+    DECLARE v_descuento_gestora DECIMAL(10,2);
+    DECLARE v_liquido_pagable DECIMAL(10,2);
+    DECLARE v_estado ENUM('procesada', 'pagada', 'cancelada');
+
+    -- Calcular la fecha del periodo
+    SET v_periodo = DATE(CONCAT(p_anio, '-', LPAD(p_mes, 2, '0'), '-01'));
+
+    -- Determinar estado según método de pago
+    IF p_metodo_pago = 'qr' THEN
+        SET v_estado = 'procesada';
+    ELSE
+        SET v_estado = 'pagada';
+    END IF;
+
+    -- Verificar si la persona existe y obtener sus datos
+    SELECT r.salario_base, p.id_rol INTO v_salario_base, v_id_rol
+    FROM persona p
+             JOIN rol r ON p.id_rol = r.id_rol
+    WHERE p.id_persona = p_id_persona
+      AND p.estado = 'activo'
+      AND r.salario_base > 0;
+
+    IF v_salario_base IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Persona no encontrada, inactiva o sin salario base';
+    END IF;
+
+    -- Validar días de descuento
+    IF p_dias_descuento < 0 OR p_dias_descuento > 30 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Días de descuento deben estar entre 0 y 30';
+    END IF;
+
+    -- Calcular días trabajados
+    SET v_dias_trabajados = v_dias_base - p_dias_descuento;
+
+    -- Verificar si ya existe planilla para esta persona en este periodo
+    SELECT COUNT(*) INTO v_existe_planilla
+    FROM planilla_empleado
+    WHERE id_persona = p_id_persona
+      AND periodo = v_periodo;
+
+    IF v_existe_planilla > 0 AND p_forzar_generacion = FALSE THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ya existe planilla para esta persona en este periodo. Use forzar_generacion=TRUE para regenerar.';
+    END IF;
+
+    -- Eliminar planilla existente si se fuerza regeneración
+    IF v_existe_planilla > 0 AND p_forzar_generacion = TRUE THEN
+        DELETE FROM planilla_empleado
+        WHERE id_persona = p_id_persona
+          AND periodo = v_periodo;
+    END IF;
+
+    -- Calcular valores
+    SET v_total_ganado = ROUND((v_salario_base / v_dias_base) * v_dias_trabajados, 2);
+    SET v_descuento_gestora = ROUND(v_salario_base * 0.1271, 2);  -- CORREGIDO: sobre salario_base
+    SET v_liquido_pagable = ROUND(v_total_ganado - v_descuento_gestora, 2);
+
+    -- Insertar planilla personalizada (ACTUALIZADO: incluye método_pago y estado)
+    INSERT INTO planilla_empleado (
+        id_persona,
+        id_rol,
+        periodo,
+        haber_basico,
+        dias_trabajados,
+        total_ganado,
+        descuento_gestora,
+        total_descuentos,
+        liquido_pagable,
+        estado,
+        metodo_pago,
+        fecha_pago
+    ) VALUES (
+                 p_id_persona,
+                 v_id_rol,
+                 v_periodo,
+                 v_salario_base,
+                 v_dias_trabajados,
+                 v_total_ganado,
+                 v_descuento_gestora,
+                 v_descuento_gestora,
+                 v_liquido_pagable,
+                 v_estado,
+                 p_metodo_pago,
+                 CASE WHEN v_estado = 'pagada' THEN NOW() ELSE NULL END
+             );
+
+    -- Devolver resultado
+    SELECT
+        'Planilla personalizada generada exitosamente' as mensaje,
+        v_periodo as periodo,
+        p_metodo_pago as metodo_pago,
+        v_estado as estado,
+        p_dias_descuento as dias_descuento_aplicados,
+        v_dias_trabajados as dias_trabajados,
+        v_salario_base as salario_base,
+        v_total_ganado as total_ganado,
+        v_descuento_gestora as descuento_gestora,
+        v_liquido_pagable as liquido_pagable;
+
+END //
+
+DELIMITER ;
+
+-- ============================================
+-- PROCEDIMIENTO: GenerarPlanillaMultipleAvanzada (ACTUALIZADO)
+-- ============================================
+DELIMITER //
+
+CREATE PROCEDURE GenerarPlanillaMultipleAvanzada(
+    IN p_mes INT,
+    IN p_anio INT,
+    IN p_descuentos_json JSON,
+    IN p_metodo_pago ENUM('transferencia', 'qr', 'efectivo', 'cheque') DEFAULT 'transferencia'
+)
+BEGIN
+    DECLARE v_periodo DATE;
+    DECLARE v_id_persona INT;
+    DECLARE v_dias_descuento DECIMAL(3,1);
+    DECLARE v_json_keys JSON;
+    DECLARE v_key_index INT DEFAULT 0;
+    DECLARE v_key_count INT DEFAULT 0;
+    DECLARE v_procesados INT DEFAULT 0;
+    DECLARE v_errores INT DEFAULT 0;
+    DECLARE v_resultados TEXT DEFAULT '';
+
+    -- Calcular periodo
+    SET v_periodo = DATE(CONCAT(p_anio, '-', LPAD(p_mes, 2, '0'), '-01'));
+
+    -- Eliminar planillas existentes para este periodo
+    DELETE FROM planilla_empleado WHERE periodo = v_periodo;
+
+    -- Obtener las claves del JSON
+    SET v_json_keys = JSON_KEYS(p_descuentos_json);
+    SET v_key_count = JSON_LENGTH(v_json_keys);
+
+    -- Recorrer todas las claves del JSON
+    WHILE v_key_index < v_key_count DO
+            BEGIN
+                DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+                    BEGIN
+                        SET v_errores = v_errores + 1;
+                        SET v_resultados = CONCAT(v_resultados, 'Error en persona ', v_id_persona, ' | ');
+                    END;
+
+                -- Obtener ID de persona y días de descuento
+                SET v_id_persona = CAST(JSON_UNQUOTE(JSON_EXTRACT(v_json_keys, CONCAT('$[', v_key_index, ']'))) AS UNSIGNED);
+                SET v_dias_descuento = CAST(JSON_UNQUOTE(JSON_EXTRACT(p_descuentos_json, CONCAT('$."', v_id_persona, '"'))) AS DECIMAL(3,1));
+
+                -- Llamar al procedimiento individual con método de pago
+                CALL GenerarPlanillaPersonalizada(v_id_persona, p_mes, p_anio, v_dias_descuento, p_metodo_pago, TRUE);
+
+                SET v_procesados = v_procesados + 1;
+                SET v_resultados = CONCAT(v_resultados, 'Persona ', v_id_persona, ': ', v_dias_descuento, ' días | ');
+
+            END;
+
+            -- Incrementar índice
+            SET v_key_index = v_key_index + 1;
+        END WHILE;
+
+    -- Devolver resumen detallado
+    SELECT
+        'Proceso completado' as mensaje,
+        v_periodo as periodo,
+        p_metodo_pago as metodo_pago,
+        CASE
+            WHEN p_metodo_pago = 'qr' THEN 'procesada'
+            ELSE 'pagada'
+            END as estado_aplicado,
+        v_key_count as total_personas,
+        v_procesados as procesados_exitosos,
+        v_errores as errores,
+        v_resultados as detalle_procesamiento;
+
+END //
 
 DELIMITER ;

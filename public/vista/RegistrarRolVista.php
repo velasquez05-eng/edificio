@@ -1,109 +1,131 @@
 <?php include("../../includes/header.php");?>
 
 
-            <!-- Page Header -->
-            <div class="page-header fade-in">
-                <div class="page-title">
-                    <h1>Registrar Nuevo Rol</h1>
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="#"><i class="fas fa-home"></i> Inicio</a></li>
-                            <li class="breadcrumb-item"><a href="../controlador/RolControlador.php?action=listar">Roles</a></li>
-                            <li class="breadcrumb-item active" aria-current="page">Registrar Rol</li>
-                        </ol>
-                    </nav>
+    <!-- Page Header -->
+    <div class="page-header fade-in">
+        <div class="page-title">
+            <h1>Registrar Nuevo Rol</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#"><i class="fas fa-home"></i> Inicio</a></li>
+                    <li class="breadcrumb-item"><a href="../controlador/RolControlador.php?action=listar">Roles</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Registrar Rol</li>
+                </ol>
+            </nav>
+        </div>
+
+    </div>
+
+    <!-- Formulario de Registro -->
+    <div class="row fade-in">
+        <div class="col-lg-8">
+            <div class="content-box">
+                <div class="content-box-header">
+                    <h5>Información del Rol</h5>
                 </div>
+                <div class="content-box-body">
+                    <form id="formRegistrarRol" action="../controlador/RolControlador.php" method="POST">
+                        <input type="hidden" name="action" value="registrar">
 
-            </div>
-
-            <!-- Formulario de Registro -->
-            <div class="row fade-in">
-                <div class="col-lg-8">
-                    <div class="content-box">
-                        <div class="content-box-header">
-                            <h5>Información del Rol</h5>
-                        </div>
-                        <div class="content-box-body">
-                            <form id="formRegistrarRol" action="../controlador/RolControlador.php" method="POST">
-                                <input type="hidden" name="action" value="registrar">
-
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group mb-3">
-                                            <label for="rol" class="form-label">
-                                                <i class="fas fa-user-tag text-verde me-2"></i>Nombre del Rol *
-                                            </label>
-                                            <input type="text"
-                                                   class="form-control"
-                                                   id="rol"
-                                                   name="rol"
-                                                   required
-                                                   maxlength="50"
-                                                   placeholder="Ej: Administrador, Residente, etc.">
-                                            <div class="form-text">Nombre único identificador del rol</div>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <div class="form-group mb-3">
-                                            <label for="descripcion" class="form-label">
-                                                <i class="fas fa-align-left text-azul me-2"></i>Descripción *
-                                            </label>
-                                            <input type="text"
-                                                   class="form-control"
-                                                   id="descripcion"
-                                                   name="descripcion"
-                                                   required
-                                                   maxlength="200"
-                                                   placeholder="Descripción de las funciones del rol">
-                                            <div class="form-text">Descripción detallada del rol</div>
-                                        </div>
-                                    </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="rol" class="form-label">
+                                        <i class="fas fa-user-tag text-verde me-2"></i>Nombre del Rol *
+                                    </label>
+                                    <input type="text"
+                                           class="form-control"
+                                           id="rol"
+                                           name="rol"
+                                           required
+                                           maxlength="50"
+                                           placeholder="Ej: Administrador, Residente, etc.">
+                                    <div class="form-text">Nombre único identificador del rol</div>
                                 </div>
-
-                                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                                    <a href="RolControlador.php?action=listar" class="btn btn-secondary me-md-2">
-                                        <i class="fas fa-times me-2"></i>Cancelar
-                                    </a>
-                                    <button type="submit" class="btn btn-primary" style="background: var(--verde); border: none;">
-                                        <i class="fas fa-save me-2"></i>Registrar Rol
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Información Adicional -->
-                <div class="col-lg-4">
-                    <div class="content-box position-sticky" style="top: 100px;">
-                        <div class="content-box-header">
-                            <h5>Información Importante</h5>
-                        </div>
-                        <div class="content-box-body">
-                            <div class="alert alert-info">
-                                <h6><i class="fas fa-info-circle me-2"></i>Instrucciones:</h6>
-                                <ul class="mb-0 mt-2">
-                                    <li>Todos los campos marcados con (*) son obligatorios</li>
-                                    <li>El nombre del rol debe ser único</li>
-                                    <li>Verifique que el rol no exista previamente</li>
-                                    <li>La descripción debe ser clara y concisa</li>
-                                </ul>
                             </div>
 
-                            <div class="alert alert-warning">
-                                <h6><i class="fas fa-exclamation-triangle me-2"></i>Notas:</h6>
-                                <ul class="mb-0 mt-2">
-                                    <li>No se permiten roles duplicados</li>
-                                    <li>Una vez registrado, el rol estará disponible inmediatamente</li>
-                                    <li>Verifique la información antes de guardar</li>
-                                    <li>Los roles definen los permisos de los usuarios</li>
-                                </ul>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label for="salario_base" class="form-label">
+                                        <i class="fas fa-dollar-sign text-verde me-2"></i>Salario Base *
+                                    </label>
+                                    <input type="number"
+                                           class="form-control"
+                                           id="salario_base"
+                                           name="salario_base"
+                                           required
+                                           min="0"
+                                           step="0.01"
+                                           placeholder="0.00">
+                                    <div class="form-text">Salario base para este rol</div>
+                                </div>
                             </div>
                         </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group mb-3">
+                                    <label for="descripcion" class="form-label">
+                                        <i class="fas fa-align-left text-azul me-2"></i>Descripción *
+                                    </label>
+                                    <textarea
+                                            class="form-control"
+                                            id="descripcion"
+                                            name="descripcion"
+                                            required
+                                            maxlength="200"
+                                            rows="3"
+                                            placeholder="Descripción de las funciones del rol"></textarea>
+                                    <div class="form-text">Descripción detallada del rol</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="RolControlador.php?action=listar" class="btn btn-secondary me-md-2">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary" style="background: var(--verde); border: none;">
+                                <i class="fas fa-save me-2"></i>Registrar Rol
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información Adicional -->
+        <div class="col-lg-4">
+            <div class="content-box position-sticky" style="top: 100px;">
+                <div class="content-box-header">
+                    <h5>Información Importante</h5>
+                </div>
+                <div class="content-box-body">
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle me-2"></i>Instrucciones:</h6>
+                        <ul class="mb-0 mt-2">
+                            <li>Todos los campos marcados con (*) son obligatorios</li>
+                            <li>El nombre del rol debe ser único</li>
+                            <li>Verifique que el rol no exista previamente</li>
+                            <li>La descripción debe ser clara y concisa</li>
+                            <li>El salario base debe ser un valor numérico válido</li>
+                        </ul>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>Notas:</h6>
+                        <ul class="mb-0 mt-2">
+                            <li>No se permiten roles duplicados</li>
+                            <li>Una vez registrado, el rol estará disponible inmediatamente</li>
+                            <li>Verifique la información antes de guardar</li>
+                            <li>Los roles definen los permisos de los usuarios</li>
+                            <li>El salario base será utilizado para cálculos de nómina</li>
+                        </ul>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
 
     <!-- Script para validaciones -->
@@ -116,6 +138,7 @@
             formRegistrar.addEventListener('submit', function(e) {
                 const rol = document.getElementById('rol').value.trim();
                 const descripcion = document.getElementById('descripcion').value.trim();
+                const salario_base = document.getElementById('salario_base').value.trim();
 
                 if (!rol) {
                     e.preventDefault();
@@ -128,6 +151,13 @@
                     e.preventDefault();
                     alert('Por favor, ingrese la descripción del rol');
                     document.getElementById('descripcion').focus();
+                    return;
+                }
+
+                if (!salario_base || parseFloat(salario_base) < 0) {
+                    e.preventDefault();
+                    alert('Por favor, ingrese un salario base válido (mayor o igual a 0)');
+                    document.getElementById('salario_base').focus();
                     return;
                 }
 
@@ -161,6 +191,14 @@
 
             document.getElementById('descripcion').addEventListener('input', function() {
                 if (this.value.length < 10) {
+                    this.classList.add('is-invalid');
+                } else {
+                    this.classList.remove('is-invalid');
+                }
+            });
+
+            document.getElementById('salario_base').addEventListener('input', function() {
+                if (!this.value || parseFloat(this.value) < 0) {
                     this.classList.add('is-invalid');
                 } else {
                     this.classList.remove('is-invalid');

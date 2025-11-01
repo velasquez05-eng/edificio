@@ -2,108 +2,115 @@
 
     <!-- Main Content -->
 
-            <!-- Page Header -->
-            <div class="page-header fade-in">
-                <div class="page-title">
-                    <h1>Listado de Roles</h1>
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="#"><i class="fas fa-home"></i> Inicio</a></li>
-                            <li class="breadcrumb-item active" aria-current="page">Roles</li>
-                        </ol>
-                    </nav>
-                </div>
-                <div class="page-actions">
-                    <a href="../vista/RegistrarRolVista.php" class="btn btn-success">
-                        Registrar <i class="fas fa-arrow-right me-2"></i>
-                    </a>
-                </div>
-            </div>
+    <!-- Page Header -->
+    <div class="page-header fade-in">
+        <div class="page-title">
+            <h1>Listado de Roles</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#"><i class="fas fa-home"></i> Inicio</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Roles</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="page-actions">
+            <a href="../controlador/RolControlador.php?action=formularioRol" class="btn btn-success">
+                <i class="fas fa-plus me-2"></i>Registrar Rol
+            </a>
+        </div>
+    </div>
 
-            <!-- Alertas -->
-            <?php if (isset($_GET['success'])): ?>
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="fas fa-check-circle me-2"></i>
-                    <?php echo htmlspecialchars($_GET['success']); ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            <?php endif; ?>
+    <!-- Alertas -->
+<?php if (isset($_GET['success'])): ?>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        <?php echo htmlspecialchars($_GET['success']); ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<?php endif; ?>
 
-            <?php if (isset($_GET['error'])): ?>
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="fas fa-exclamation-circle me-2"></i>
-                    <?php echo htmlspecialchars($_GET['error']); ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            <?php endif; ?>
+<?php if (isset($_GET['error'])): ?>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <?php echo htmlspecialchars($_GET['error']); ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<?php endif; ?>
 
-            <!-- Roles -->
-            <div class="row fade-in">
-                <div class="col-12">
-                    <div class="content-box">
-                        <div class="content-box-header d-flex justify-content-between align-items-center">
-                            <h5>Roles Registrados</h5>
-                            <span class="badge bg-primary"><?php echo count($roles); ?> roles</span>
+    <!-- Roles -->
+    <div class="row fade-in">
+        <div class="col-12">
+            <div class="content-box">
+                <div class="content-box-header d-flex justify-content-between align-items-center">
+                    <h5>Roles Registrados</h5>
+                    <span class="badge bg-primary"><?php echo count($roles); ?> roles</span>
+                </div>
+                <div class="content-box-body">
+                    <?php if (empty($roles)): ?>
+                        <div class="text-center py-4">
+                            <i class="fas fa-user-tag fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No hay roles registrados</p>
+                            <a href="../controlador/RolControlador.php?action=formularioRol" class="btn btn-success">
+                                <i class="fas fa-user-plus me-2"></i>Registrar Primer Rol
+                            </a>
                         </div>
-                        <div class="content-box-body">
-                            <?php if (empty($roles)): ?>
-                                <div class="text-center py-4">
-                                    <i class="fas fa-user-tag fa-3x text-muted mb-3"></i>
-                                    <p class="text-muted">No hay roles registrados</p>
-                                    <a href="../vista/RegistrarRolVista.php" class="btn btn-success">
-                                        <i class="fas fa-user-plus me-2"></i>Registrar Primer Rol
-                                    </a>
-                                </div>
-                            <?php else: ?>
+                    <?php else: ?>
 
-                                <div class="table-responsive">
-                                    <table class="table table-hover table-striped">
-                                        <thead>
-                                        <tr>
-                                            <th># ID</th>
-                                            <th>Nombre del Rol</th>
-                                            <th>Descripción</th>
-                                            <th>Estado</th>
-                                            <th>Opciones</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        <?php foreach ($roles as $rol): ?>
-                                            <tr>
-                                                <td><strong><?php echo htmlspecialchars($rol['id_rol']); ?></strong></td>
-                                                <td>
-                                                    <i class="fas fa-user-tag text-primary me-2"></i>
-                                                    <?php echo htmlspecialchars($rol['rol']); ?>
-                                                </td>
-                                                <td>
-                                                    <?php echo htmlspecialchars($rol['descripcion']); ?>
-                                                </td>
-                                                <td>
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped">
+                                <thead>
+                                <tr>
+                                    <th># ID</th>
+                                    <th>Nombre del Rol</th>
+                                    <th>Descripción</th>
+                                    <th>Salario Base</th>
+                                    <th>Estado</th>
+                                    <th>Opciones</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <?php foreach ($roles as $rol): ?>
+                                    <tr>
+                                        <td><strong><?php echo htmlspecialchars($rol['id_rol']); ?></strong></td>
+                                        <td>
+                                            <i class="fas fa-user-tag text-primary me-2"></i>
+                                            <?php echo htmlspecialchars($rol['rol']); ?>
+                                        </td>
+                                        <td>
+                                            <?php echo htmlspecialchars($rol['descripcion']); ?>
+                                        </td>
+                                        <td>
+                                            <strong class="text-success">
+                                                $<?php echo number_format($rol['salario_base'], 2); ?>
+                                            </strong>
+                                        </td>
+                                        <td>
                                                 <span class="badge bg-success">
                                                     <i class="fas fa-check me-1"></i>Activo
                                                 </span>
-                                                </td>
-                                                <td>
-                                                    <button class="btn btn-warning btn-sm"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#editarRolModal"
-                                                            data-id="<?php echo htmlspecialchars($rol['id_rol']); ?>"
-                                                            data-nombre="<?php echo htmlspecialchars($rol['rol']); ?>"
-                                                            data-descripcion="<?php echo htmlspecialchars($rol['descripcion']); ?>"
-                                                            title="Editar rol">
-                                                        <i class="fas fa-edit"></i> Editar
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        <?php endforeach; ?>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-warning btn-sm"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#editarRolModal"
+                                                    data-id="<?php echo htmlspecialchars($rol['id_rol']); ?>"
+                                                    data-nombre="<?php echo htmlspecialchars($rol['rol']); ?>"
+                                                    data-descripcion="<?php echo htmlspecialchars($rol['descripcion']); ?>"
+                                                    data-salario="<?php echo htmlspecialchars($rol['salario_base']); ?>"
+                                                    title="Editar rol">
+                                                <i class="fas fa-edit"></i> Editar
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                                </tbody>
+                            </table>
                         </div>
-                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
+        </div>
+    </div>
 
 
     <!-- Modal Editar Rol -->
@@ -116,21 +123,36 @@
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form method="POST" action="RolControlador.php?action=editar" id="formEditarRol">
+                <form method="POST" action="../controlador/RolControlador.php" id="formEditarRol">
                     <input type="hidden" name="action" value="editar">
                     <input type="hidden" id="id_rol" name="id_rol">
 
                     <div class="modal-body">
                         <div class="container-fluid">
                             <div class="row">
-                                <div class="col-md-12">
+                                <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label for="rol" class="form-label">
                                             <i class="fas fa-user-tag text-verde me-2"></i>Nombre del Rol
                                         </label>
                                         <input type="text" class="form-control" id="rol" name="rol" required
-                                               maxlength="50" readonly>
+                                               maxlength="50">
                                         <div class="form-text">Nombre único del rol</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="salario_base" class="form-label">
+                                            <i class="fas fa-dollar-sign text-verde me-2"></i>Salario Base
+                                        </label>
+                                        <input type="number"
+                                               class="form-control"
+                                               id="salario_base"
+                                               name="salario_base"
+                                               required
+                                               min="0"
+                                               step="0.01">
+                                        <div class="form-text">Salario base para este rol</div>
                                     </div>
                                 </div>
                             </div>
@@ -141,7 +163,7 @@
                                             <i class="fas fa-align-left text-azul me-2"></i>Descripción
                                         </label>
                                         <textarea class="form-control" id="descripcion" name="descripcion" rows="3"
-                                                  maxlength="200"></textarea>
+                                                  maxlength="200" required></textarea>
                                         <div class="form-text">Descripción del rol (máximo 200 caracteres)</div>
                                     </div>
                                 </div>
@@ -174,16 +196,19 @@
                 const id = button.getAttribute('data-id');
                 const nombre = button.getAttribute('data-nombre');
                 const descripcion = button.getAttribute('data-descripcion');
+                const salario = button.getAttribute('data-salario');
 
                 document.getElementById('id_rol').value = id;
                 document.getElementById('rol').value = nombre;
                 document.getElementById('descripcion').value = descripcion;
+                document.getElementById('salario_base').value = salario;
             });
 
             // Validación del formulario
             formEditar.addEventListener('submit', function(e) {
                 const nombre = document.getElementById('rol').value.trim();
                 const descripcion = document.getElementById('descripcion').value.trim();
+                const salario_base = document.getElementById('salario_base').value.trim();
 
                 if (!nombre) {
                     e.preventDefault();
@@ -199,9 +224,55 @@
                     return;
                 }
 
+                if (!salario_base || parseFloat(salario_base) < 0) {
+                    e.preventDefault();
+                    alert('Por favor, ingrese un salario base válido (mayor o igual a 0)');
+                    document.getElementById('salario_base').focus();
+                    return;
+                }
+
+                if (nombre.length < 3) {
+                    e.preventDefault();
+                    alert('El nombre del rol debe tener al menos 3 caracteres');
+                    document.getElementById('rol').focus();
+                    return;
+                }
+
+                if (descripcion.length < 10) {
+                    e.preventDefault();
+                    alert('La descripción debe tener al menos 10 caracteres');
+                    document.getElementById('descripcion').focus();
+                    return;
+                }
+
                 // Mostrar loading en el botón
                 btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Guardando...';
                 btnGuardar.disabled = true;
+            });
+
+            // Validación en tiempo real para el modal
+            document.getElementById('rol').addEventListener('input', function() {
+                if (this.value.length < 3) {
+                    this.classList.add('is-invalid');
+                } else {
+                    this.classList.remove('is-invalid');
+                }
+            });
+
+            document.getElementById('descripcion').addEventListener('input', function() {
+                if (this.value.length < 10) {
+                    this.classList.add('is-invalid');
+                } else {
+                    this.classList.remove('is-invalid');
+                }
+            });
+
+            document.getElementById('salario_base').addEventListener('input', function() {
+                if (!this.value || parseFloat(this.value) < 0) {
+                    this.classList.add('is-invalid');
+                } else {
+                    this.classList.remove('is-invalid');
+                }
             });
 
             // Limpiar el modal cuando se cierre
@@ -209,6 +280,11 @@
                 formEditar.reset();
                 btnGuardar.innerHTML = '<i class="fas fa-save me-2"></i>Guardar Cambios';
                 btnGuardar.disabled = false;
+
+                // Remover clases de validación
+                document.getElementById('rol').classList.remove('is-invalid');
+                document.getElementById('descripcion').classList.remove('is-invalid');
+                document.getElementById('salario_base').classList.remove('is-invalid');
             });
         });
 
@@ -329,6 +405,10 @@
         .content-box-header {
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
             border-bottom: 1px solid #dee2e6;
+        }
+
+        .is-invalid {
+            border-color: #dc3545 !important;
         }
     </style>
 

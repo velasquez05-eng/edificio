@@ -441,7 +441,32 @@ if (empty($_SESSION['id_persona'])) {
                                 </a>
                             </li>
                             <?php }?>
+                            <?php if ($_SESSION['id_rol'] == '1') { ?>
+
+                                <li class="nav-item">
+                                    <a href="../controlador/PlanillaControlador.php?action=listarPlanillasCompleto" class="nav-link">
+                                        <i class="fas fa-list"></i>
+                                        <p>Planillas</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="../controlador/PlanillaControlador.php?action=formularioGenerarPlanilla" class="nav-link">
+                                        <i class="fas fa-history"></i>
+                                        <p>Generar planillas</p>
+                                    </a>
+                                </li>
+                            <?php }?>
+                            <?php if ($_SESSION['id_rol'] != '2' && $_SESSION['id_rol'] != '1') { ?>
+                                <li class="nav-item">
+                                    <a href="../controlador/PlanillaControlador.php?action=verMiPlanilla" class="nav-link">
+                                        <i class="fas fa-chart-line"></i>
+                                        <p>Mis planillas</p>
+                                    </a>
+                                </li>
+                            <?php }?>
                         </ul>
+
+
                     </li>
                 </ul>
             </nav>

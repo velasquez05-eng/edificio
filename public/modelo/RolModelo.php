@@ -30,27 +30,29 @@ class RolModelo
         }
     }
 
-    public function registrarRol($rol, $descripcion){
+    public function registrarRol($rol, $descripcion, $salario_base){
         // Validar que los datos no estén vacíos
-        if(empty($rol) || empty($descripcion)){
-            error_log("ERROR: El rol y descripción son obligatorios");
+        if(empty($rol) || empty($descripcion) || empty($salario_base)){
+            error_log("ERROR: El rol, descripción y salario base son obligatorios");
             return false;
         }
-        $query = "insert into " . $this->table_name . " (rol, descripcion) values (:rol, :descripcion)";
+        $query = "insert into " . $this->table_name . " (rol, descripcion, salario_base) values (:rol, :descripcion, :salario_base)";
         $stmt = $this->db->prepare($query);
         $stmt->bindParam(":rol", $rol);
         $stmt->bindParam(":descripcion", $descripcion);
+        $stmt->bindParam(":salario_base", $salario_base);
         if($stmt->execute()){
             return true;
         }else{
             return false;
         }
     }
-    public function editarRol($id_rol,$rol,$descripcion){
-        $query=" update ".$this->table_name." set rol=:rol,descripcion=:descripcion where id_rol=:id_rol";
+    public function editarRol($id_rol,$rol,$descripcion,$salario_base){
+        $query=" update ".$this->table_name." set rol=:rol, descripcion=:descripcion, salario_base=:salario_base where id_rol=:id_rol";
         $stmt = $this->db->prepare($query);
         $stmt->bindParam(":rol",$rol);
         $stmt->bindParam(":descripcion",$descripcion);
+        $stmt->bindParam(":salario_base",$salario_base);
         $stmt->bindParam(":id_rol",$id_rol);
         if($stmt->execute()){
             return true;
