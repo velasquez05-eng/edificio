@@ -448,21 +448,19 @@ $estadisticas = [
 
             // Función para generar QR para una factura específica
             function generarQRParaFactura(idFactura) {
-                // Obtener IP del servidor
-                let ipServidor = '<?php
-                        // Obtener IP local del servidor
-                        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-                            $output = shell_exec('ipconfig');
-                            preg_match('/IPv4[^:]*:\s*([0-9\.]+)/', $output, $matches);
-                            echo $matches[1] ?? '127.0.0.1';
-                        } else {
-                            echo trim(shell_exec("hostname -I | awk '{print $1}'")) ?: '127.0.0.1';
-                        }
-                        ?>';
-
-                // Configuración de la base de datos
-                const dbname = 'db_edificio_v3';
-                const dbuser = 'root';
+                // Obtener configuración desde database.php
+                <?php
+                require_once '../../config/database.php';
+                $database = new Database();
+                $ipServidor = Database::getServerIP();
+                $dbname = $database->getDbName();
+                $dbuser = $database->getUsername();
+                ?>
+                
+                // Configuración de la base de datos desde config/database.php
+                const ipServidor = '<?php echo htmlspecialchars($ipServidor, ENT_QUOTES, 'UTF-8'); ?>';
+                const dbname = '<?php echo htmlspecialchars($dbname, ENT_QUOTES, 'UTF-8'); ?>';
+                const dbuser = '<?php echo htmlspecialchars($dbuser, ENT_QUOTES, 'UTF-8'); ?>';
 
                 // Datos a cifrar: IP;DBNAME;USER;ID_FACTURA
                 const datos = `${ipServidor};${dbname};${dbuser};${idFactura}`;

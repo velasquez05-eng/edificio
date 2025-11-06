@@ -14,16 +14,22 @@ $todosServicios = $todosServicios ?? [];
 $departamentosSelector = $departamentosSelector ?? [];
 $consumoDiarioDepartamento = $consumoDiarioDepartamento ?? [];
 
-// Parámetros de filtro
-$mes_filtro = $_GET['mes'] ?? date('m');
-$anio_filtro = $_GET['anio'] ?? date('Y');
-$departamento_filtro = $_GET['departamento'] ?? '';
+// Parámetros de filtro (si no están definidos desde el controlador, obtenerlos de GET)
+$mes_filtro = $mes_filtro ?? ($_GET['mes'] ?? date('m'));
+$anio_filtro = $anio_filtro ?? ($_GET['anio'] ?? date('Y'));
+$departamento_filtro = $departamento_filtro ?? ($_GET['departamento'] ?? '');
 
 // Preparar datos para gráficos
 function prepararDatosConsumoMensualChart($consumoMensualGeneral) {
     $datos = ['labels' => [], 'datasets' => []];
-    $departamentos = [];
-    $consumoPorDepartamento = [];
+    
+    // Si no hay datos, retornar estructura vacía
+    if (empty($consumoMensualGeneral)) {
+        return $datos;
+    }
+    
+    $servicios = []; // Cambiado de $departamentos a $servicios para claridad
+    $consumoPorServicio = []; // Cambiado de $consumoPorDepartamento a $consumoPorServicio
 
     foreach ($consumoMensualGeneral as $consumo) {
         $departamento = 'Dpto ' . $consumo['departamento'] . ' - P' . $consumo['piso'];
@@ -33,11 +39,11 @@ function prepararDatosConsumoMensualChart($consumoMensualGeneral) {
             $datos['labels'][] = $departamento;
         }
 
-        if (!in_array($servicio, $departamentos)) {
-            $departamentos[] = $servicio;
+        if (!in_array($servicio, $servicios)) {
+            $servicios[] = $servicio;
         }
 
-        $consumoPorDepartamento[$servicio][$departamento] = $consumo['consumo_mensual'];
+        $consumoPorServicio[$servicio][$departamento] = $consumo['consumo_mensual'] ?? 0;
     }
 
     $colores = [
@@ -46,7 +52,7 @@ function prepararDatosConsumoMensualChart($consumoMensualGeneral) {
             'gas' => 'rgba(255, 99, 132, 0.8)'
     ];
 
-    foreach ($departamentos as $servicio) {
+    foreach ($servicios as $servicio) {
         $dataset = [
                 'label' => ucfirst($servicio),
                 'data' => [],
@@ -56,7 +62,7 @@ function prepararDatosConsumoMensualChart($consumoMensualGeneral) {
         ];
 
         foreach ($datos['labels'] as $departamento) {
-            $dataset['data'][] = $consumoPorDepartamento[$servicio][$departamento] ?? 0;
+            $dataset['data'][] = $consumoPorServicio[$servicio][$departamento] ?? 0;
         }
 
         $datos['datasets'][] = $dataset;
@@ -67,12 +73,29 @@ function prepararDatosConsumoMensualChart($consumoMensualGeneral) {
 
 function prepararDatosConsumoDiarioChart($consumoDiarioDepartamento) {
     $datos = ['labels' => [], 'datasets' => []];
+    
+    // Si no hay datos, retornar estructura vacía
+    if (empty($consumoDiarioDepartamento)) {
+        return $datos;
+    }
+    
     $servicios = [];
     $consumoPorServicio = [];
 
     foreach ($consumoDiarioDepartamento as $consumo) {
-        $servicio = $consumo['servicio'];
-        $fecha = date('d/m', strtotime($consumo['fecha']));
+        $servicio = $consumo['servicio'] ?? '';
+        $fecha_str = $consumo['fecha'] ?? '';
+        
+        if (empty($servicio) || empty($fecha_str)) {
+            continue;
+        }
+        
+        $fecha = date('d/m', strtotime($fecha_str));
+        
+        // Validar que la fecha sea válida
+        if ($fecha === '01/01' || $fecha === false) {
+            continue;
+        }
 
         if (!in_array($fecha, $datos['labels'])) {
             $datos['labels'][] = $fecha;
@@ -82,8 +105,18 @@ function prepararDatosConsumoDiarioChart($consumoDiarioDepartamento) {
             $servicios[] = $servicio;
         }
 
-        $consumoPorServicio[$servicio][$fecha] = $consumo['consumo_diario'];
+        $consumoPorServicio[$servicio][$fecha] = $consumo['consumo_diario'] ?? 0;
     }
+    
+    // Ordenar las fechas
+    usort($datos['labels'], function($a, $b) {
+        $dateA = DateTime::createFromFormat('d/m', $a);
+        $dateB = DateTime::createFromFormat('d/m', $b);
+        if ($dateA === false || $dateB === false) {
+            return 0;
+        }
+        return $dateA->getTimestamp() - $dateB->getTimestamp();
+    });
 
     $colores = [
             'agua' => 'rgba(54, 162, 235, 0.8)',
@@ -178,7 +211,7 @@ $consumoDiarioChart = prepararDatosConsumoDiarioChart($consumoDiarioDepartamento
                                     <option value="">Seleccionar departamento</option>
                                     <?php foreach ($departamentosSelector as $depto): ?>
                                         <option value="<?php echo $depto['id_departamento']; ?>"
-                                                <?php echo $depto['id_departamento'] == $departamento_filtro ? 'selected' : ''; ?>>
+                                                <?php echo (string)$depto['id_departamento'] === (string)$departamento_filtro ? 'selected' : ''; ?>>
                                             Dpto <?php echo $depto['numero']; ?> - Piso <?php echo $depto['piso']; ?>
                                         </option>
                                     <?php endforeach; ?>
@@ -302,7 +335,7 @@ $consumoDiarioChart = prepararDatosConsumoDiarioChart($consumoDiarioDepartamento
         </div>
 
         <!-- Consumo Diario por Departamento -->
-        <?php if ($departamento_filtro && !empty($consumoDiarioDepartamento)): ?>
+        <?php if (!empty($departamento_filtro) && !empty($consumoDiarioDepartamento)): ?>
             <div class="row mb-4">
                 <div class="col-12">
                     <div class="content-box">
@@ -582,61 +615,112 @@ $consumoDiarioChart = prepararDatosConsumoDiarioChart($consumoDiarioDepartamento
     <!-- Scripts para Gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Gráfico de Consumo Mensual
-        const consumoMensualData = <?php echo json_encode($consumoMensualChart); ?>;
-        if (document.getElementById('consumoMensualChart')) {
-            const ctx = document.getElementById('consumoMensualChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: consumoMensualData,
-                options: {
-                    responsive: true,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Consumo Mensual por Departamento'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Consumo'
-                            }
-                        }
-                    }
-                }
-            });
-        }
+        // Esperar a que Chart.js esté cargado
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar que Chart esté disponible
+            if (typeof Chart === 'undefined') {
+                console.error('Chart.js no está cargado correctamente');
+                return;
+            }
 
-        // Gráfico de Consumo Diario
-        const consumoDiarioData = <?php echo json_encode($consumoDiarioChart); ?>;
-        if (document.getElementById('consumoDiarioChart') && consumoDiarioData.labels.length > 0) {
-            const ctx2 = document.getElementById('consumoDiarioChart').getContext('2d');
-            new Chart(ctx2, {
-                type: 'line',
-                data: consumoDiarioData,
-                options: {
-                    responsive: true,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Consumo Diario - Últimos 7 días'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Consumo'
+            // Gráfico de Consumo Mensual
+            const consumoMensualData = <?php echo json_encode($consumoMensualChart); ?>;
+            const consumoMensualCanvas = document.getElementById('consumoMensualChart');
+            
+            if (consumoMensualCanvas) {
+                try {
+                    const ctx = consumoMensualCanvas.getContext('2d');
+                    
+                    // Verificar que hay datos para mostrar
+                    if (consumoMensualData && consumoMensualData.labels && consumoMensualData.labels.length > 0 && 
+                        consumoMensualData.datasets && consumoMensualData.datasets.length > 0) {
+                        new Chart(ctx, {
+                            type: 'bar',
+                            data: consumoMensualData,
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    title: {
+                                        display: true,
+                                        text: 'Consumo Mensual por Departamento'
+                                    },
+                                    legend: {
+                                        display: true,
+                                        position: 'top'
+                                    }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        title: {
+                                            display: true,
+                                            text: 'Consumo'
+                                        }
+                                    },
+                                    x: {
+                                        ticks: {
+                                            maxRotation: 45,
+                                            minRotation: 45
+                                        }
+                                    }
+                                }
                             }
-                        }
+                        });
+                    } else {
+                        // Mostrar mensaje si no hay datos
+                        consumoMensualCanvas.parentElement.innerHTML = '<div class="text-center py-4"><p class="text-muted">No hay datos de consumo mensual para mostrar</p></div>';
                     }
+                } catch (error) {
+                    console.error('Error al crear el gráfico de consumo mensual:', error);
                 }
-            });
-        }
+            }
+
+            // Gráfico de Consumo Diario
+            const consumoDiarioData = <?php echo json_encode($consumoDiarioChart); ?>;
+            const consumoDiarioCanvas = document.getElementById('consumoDiarioChart');
+            
+            if (consumoDiarioCanvas && consumoDiarioData && consumoDiarioData.labels && consumoDiarioData.labels.length > 0) {
+                try {
+                    const ctx2 = consumoDiarioCanvas.getContext('2d');
+                    
+                    if (consumoDiarioData.datasets && consumoDiarioData.datasets.length > 0) {
+                        new Chart(ctx2, {
+                            type: 'line',
+                            data: consumoDiarioData,
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    title: {
+                                        display: true,
+                                        text: 'Consumo Diario - Últimos 7 días'
+                                    },
+                                    legend: {
+                                        display: true,
+                                        position: 'top'
+                                    }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        title: {
+                                            display: true,
+                                            text: 'Consumo'
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    } else {
+                        // Mostrar mensaje si no hay datos
+                        consumoDiarioCanvas.parentElement.innerHTML = '<div class="text-center py-4"><p class="text-muted">No hay datos de consumo diario para mostrar</p></div>';
+                    }
+                } catch (error) {
+                    console.error('Error al crear el gráfico de consumo diario:', error);
+                }
+            }
+        });
     </script>
 
 <?php include("../../includes/footer.php"); ?>

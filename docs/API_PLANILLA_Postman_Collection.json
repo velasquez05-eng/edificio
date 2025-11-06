@@ -1,0 +1,337 @@
+{
+	"info": {
+		"name": "API Planilla",
+		"description": "Colección completa de endpoints para la API de Planillas de Pago de Empleados",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Generación de Planillas",
+			"item": [
+				{
+					"name": "Generar Planilla Completa",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"generarPlanillaCompleta\",\n    \"mes\": 12,\n    \"anio\": 2024,\n    \"metodo_pago\": \"transferencia\",\n    \"forzar\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/public/api/planilla.php",
+							"host": ["{{base_url}}"],
+							"path": ["public", "api", "planilla.php"]
+						}
+					}
+				},
+				{
+					"name": "Generar Planilla Personalizada",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"generarPlanillaPersonalizada\",\n    \"id_persona\": 1,\n    \"mes\": 12,\n    \"anio\": 2024,\n    \"dias_descuento\": 5,\n    \"metodo_pago\": \"transferencia\",\n    \"forzar\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/public/api/planilla.php",
+							"host": ["{{base_url}}"],
+							"path": ["public", "api", "planilla.php"]
+						}
+					}
+				},
+				{
+					"name": "Generar Planilla Múltiple",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"generarPlanillaMultiple\",\n    \"mes\": 12,\n    \"anio\": 2024,\n    \"json_descuentos\": [\n        {\n            \"id_persona\": 1,\n            \"dias_descuento\": 5\n        },\n        {\n            \"id_persona\": 2,\n            \"dias_descuento\": 0\n        },\n        {\n            \"id_persona\": 3,\n            \"dias_descuento\": 10\n        }\n    ],\n    \"metodo_pago\": \"transferencia\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/public/api/planilla.php",
+							"host": ["{{base_url}}"],
+							"path": ["public", "api", "planilla.php"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Consultas",
+			"item": [
+				{
+					"name": "Listar Planillas Completo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"listarPlanillasCompleto\",\n    \"mes\": 12,\n    \"anio\": 2024\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/public/api/planilla.php",
+							"host": ["{{base_url}}"],
+							"path": ["public", "api", "planilla.php"]
+						}
+					}
+				},
+				{
+					"name": "Listar Mi Planilla",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"listarMiPlanilla\",\n    \"id_persona\": 1,\n    \"mes\": 12,\n    \"anio\": 2024\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/public/api/planilla.php",
+							"host": ["{{base_url}}"],
+							"path": ["public", "api", "planilla.php"]
+						}
+					}
+				},
+				{
+					"name": "Obtener Planilla por ID",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"obtenerPlanillaPorId\",\n    \"id_planilla_emp\": 1,\n    \"id_persona\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/public/api/planilla.php",
+							"host": ["{{base_url}}"],
+							"path": ["public", "api", "planilla.php"]
+						}
+					}
+				},
+				{
+					"name": "Obtener Detalle Planilla",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"obtenerDetallePlanilla\",\n    \"id_planilla_emp\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/public/api/planilla.php",
+							"host": ["{{base_url}}"],
+							"path": ["public", "api", "planilla.php"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Estadísticas y Reportes",
+			"item": [
+				{
+					"name": "Obtener Estadísticas",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"obtenerEstadisticas\",\n    \"mes\": 12,\n    \"anio\": 2024\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/public/api/planilla.php",
+							"host": ["{{base_url}}"],
+							"path": ["public", "api", "planilla.php"]
+						}
+					}
+				},
+				{
+					"name": "Obtener Resumen Anual",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"obtenerResumenAnual\",\n    \"anio\": 2024,\n    \"id_persona\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/public/api/planilla.php",
+							"host": ["{{base_url}}"],
+							"path": ["public", "api", "planilla.php"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "4. Endpoints Auxiliares",
+			"item": [
+				{
+					"name": "Obtener Empleados Activos",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"obtenerEmpleadosActivos\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/public/api/planilla.php",
+							"host": ["{{base_url}}"],
+							"path": ["public", "api", "planilla.php"]
+						}
+					}
+				},
+				{
+					"name": "Verificar Planilla Existente",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"verificarPlanillaExistente\",\n    \"mes\": 12,\n    \"anio\": 2024\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/public/api/planilla.php",
+							"host": ["{{base_url}}"],
+							"path": ["public", "api", "planilla.php"]
+						}
+					}
+				},
+				{
+					"name": "Obtener Métodos de Pago",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"obtenerMetodosPago\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/public/api/planilla.php",
+							"host": ["{{base_url}}"],
+							"path": ["public", "api", "planilla.php"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "5. Gestión",
+			"item": [
+				{
+					"name": "Actualizar Estado de Pago",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"actualizarEstadoPago\",\n    \"id_planilla_emp\": 1,\n    \"id_persona\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/public/api/planilla.php",
+							"host": ["{{base_url}}"],
+							"path": ["public", "api", "planilla.php"]
+						}
+					}
+				},
+				{
+					"name": "Eliminar Planilla Período",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"eliminarPlanillaPeriodo\",\n    \"mes\": 12,\n    \"anio\": 2024\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/public/api/planilla.php",
+							"host": ["{{base_url}}"],
+							"path": ["public", "api", "planilla.php"]
+						}
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost",
+			"type": "string"
+		}
+	]
+}
+
+

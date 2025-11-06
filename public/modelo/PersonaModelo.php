@@ -169,6 +169,39 @@ class PersonaModelo
         return [];
     }
 
+
+
+      public function listarResidentesSinDepartamento(){
+        $query = "SELECT 
+            p.*, 
+            r.rol
+          FROM " . $this->table_name . " p 
+          JOIN rol r ON p.id_rol = r.id_rol 
+          LEFT JOIN tiene_departamento td ON p.id_persona = td.id_persona AND td.estado = 'activo'
+          WHERE r.rol = 'Residente' 
+          AND p.estado = 'activo'
+          AND td.id_departamento IS NULL
+          ORDER BY p.nombre ASC";
+
+        $stmt = $this->db->prepare($query);
+        $stmt->execute();
+
+        if ($stmt->rowCount() > 0){
+            $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Descifrar los datos sensibles
+            foreach ($resultados as &$fila) {
+                $fila['nombre'] = $this->decrypt($fila['nombre']);
+                $fila['apellido_paterno'] = $this->decrypt($fila['apellido_paterno']);
+                $fila['apellido_materno'] = $this->decrypt($fila['apellido_materno']);
+                $fila['ci'] = $this->decrypt($fila['ci']);
+            }
+
+            return $resultados;
+        }
+        return [];
+    }
+
     public function listarEliminados(){
         $query = "SELECT * FROM " . $this->table_name . " p, rol r 
                  WHERE p.id_rol = r.id_rol and estado = 'inactivo'";
@@ -270,6 +303,44 @@ class PersonaModelo
             }
         } catch (Exception $e) {
             error_log("Error en editarPersona: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Actualizar perfil personal (sin rol, CI, username)
+     */
+    public function actualizarMiPerfil($id_persona, $nombre, $apellido_paterno, $apellido_materno, $telefono, $email){
+        try {
+            // Cifrar los datos sensibles
+            $nombre_encrypted = $this->encrypt($nombre);
+            $apellido_paterno_encrypted = $this->encrypt($apellido_paterno);
+            $apellido_materno_encrypted = $this->encrypt($apellido_materno);
+
+            $query = "UPDATE " . $this->table_name . " 
+                 SET nombre = :nombre, 
+                     apellido_paterno = :apellido_paterno, 
+                     apellido_materno = :apellido_materno, 
+                     telefono = :telefono, 
+                     email = :email
+                 WHERE id_persona = :id_persona";
+
+            $stmt = $this->db->prepare($query);
+            $stmt->bindParam(":nombre", $nombre_encrypted);
+            $stmt->bindParam(":apellido_paterno", $apellido_paterno_encrypted);
+            $stmt->bindParam(":apellido_materno", $apellido_materno_encrypted);
+            $stmt->bindParam(":telefono", $telefono);
+            $stmt->bindParam(":email", $email);
+            $stmt->bindParam(":id_persona", $id_persona);
+
+            if($stmt->execute()){
+                return true;
+            }else{
+                error_log("Error en execute: " . implode(", ", $stmt->errorInfo()));
+                return false;
+            }
+        } catch (Exception $e) {
+            error_log("Error en actualizarMiPerfil: " . $e->getMessage());
             return false;
         }
     }
@@ -842,6 +913,54 @@ public function cambiarPassword($id_persona, $password){
         } catch (Exception $e) {
             error_log("Error en verificarCodigoRecuperacion: " . $e->getMessage());
             return false;
+        }
+    }
+
+    /**
+     * Obtener residentes por departamento
+     */
+    public function obtenerResidentesPorDepartamento($id_departamento) {
+        try {
+            $sql = "SELECT 
+                    p.id_persona,
+                    p.nombre,
+                    p.apellido_paterno,
+                    p.apellido_materno,
+                    p.telefono,
+                    p.email,
+                    p.username,
+                    r.rol
+                FROM " . $this->table_name . " p
+                INNER JOIN tiene_departamento td ON p.id_persona = td.id_persona
+                INNER JOIN rol r ON p.id_rol = r.id_rol
+                WHERE td.id_departamento = :id_departamento 
+                AND td.estado = 'activo'
+                AND p.estado = 'activo'
+                AND LOWER(r.rol) = 'residente'
+                ORDER BY p.nombre, p.apellido_paterno";
+
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindParam(':id_departamento', $id_departamento, PDO::PARAM_INT);
+            $stmt->execute();
+
+            $residentes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Descifrar los datos sensibles
+            foreach ($residentes as &$residente) {
+                $residente['nombre'] = $this->decrypt($residente['nombre']);
+                $residente['apellido_paterno'] = $this->decrypt($residente['apellido_paterno']);
+                $residente['apellido_materno'] = $this->decrypt($residente['apellido_materno']);
+                $residente['nombre_completo'] = trim(
+                    $residente['nombre'] . ' ' .
+                    $residente['apellido_paterno'] . ' ' .
+                    ($residente['apellido_materno'] ?? '')
+                );
+            }
+
+            return $residentes;
+        } catch (Exception $e) {
+            error_log("Error en obtenerResidentesPorDepartamento: " . $e->getMessage());
+            return [];
         }
     }
 }

@@ -35,6 +35,15 @@ class ComunicadoControlador {
             case 'verComunicado':
                 $this->verComunicado();
                 break;
+            case 'listarPublicados':
+                $this->listarComunicadosPublicados();
+                break;
+            case 'listarEliminados':
+                $this->listarComunicadosEliminados();
+                break;
+            case 'restaurar':
+                $this->restaurarComunicado();
+                break;
             default:
                 $this->listarComunicados();
                 break;
@@ -146,6 +155,29 @@ class ComunicadoControlador {
         $comunicados = $this->comunicadoModelo->listarComunicados();
         $estadisticas = $this->comunicadoModelo->obtenerEstadisticas();
         include '../vista/ListarComunicadosVista.php';
+    }
+
+    private function listarComunicadosPublicados() {
+        $comunicados = $this->comunicadoModelo->listarComunicadosPublicados();
+        include '../vista/ListarComunicadosPublicadosVista.php';
+    }
+
+    private function listarComunicadosEliminados() {
+        $comunicados = $this->comunicadoModelo->listarComunicadosEliminados();
+        include '../vista/ListarComunicadosEliminadosVista.php';
+    }
+
+    private function restaurarComunicado() {
+        if (isset($_GET['id'])) {
+            $result = $this->comunicadoModelo->restaurar($_GET['id']);
+
+            if ($result) {
+                header("Location: ComunicadoControlador.php?action=listarEliminados&success=Comunicado restaurado exitosamente");
+            } else {
+                header("Location: ComunicadoControlador.php?action=listarEliminados&error=Error al restaurar el comunicado");
+            }
+            exit();
+        }
     }
 }
 

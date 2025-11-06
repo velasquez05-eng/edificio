@@ -59,6 +59,112 @@ class PersonaControlador{
         include '../vista/LoginVista.php';
     }
 
+    /**
+     * Mostrar mi perfil
+     */
+    public function verMiPerfil(){
+        // Iniciar sesión si no está iniciada
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
+        if (!isset($_SESSION['id_persona'])) {
+            header('Location: ../vista/LoginVista.php?error=Debe iniciar sesión');
+            exit;
+        }
+
+        $id_persona = $_SESSION['id_persona'];
+        $persona = $this->personamodelo->obtenerPersonaPorId($id_persona);
+        
+        if (!$persona) {
+            $id_rol = isset($_SESSION['id_rol']) ? $_SESSION['id_rol'] : '3';
+            $dashboardAction = 'mostrarDashboard' . ($id_rol == '1' ? 'Administrador' : (($id_rol == '2') ? 'Residente' : 'Personal'));
+            header('Location: ../controlador/DashboardControlador.php?action=' . $dashboardAction . '&error=' . urlencode('No se pudo cargar el perfil'));
+            exit;
+        }
+
+        include '../vista/VerMiPerfilVista.php';
+    }
+
+    /**
+     * Actualizar mi perfil
+     */
+    public function actualizarMiPerfil(){
+        // Iniciar sesión si no está iniciada
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
+        if (!isset($_SESSION['id_persona'])) {
+            header('Location: ../vista/LoginVista.php?error=Debe iniciar sesión');
+            exit;
+        }
+
+        $id_persona = $_SESSION['id_persona'];
+
+        // Validar campos requeridos
+        $camposRequeridos = ['nombre', 'apellido_paterno', 'telefono', 'email'];
+        foreach($camposRequeridos as $campo) {
+            if(!isset($_POST[$campo]) || empty(trim($_POST[$campo]))) {
+                $this->redirigirConError("El campo $campo es obligatorio", 'verMiPerfil');
+            }
+        }
+
+        // Sanitizar datos de entrada
+        $nombre = htmlspecialchars(trim($_POST['nombre']));
+        $apellido_paterno = htmlspecialchars(trim($_POST['apellido_paterno']));
+        $apellido_materno = isset($_POST['apellido_materno']) ? htmlspecialchars(trim($_POST['apellido_materno'])) : '';
+        $telefono = htmlspecialchars(trim($_POST['telefono']));
+        $email = filter_var(trim($_POST['email']), FILTER_SANITIZE_EMAIL);
+
+        // Validaciones adicionales
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->redirigirConError("El formato del email no es válido", 'verMiPerfil');
+        }
+
+        // Verificar si el email ya existe en otra persona
+        $personaActual = $this->personamodelo->obtenerPersonaPorId($id_persona);
+        if ($personaActual && $personaActual['email'] != $email) {
+            if ($this->personamodelo->verificarEmail($id_persona, $email)) {
+                $this->redirigirConError("El email ya está en uso por otra persona", 'verMiPerfil');
+            }
+        }
+
+        // Actualizar perfil
+        $resultado = $this->personamodelo->actualizarMiPerfil($id_persona, $nombre, $apellido_paterno, $apellido_materno, $telefono, $email);
+
+        if ($resultado) {
+            // Actualizar contraseña solo si se proporcionó y el checkbox está marcado
+            if (isset($_POST['cambiar_password']) && $_POST['cambiar_password'] == 'on' && !empty($_POST['nueva_password'])) {
+                $nueva_password = $_POST['nueva_password'];
+                $confirmar_password = $_POST['confirmar_password'] ?? '';
+
+                if ($nueva_password !== $confirmar_password) {
+                    $this->redirigirConError("Las contraseñas no coinciden", 'verMiPerfil');
+                }
+
+                if (strlen($nueva_password) < 8) {
+                    $this->redirigirConError("La contraseña debe tener al menos 8 caracteres", 'verMiPerfil');
+                }
+
+                $resultadoPassword = $this->personamodelo->cambiarPassword($id_persona, $nueva_password);
+                if (!$resultadoPassword) {
+                    $this->redirigirConError("Error al actualizar la contraseña", 'verMiPerfil');
+                }
+            }
+
+            // Actualizar sesión con nuevos datos
+            $_SESSION['nombre'] = $nombre;
+            $_SESSION['apellido_paterno'] = $apellido_paterno;
+            $_SESSION['apellido_materno'] = $apellido_materno;
+
+            header('Location: PersonaControlador.php?action=verMiPerfil&success=' . urlencode('Perfil actualizado exitosamente'));
+            exit;
+        } else {
+            $this->redirigirConError("Error al actualizar el perfil", 'verMiPerfil');
+        }
+    }
+
     // =============================================
     // METODOS DE GESTION DE PERSONAS
     // =============================================
@@ -578,8 +684,12 @@ class PersonaControlador{
     /**
      * Redirigir con mensaje de error
      */
-    private function redirigirConError($mensaje) {
-        header('Location: ../vista/RegistrarPersonaVista.php?error=' . urlencode($mensaje));
+    private function redirigirConError($mensaje, $action = null) {
+        if ($action === 'verMiPerfil') {
+            header('Location: PersonaControlador.php?action=verMiPerfil&error=' . urlencode($mensaje));
+        } else {
+            header('Location: ../vista/RegistrarPersonaVista.php?error=' . urlencode($mensaje));
+        }
         exit;
     }
 
@@ -725,6 +835,11 @@ class PersonaControlador{
 // =============================================
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    // Iniciar sesión si no está iniciada
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    
     include_once "../../config/database.php";
     include_once "../modelo/PersonaModelo.php";
     include_once "../modelo/RolModelo.php";
@@ -754,8 +869,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             case 'logout':
                 $controlador->logout();
                 break;
+            case 'verMiPerfil':
+                $controlador->verMiPerfil();
+                break;
             default:
-                header('Location: ../vista/DashboardVista.php?error=Accion no valida');
+                // Verificar que la sesión esté disponible antes de acceder
+                $id_rol = isset($_SESSION['id_rol']) ? $_SESSION['id_rol'] : '3';
+                $dashboardAction = 'mostrarDashboard' . ($id_rol == '1' ? 'Administrador' : (($id_rol == '2') ? 'Residente' : 'Personal'));
+                header('Location: DashboardControlador.php?action=' . $dashboardAction . '&error=' . urlencode('Acción no válida'));
                 exit;
         }
     }
@@ -812,8 +933,76 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         case 'verificarBloqueo': // ← NUEVA ACCIÓN PARA AJAX
             $controlador->verificarBloqueo();
             break;
+        case 'verMiPerfil':
+            $controlador->verMiPerfil();
+            break;
+        case 'actualizarMiPerfil':
+            $controlador->actualizarMiPerfil();
+            break;
         default:
-            header('Location: ../vista/DashboardVista.php?error=Accion no valida');
+            // Verificar que la sesión esté disponible antes de acceder
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
+            $id_rol = isset($_SESSION['id_rol']) ? $_SESSION['id_rol'] : '3';
+            $dashboardAction = 'mostrarDashboard' . ($id_rol == '1' ? 'Administrador' : (($id_rol == '2') ? 'Residente' : 'Personal'));
+            header('Location: DashboardControlador.php?action=' . $dashboardAction . '&error=' . urlencode('Acción no válida'));
+            exit;
+    }
+}
+
+// Manejo de rutas POST
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    // Iniciar sesión si no está iniciada
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    
+    require_once '../../config/database.php';
+    require_once '../modelo/PersonaModelo.php';
+    require_once '../modelo/RolModelo.php';
+    require_once '../modelo/CorreoModelo.php';
+
+    $database = new Database();
+    $db = $database->getConnection();
+    $controlador = new PersonaControlador($db);
+
+    switch($_POST['action']) {
+        case 'registrar':
+            $controlador->registrarPersona();
+            break;
+        case 'editar':
+            $controlador->editarPersona();
+            break;
+        case 'login':
+            $controlador->login();
+            break;
+        case 'logout':
+            $controlador->logout();
+            break;
+        case 'ampliarTiempoVerificacion':
+            $controlador->ampliarTiempoVerificacion();
+            break;
+        case 'eliminarPersona':
+            $controlador->eliminarPersona();
+            break;
+        case 'restaurarPersona':
+            $controlador->restaurarPersona();
+            break;
+        case 'cambiarContraseña':
+            $controlador->cambiarContraseña();
+            break;
+        case 'actualizarMiPerfil':
+            $controlador->actualizarMiPerfil();
+            break;
+        default:
+            // Verificar que la sesión esté disponible antes de acceder
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
+            $id_rol = isset($_SESSION['id_rol']) ? $_SESSION['id_rol'] : '3';
+            $dashboardAction = 'mostrarDashboard' . ($id_rol == '1' ? 'Administrador' : (($id_rol == '2') ? 'Residente' : 'Personal'));
+            header('Location: DashboardControlador.php?action=' . $dashboardAction . '&error=' . urlencode('Acción no válida'));
             exit;
     }
 }

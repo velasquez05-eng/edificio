@@ -40,16 +40,16 @@ include("../../includes/header.php");
 
     <!-- Estadísticas -->
     <div class="row fade-in mb-4">
-        <div class="col-md-3">
+        <div class="col-md-2 col-6 mb-3">
             <div class="content-box text-center">
                 <div class="content-box-body">
                     <i class="fas fa-bullhorn fa-2x text-primary mb-2"></i>
                     <h4 class="mb-1"><?php echo $estadisticas['total'] ?? 0; ?></h4>
-                    <p class="text-muted mb-0">Total Comunicados</p>
+                    <p class="text-muted mb-0">Total</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2 col-6 mb-3">
             <div class="content-box text-center">
                 <div class="content-box-body">
                     <i class="fas fa-eye fa-2x text-success mb-2"></i>
@@ -58,7 +58,7 @@ include("../../includes/header.php");
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2 col-6 mb-3">
             <div class="content-box text-center">
                 <div class="content-box-body">
                     <i class="fas fa-edit fa-2x text-warning mb-2"></i>
@@ -67,7 +67,7 @@ include("../../includes/header.php");
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2 col-6 mb-3">
             <div class="content-box text-center">
                 <div class="content-box-body">
                     <i class="fas fa-archive fa-2x text-info mb-2"></i>
@@ -75,6 +75,21 @@ include("../../includes/header.php");
                     <p class="text-muted mb-0">Archivados</p>
                 </div>
             </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <?php if (isset($_SESSION['id_rol']) && $_SESSION['id_rol'] == '1'): ?>
+                <a href="ComunicadoControlador.php?action=listarEliminados" class="text-decoration-none">
+            <?php endif; ?>
+            <div class="content-box text-center <?php echo (isset($_SESSION['id_rol']) && $_SESSION['id_rol'] == '1') ? 'hover-card' : ''; ?>">
+                <div class="content-box-body">
+                    <i class="fas fa-trash fa-2x text-danger mb-2"></i>
+                    <h4 class="mb-1"><?php echo $estadisticas['eliminados'] ?? 0; ?></h4>
+                    <p class="text-muted mb-0">Eliminados</p>
+                </div>
+            </div>
+            <?php if (isset($_SESSION['id_rol']) && $_SESSION['id_rol'] == '1'): ?>
+                </a>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -197,7 +212,7 @@ include("../../includes/header.php");
                                             </span>
                                         </td>
                                         <td>
-                                            <div class="btn-group" role="group">
+                                            <div class="d-flex gap-1 align-items-center">
                                                 <a href="ComunicadoControlador.php?action=verComunicado&id=<?php echo $comunicado['id_comunicado']; ?>"
                                                    class="btn btn-info btn-sm" title="Ver comunicado">
                                                     <i class="fas fa-eye"></i>
@@ -208,13 +223,14 @@ include("../../includes/header.php");
                                                     <i class="fas fa-edit"></i>
                                                 </a>
 
-                                                <!-- Dropdown para cambiar estado -->
+                                                <!-- Dropdown para cambiar estado y eliminar -->
                                                 <div class="btn-group" role="group">
                                                     <button type="button" class="btn btn-secondary btn-sm dropdown-toggle"
-                                                            data-bs-toggle="dropdown" aria-expanded="false" title="Cambiar estado">
-                                                        <i class="fas fa-cog"></i>
+                                                            data-bs-toggle="dropdown" aria-expanded="false" title="Más opciones">
+                                                        <i class="fas fa-ellipsis-v"></i>
                                                     </button>
-                                                    <ul class="dropdown-menu">
+                                                    <ul class="dropdown-menu dropdown-menu-end">
+                                                        <li><h6 class="dropdown-header">Cambiar Estado</h6></li>
                                                         <?php if ($comunicado['estado'] != 'publicado'): ?>
                                                             <li>
                                                                 <a class="dropdown-item" href="ComunicadoControlador.php?action=cambiarEstado&id=<?php echo $comunicado['id_comunicado']; ?>&estado=publicado">
@@ -351,8 +367,12 @@ include("../../includes/header.php");
             background-color: #f8f9fa;
         }
 
-        .btn-group .btn {
+        .d-flex.gap-1 .btn {
             margin: 0 2px;
+        }
+
+        .btn-group .btn {
+            margin: 0;
         }
 
         .content-box.text-center {
@@ -361,6 +381,24 @@ include("../../includes/header.php");
 
         .content-box.text-center:hover {
             transform: translateY(-5px);
+        }
+
+        .hover-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .hover-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        a.text-decoration-none {
+            color: inherit;
+        }
+
+        a.text-decoration-none:hover {
+            color: inherit;
         }
     </style>
 

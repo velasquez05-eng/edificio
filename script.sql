@@ -80,7 +80,7 @@ CREATE TABLE comunicado (
                             fecha_publicacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                             fecha_expiracion DATE DEFAULT NULL,
                             prioridad ENUM('baja', 'media', 'alta', 'urgente') DEFAULT 'media',
-                            estado ENUM('borrador', 'publicado', 'archivado') DEFAULT 'borrador',
+                            estado ENUM('borrador', 'publicado', 'archivado','eliminado') DEFAULT 'borrador',
                             tipo_audiencia ENUM('Todos', 'Residente', 'Personal') NOT NULL,
                             FOREIGN KEY (id_persona) REFERENCES persona(id_persona)
 );

@@ -65,6 +65,20 @@ class ServicioControlador
 
 
     // Método original para ver historial de consumo (redirige a vista separada)
+    public function listarMedidores()
+    {
+        try {
+            $medidores = $this->serviciomodelo->obtenerTodosMedidores();
+            $medidores = ($medidores === false || $medidores === null) ? [] : $medidores;
+
+            include_once "../vista/ListarMedidoresVista.php";
+        } catch (Exception $e) {
+            error_log("Error en listarMedidores: " . $e->getMessage());
+            $medidores = [];
+            include_once "../vista/ListarMedidoresVista.php";
+        }
+    }
+
     public function verHistorialConsumo()
     {
         try {
@@ -73,7 +87,7 @@ class ServicioControlador
             $fecha_fin = $_GET['fecha_fin'] ?? null;
 
             if (!$id_medidor) {
-                header('Location: ServicioControlador.php?action=listarServicios&error=ID+de+medidor+no+especificado');
+                header('Location: ServicioControlador.php?action=listarMedidores&error=ID+de+medidor+no+especificado');
                 exit;
             }
 
@@ -93,7 +107,7 @@ class ServicioControlador
             include_once "../vista/verHistorialConsumoVista.php";
         } catch (Exception $e) {
             error_log("Error en verHistorialConsumo: " . $e->getMessage());
-            header('Location: ServicioControlador.php?action=listarServicios&error=Error+al+cargar+el+historial+de+consumo');
+            header('Location: ServicioControlador.php?action=listarMedidores&error=Error+al+cargar+el+historial+de+consumo');
             exit;
         }
     }
@@ -552,6 +566,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 break;
             case 'formularioAsignarServicio':
                 $controlador->formularioAsignarServicio();
+                break;
+            case 'listarMedidores':
+                $controlador->listarMedidores();
                 break;
             case 'verHistorialConsumo':
                 $controlador->verHistorialConsumo();

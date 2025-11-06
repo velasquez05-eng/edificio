@@ -183,7 +183,10 @@ class IncidenteModelo {
                     ia.id_personal_asignado,
                     p.nombre as nombre_personal,
                     p.apellido_paterno as apellido_personal,
-                    ia.requiere_reasignacion
+                    ia.requiere_reasignacion,
+                    ia.comentario_reasignacion,
+                    ia.observaciones as observaciones_asignacion,
+                    ia.fecha_asignacion
                 FROM {$this->table_incidente} i
                 LEFT JOIN {$this->table_departamento} d ON i.id_departamento = d.id_departamento
                 LEFT JOIN {$this->table_persona} r ON i.id_residente = r.id_persona
@@ -191,6 +194,9 @@ class IncidenteModelo {
                 LEFT JOIN (
                     SELECT ia1.id_incidente, ia1.id_personal as id_personal_asignado, 
                            ia1.requiere_reasignacion,
+                           ia1.comentario_reasignacion,
+                           ia1.observaciones,
+                           ia1.fecha_asignacion,
                            ROW_NUMBER() OVER (PARTITION BY ia1.id_incidente ORDER BY ia1.fecha_asignacion DESC) as rn
                     FROM {$this->table_incidente_asignado} ia1
                 ) ia ON i.id_incidente = ia.id_incidente AND ia.rn = 1
@@ -435,6 +441,11 @@ class IncidenteModelo {
     // Métodos POST optimizados para trabajar con triggers
     public function registrarIncidente($datos) {
         try {
+            // Validar que id_departamento esté presente y sea válido
+            if (empty($datos['id_departamento']) || !is_numeric($datos['id_departamento']) || intval($datos['id_departamento']) <= 0) {
+                throw new Exception("El campo id_departamento es obligatorio y debe ser un número válido");
+            }
+
             $this->db->beginTransaction();
 
             $sql = "INSERT INTO {$this->table_incidente} 
@@ -443,8 +454,8 @@ class IncidenteModelo {
 
             $stmt = $this->db->prepare($sql);
 
-            $id_departamento = !empty($datos['id_departamento']) ? $datos['id_departamento'] : null;
-            $id_area = !empty($datos['id_area']) ? $datos['id_area'] : null;
+            $id_departamento = intval($datos['id_departamento']);
+            $id_area = !empty($datos['id_area']) ? intval($datos['id_area']) : null;
 
             $stmt->bindParam(1, $id_departamento, PDO::PARAM_INT);
             $stmt->bindParam(2, $datos['id_residente'], PDO::PARAM_INT);

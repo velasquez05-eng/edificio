@@ -18,21 +18,35 @@ class DashboardModelo
     // Método para descifrar datos
     private function decrypt($encrypted_data) {
         if (empty($encrypted_data)) return $encrypted_data;
+        
+        // Si el dato no parece estar cifrado (no es base64 válido), retornarlo tal cual
+        if (!preg_match('/^[A-Za-z0-9+\/]+=*$/', $encrypted_data)) {
+            return $encrypted_data;
+        }
+        
         try {
-            $data = base64_decode($encrypted_data);
-            if ($data === false) {
-                throw new Exception('Error decodificando base64');
+            $data = base64_decode($encrypted_data, true);
+            if ($data === false || strlen($data) < 16) {
+                // No es base64 válido o muy corto para contener IV + datos
+                return $encrypted_data;
             }
+            
             $iv = substr($data, 0, 16);
             $encrypted = substr($data, 16);
+            
+            if (empty($encrypted)) {
+                return $encrypted_data;
+            }
+            
             $decrypted = openssl_decrypt($encrypted, 'AES-256-CBC', $this->encryption_key, OPENSSL_RAW_DATA, $iv);
             if ($decrypted === false) {
-                throw new Exception('Error en descifrado: ' . openssl_error_string());
+                // Si falla el descifrado, retornar el valor original
+                return $encrypted_data;
             }
             return $decrypted;
         } catch (Exception $e) {
-            error_log("Error descifrando datos: " . $e->getMessage());
-            return false;
+            // En caso de error, retornar el valor original en lugar de false
+            return $encrypted_data;
         }
     }
 
@@ -46,7 +60,9 @@ class DashboardModelo
                         c.fecha_publicacion,
                         c.prioridad,
                         c.tipo_audiencia,
-                        CONCAT(p.nombre, ' ', p.apellido_paterno) as autor,
+                        p.nombre,
+                        p.apellido_paterno,
+                        p.apellido_materno,
                         c.fecha_expiracion
                     FROM comunicado c
                     INNER JOIN persona p ON c.id_persona = p.id_persona
@@ -66,7 +82,16 @@ class DashboardModelo
             $comunicados = $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($comunicados as &$comunicado) {
-                $comunicado['autor'] = $this->decrypt($comunicado['autor']);
+                // Descifrar campos individuales
+                $nombre = $this->decrypt($comunicado['nombre']) ?: ($comunicado['nombre'] ?? '');
+                $apellido_paterno = $this->decrypt($comunicado['apellido_paterno']) ?: ($comunicado['apellido_paterno'] ?? '');
+                $apellido_materno = $this->decrypt($comunicado['apellido_materno']) ?: ($comunicado['apellido_materno'] ?? '');
+                
+                // Concatenar nombre completo
+                $comunicado['autor'] = trim($nombre . ' ' . $apellido_paterno . ' ' . $apellido_materno);
+                
+                // Eliminar campos individuales que ya no se necesitan
+                unset($comunicado['nombre'], $comunicado['apellido_paterno'], $comunicado['apellido_materno']);
             }
 
             return $comunicados;
@@ -104,7 +129,7 @@ class DashboardModelo
             $incidentes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($incidentes as &$incidente) {
-                $incidente['residente'] = $this->decrypt($incidente['residente']);
+                $incidente['residente'] = $this->decrypt($incidente['residente']) ?: ($incidente['residente'] ?? '');
             }
 
             return $incidentes;
@@ -188,7 +213,7 @@ class DashboardModelo
             $reservas = $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($reservas as &$reserva) {
-                $reserva['nombre_residente'] = $this->decrypt($reserva['nombre_residente']);
+                $reserva['nombre_residente'] = $this->decrypt($reserva['nombre_residente']) ?: ($reserva['nombre_residente'] ?? '');
             }
 
             return $reservas;
@@ -224,10 +249,10 @@ class DashboardModelo
             $residentes = $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($residentes as &$residente) {
-                $residente['nombre'] = $this->decrypt($residente['nombre']);
-                $residente['apellido_paterno'] = $this->decrypt($residente['apellido_paterno']);
-                $residente['apellido_materno'] = $this->decrypt($residente['apellido_materno']);
-                $residente['ci'] = $this->decrypt($residente['ci']);
+                $residente['nombre'] = $this->decrypt($residente['nombre']) ?: ($residente['nombre'] ?? '');
+                $residente['apellido_paterno'] = $this->decrypt($residente['apellido_paterno']) ?: ($residente['apellido_paterno'] ?? '');
+                $residente['apellido_materno'] = $this->decrypt($residente['apellido_materno']) ?: ($residente['apellido_materno'] ?? '');
+                $residente['ci'] = $this->decrypt($residente['ci']) ?: ($residente['ci'] ?? '');
             }
 
             return $residentes;
@@ -268,7 +293,9 @@ class DashboardModelo
                     c.fecha_publicacion,
                     c.prioridad,
                     c.tipo_audiencia,
-                    CONCAT(p.nombre, ' ', p.apellido_paterno) as autor,
+                    p.nombre,
+                    p.apellido_paterno,
+                    p.apellido_materno,
                     c.fecha_expiracion
                 FROM comunicado c
                 INNER JOIN persona p ON c.id_persona = p.id_persona
@@ -288,7 +315,16 @@ class DashboardModelo
             $comunicados = $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($comunicados as &$comunicado) {
-                $comunicado['autor'] = $this->decrypt($comunicado['autor']);
+                // Descifrar campos individuales
+                $nombre = $this->decrypt($comunicado['nombre']) ?: ($comunicado['nombre'] ?? '');
+                $apellido_paterno = $this->decrypt($comunicado['apellido_paterno']) ?: ($comunicado['apellido_paterno'] ?? '');
+                $apellido_materno = $this->decrypt($comunicado['apellido_materno']) ?: ($comunicado['apellido_materno'] ?? '');
+                
+                // Concatenar nombre completo
+                $comunicado['autor'] = trim($nombre . ' ' . $apellido_paterno . ' ' . $apellido_materno);
+                
+                // Eliminar campos individuales que ya no se necesitan
+                unset($comunicado['nombre'], $comunicado['apellido_paterno'], $comunicado['apellido_materno']);
             }
 
             return $comunicados;
@@ -401,7 +437,7 @@ class DashboardModelo
             $incidentes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($incidentes as &$incidente) {
-                $incidente['personal_asignado'] = $this->decrypt($incidente['personal_asignado']);
+                $incidente['personal_asignado'] = $this->decrypt($incidente['personal_asignado']) ?: ($incidente['personal_asignado'] ?? '');
             }
 
             return $incidentes;
@@ -526,9 +562,9 @@ class DashboardModelo
             $personal = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($personal) {
-                $personal['nombre'] = $this->decrypt($personal['nombre']);
-                $personal['apellido_paterno'] = $this->decrypt($personal['apellido_paterno']);
-                $personal['apellido_materno'] = $this->decrypt($personal['apellido_materno']);
+                $personal['nombre'] = $this->decrypt($personal['nombre']) ?: ($personal['nombre'] ?? '');
+                $personal['apellido_paterno'] = $this->decrypt($personal['apellido_paterno']) ?: ($personal['apellido_paterno'] ?? '');
+                $personal['apellido_materno'] = $this->decrypt($personal['apellido_materno']) ?: ($personal['apellido_materno'] ?? '');
             }
 
             return $personal;
@@ -674,8 +710,7 @@ class DashboardModelo
                     p.ci,
                     d.numero as departamento,
                     d.piso,
-                    p.estado,
-                    td.fecha_asignacion
+                    p.estado
                 FROM persona p
                 INNER JOIN tiene_departamento td ON p.id_persona = td.id_persona
                 INNER JOIN departamento d ON td.id_departamento = d.id_departamento
@@ -688,10 +723,10 @@ class DashboardModelo
             $residentes = $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($residentes as &$residente) {
-                $residente['nombre'] = $this->decrypt($residente['nombre']);
-                $residente['apellido_paterno'] = $this->decrypt($residente['apellido_paterno']);
-                $residente['apellido_materno'] = $this->decrypt($residente['apellido_materno']);
-                $residente['ci'] = $this->decrypt($residente['ci']);
+                $residente['nombre'] = $this->decrypt($residente['nombre']) ?: $residente['nombre'];
+                $residente['apellido_paterno'] = $this->decrypt($residente['apellido_paterno']) ?: $residente['apellido_paterno'];
+                $residente['apellido_materno'] = $this->decrypt($residente['apellido_materno']) ?: ($residente['apellido_materno'] ?? '');
+                $residente['ci'] = $this->decrypt($residente['ci']) ?: $residente['ci'];
             }
 
             return $residentes;
@@ -727,8 +762,8 @@ class DashboardModelo
             $incidentes = $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($incidentes as &$incidente) {
-                $incidente['residente'] = $this->decrypt($incidente['residente']);
-                $incidente['personal_asignado'] = $this->decrypt($incidente['personal_asignado']);
+                $incidente['residente'] = $this->decrypt($incidente['residente']) ?: ($incidente['residente'] ?? '');
+                $incidente['personal_asignado'] = $this->decrypt($incidente['personal_asignado']) ?: ($incidente['personal_asignado'] ?? '');
             }
 
             return $incidentes;
@@ -771,7 +806,9 @@ class DashboardModelo
             $sql = "SELECT 
                     r.id_reserva,
                     a.nombre as area_comun,
-                    CONCAT(p.nombre, ' ', p.apellido_paterno) as residente,
+                    p.nombre,
+                    p.apellido_paterno,
+                    p.apellido_materno,
                     d.numero as departamento,
                     r.fecha_reserva,
                     r.hora_inicio,
@@ -791,7 +828,16 @@ class DashboardModelo
             $reservas = $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($reservas as &$reserva) {
-                $reserva['residente'] = $this->decrypt($reserva['residente']);
+                // Descifrar los campos individuales
+                $nombre = $this->decrypt($reserva['nombre']) ?: ($reserva['nombre'] ?? '');
+                $apellido_paterno = $this->decrypt($reserva['apellido_paterno']) ?: ($reserva['apellido_paterno'] ?? '');
+                $apellido_materno = $this->decrypt($reserva['apellido_materno']) ?: ($reserva['apellido_materno'] ?? '');
+                
+                // Concatenar el nombre completo
+                $reserva['residente'] = trim($nombre . ' ' . $apellido_paterno . ' ' . $apellido_materno);
+                
+                // Eliminar los campos individuales que ya no se necesitan
+                unset($reserva['nombre'], $reserva['apellido_paterno'], $reserva['apellido_materno']);
             }
 
             return $reservas;

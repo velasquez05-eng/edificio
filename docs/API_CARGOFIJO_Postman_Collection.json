@@ -1,0 +1,327 @@
+{
+	"info": {
+		"name": "API Cargofijo",
+		"description": "Colección completa de endpoints para la API de Cargos Fijos",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Gestión de Cargos Fijos",
+			"item": [
+				{
+					"name": "Listar Todos los Cargos Fijos",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"listarCargosFijos\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/public/api/cargofijo.php",
+							"host": ["{{base_url}}"],
+							"path": ["public", "api", "cargofijo.php"]
+						}
+					}
+				},
+				{
+					"name": "Obtener Cargos Activos",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"obtenerCargosActivos\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/public/api/cargofijo.php",
+							"host": ["{{base_url}}"],
+							"path": ["public", "api", "cargofijo.php"]
+						}
+					}
+				},
+				{
+					"name": "Obtener Cargo por ID",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"obtenerCargoPorId\",\n    \"id_cargo\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/public/api/cargofijo.php",
+							"host": ["{{base_url}}"],
+							"path": ["public", "api", "cargofijo.php"]
+						}
+					}
+				},
+				{
+					"name": "Crear Cargo Fijo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"crearCargo\",\n    \"nombre_cargo\": \"Mantenimiento\",\n    \"monto\": 150.00,\n    \"descripcion\": \"Cargo mensual de mantenimiento del edificio\",\n    \"estado\": \"activo\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/public/api/cargofijo.php",
+							"host": ["{{base_url}}"],
+							"path": ["public", "api", "cargofijo.php"]
+						}
+					}
+				},
+				{
+					"name": "Actualizar Cargo Fijo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"actualizarCargo\",\n    \"id_cargo\": 1,\n    \"nombre_cargo\": \"Mantenimiento Actualizado\",\n    \"monto\": 175.00,\n    \"descripcion\": \"Nueva descripción del cargo\",\n    \"estado\": \"activo\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/public/api/cargofijo.php",
+							"host": ["{{base_url}}"],
+							"path": ["public", "api", "cargofijo.php"]
+						}
+					}
+				},
+				{
+					"name": "Cambiar Estado de Cargo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"cambiarEstadoCargo\",\n    \"id_cargo\": 1,\n    \"estado\": \"inactivo\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/public/api/cargofijo.php",
+							"host": ["{{base_url}}"],
+							"path": ["public", "api", "cargofijo.php"]
+						}
+					}
+				},
+				{
+					"name": "Eliminar Cargo Fijo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"eliminarCargo\",\n    \"id_cargo\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/public/api/cargofijo.php",
+							"host": ["{{base_url}}"],
+							"path": ["public", "api", "cargofijo.php"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Funciones Auxiliares",
+			"item": [
+				{
+					"name": "Verificar Cargo en Uso",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"verificarCargoEnUso\",\n    \"id_cargo\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/public/api/cargofijo.php",
+							"host": ["{{base_url}}"],
+							"path": ["public", "api", "cargofijo.php"]
+						}
+					}
+				},
+				{
+					"name": "Obtener Total Cargos Activos",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"obtenerTotalCargosActivos\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/public/api/cargofijo.php",
+							"host": ["{{base_url}}"],
+							"path": ["public", "api", "cargofijo.php"]
+						}
+					}
+				},
+				{
+					"name": "Obtener Departamentos Ocupados",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"obtenerDepartamentosOcupados\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/public/api/cargofijo.php",
+							"host": ["{{base_url}}"],
+							"path": ["public", "api", "cargofijo.php"]
+						}
+					}
+				},
+				{
+					"name": "Obtener Estadísticas de Cargos",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"obtenerEstadisticasCargos\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/public/api/cargofijo.php",
+							"host": ["{{base_url}}"],
+							"path": ["public", "api", "cargofijo.php"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Generación de Conceptos",
+			"item": [
+				{
+					"name": "Generar Conceptos de Mantenimiento",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"generarConceptosMantenimiento\",\n    \"year\": 2024,\n    \"month\": 12\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/public/api/cargofijo.php",
+							"host": ["{{base_url}}"],
+							"path": ["public", "api", "cargofijo.php"]
+						}
+					}
+				},
+				{
+					"name": "Verificar Conceptos Generados",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"verificarConceptosGenerados\",\n    \"year\": 2024,\n    \"month\": 12\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/public/api/cargofijo.php",
+							"host": ["{{base_url}}"],
+							"path": ["public", "api", "cargofijo.php"]
+						}
+					}
+				},
+				{
+					"name": "Obtener Última Generación de Conceptos",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"obtenerUltimaGeneracionConceptos\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/public/api/cargofijo.php",
+							"host": ["{{base_url}}"],
+							"path": ["public", "api", "cargofijo.php"]
+						}
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost",
+			"type": "string"
+		}
+	]
+}
+
+

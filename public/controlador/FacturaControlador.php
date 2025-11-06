@@ -72,33 +72,45 @@ class FacturaControlador {
 
 // En FacturaControlador.php - método descargarFactura
 
-    public function descargarFactura($id_factura)
-    {
-        try {
-            $facturaCompleta = $this->facturamodelo->obtenerFacturaCompleta($id_factura);
-            if (!$facturaCompleta) {
-                throw new Exception("Factura no encontrada");
-            }
+    /**
+     * Generar PDF de factura en memoria (retorna string)
+     */
+    private function generarPDFEnMemoria($id_factura) {
+        $facturaCompleta = $this->facturamodelo->obtenerFacturaCompleta($id_factura);
+        if (!$facturaCompleta) {
+            throw new Exception("Factura no encontrada");
+        }
 
-            $factura = $facturaCompleta['factura'];
-            $conceptos = $facturaCompleta['conceptos'];
+        $factura = $facturaCompleta['factura'];
+        $conceptos = $facturaCompleta['conceptos'];
 
-            $total = 0;
-            foreach ($conceptos as $concepto) {
-                $total += $concepto['monto'] * $concepto['cantidad'];
-            }
+        $total = 0;
+        foreach ($conceptos as $concepto) {
+            $total += $concepto['monto'] * $concepto['cantidad'];
+        }
 
-            require_once '../../includes/tcpdf/tcpdf.php';
+        require_once '../../includes/tcpdf/tcpdf.php';
 
-            $pdf = new TCPDF('P', 'mm', 'LETTER', true, 'UTF-8', false);
-            $pdf->SetCreator('SEINT');
-            $pdf->SetAuthor('SEINT');
-            $pdf->SetTitle('Factura #' . $factura['id_factura']);
-            $pdf->SetMargins(15, 18, 15);
-            $pdf->SetAutoPageBreak(true, 15);
-            $pdf->AddPage();
+        $pdf = new TCPDF('P', 'mm', 'LETTER', true, 'UTF-8', false);
+        $pdf->SetCreator('SEINT');
+        $pdf->SetAuthor('SEINT');
+        $pdf->SetTitle('Factura #' . $factura['id_factura']);
+        $pdf->SetMargins(15, 18, 15);
+        $pdf->SetAutoPageBreak(true, 15);
+        $pdf->AddPage();
 
-            $html = '
+        $html = $this->generarHTMLFactura($factura, $conceptos, $total);
+        $pdf->writeHTML($html, true, false, true, false, '');
+        
+        // Retornar PDF como string
+        return $pdf->Output('', 'S');
+    }
+
+    /**
+     * Generar HTML de la factura (reutilizable)
+     */
+    private function generarHTMLFactura($factura, $conceptos, $total) {
+        $html = '
         <style>
             body {
                 font-family: Helvetica, Arial, sans-serif;
@@ -110,7 +122,7 @@ class FacturaControlador {
             .header {
                 border-bottom: 1.5px solid #1a5276;
                 padding-bottom: 10px;
-                margin-bottom: 8px; /* más espacio visual */
+                margin-bottom: 8px;
             }
 
             .company-name {
@@ -179,7 +191,6 @@ class FacturaControlador {
                 color: #922b21;
             }
 
-            /* TABLA DE CONCEPTOS */
             .concepts-table {
                 width: 100%;
                 border-collapse: collapse;
@@ -198,7 +209,6 @@ class FacturaControlador {
                 text-align: center;
                 font-size: 8.3px;
                 letter-spacing: 0.3px;
-                
             }
             .concepts-table th:first-child {
                 text-align: left;
@@ -231,7 +241,6 @@ class FacturaControlador {
             .total-box {
                 width: 250px;
                 margin-left: auto;
-                
                 padding: 10px;
                 border-top: 2px solid #1a5276;
                 text-align: right;
@@ -259,7 +268,6 @@ class FacturaControlador {
             }
         </style>
 
-        <!-- Encabezado -->
         <div class="header">
             <table width="100%">
                 <tr>
@@ -278,7 +286,6 @@ class FacturaControlador {
             </table>
         </div>
 
-        <!-- Cliente -->
         <div class="client-box">
             <div class="client-header">Datos del Cliente</div>
             <table width="100%">
@@ -301,12 +308,10 @@ class FacturaControlador {
             </table>
         </div>
 
-        <!-- Vencimiento -->
         <div class="due-date ' . ($factura['estado'] === 'vencida' ? 'overdue' : '') . '">
             <strong>Fecha de Vencimiento:</strong> ' . date('d/m/Y', strtotime($factura['fecha_vencimiento'])) . '
         </div>
 
-        <!-- Conceptos -->
         <table class="concepts-table">
             <thead>
                 <tr>
@@ -318,58 +323,236 @@ class FacturaControlador {
             </thead>
             <tbody>';
 
-            if (!empty($conceptos)) {
-                foreach ($conceptos as $concepto) {
-                    $conceptoSubtotal = $concepto['monto'] * $concepto['cantidad'];
-                    $html .= '
+        if (!empty($conceptos)) {
+            foreach ($conceptos as $concepto) {
+                $conceptoSubtotal = $concepto['monto'] * $concepto['cantidad'];
+                $html .= '
                 <tr>
                     <td>
                         <div class="concept-name">' . htmlspecialchars($concepto['concepto']) . '</div>';
-                    if (!empty($concepto['descripcion'])) {
-                        $html .= '<div class="concept-desc">' . htmlspecialchars($concepto['descripcion']) . '</div> <br>';
-                    }
-                    $html .= '
+                if (!empty($concepto['descripcion'])) {
+                    $html .= '<div class="concept-desc">' . htmlspecialchars($concepto['descripcion']) . '</div> <br>';
+                }
+                $html .= '
                     </td>
-                    
                     <td>' . $concepto['cantidad'] . '</td>
                     <td>Bs ' . number_format($concepto['monto'], 2, '.', ',') . '</td>
                     <td><strong>Bs ' . number_format($conceptoSubtotal, 2, '.', ',') . '</strong></td>
-                
                 </tr>';
-                }
-
-            } else {
-                $html .= '
-
+            }
+        } else {
+            $html .= '
                 <tr>
                     <td colspan="4" style="text-align: center; padding: 20px; color: #7f8c8d; font-style: italic;">
                         No se encontraron conceptos para esta factura
                     </td>
                 </tr>';
-            }
+        }
 
-            $html .= '
+        $html .= '
             </tbody>
         </table>
 
-        <!-- Total -->
         <div class="total-box">
             <div class="total-label">' . ($factura['estado'] === 'pagada' ? 'Total Pagado' : 'Total a Pagar') . ':</div>
             <div class="total-amount">Bs ' . number_format($total, 2, '.', ',') . '</div>
         </div>
 
-        <!-- Pie -->
         <div class="footer">
             SEINT - Sistema de Edificio Inteligente<br>
             Factura generada el ' . date('d/m/Y \a \l\a\s H:i') . ' | Documento válido como comprobante
         </div>';
 
+        return $html;
+    }
+
+    public function descargarFactura($id_factura)
+    {
+        try {
+            $facturaCompleta = $this->facturamodelo->obtenerFacturaCompleta($id_factura);
+            if (!$facturaCompleta) {
+                throw new Exception("Factura no encontrada");
+            }
+
+            $factura = $facturaCompleta['factura'];
+            $conceptos = $facturaCompleta['conceptos'];
+
+            $total = 0;
+            foreach ($conceptos as $concepto) {
+                $total += $concepto['monto'] * $concepto['cantidad'];
+            }
+
+            require_once '../../includes/tcpdf/tcpdf.php';
+
+            $pdf = new TCPDF('P', 'mm', 'LETTER', true, 'UTF-8', false);
+            $pdf->SetCreator('SEINT');
+            $pdf->SetAuthor('SEINT');
+            $pdf->SetTitle('Factura #' . $factura['id_factura']);
+            $pdf->SetMargins(15, 18, 15);
+            $pdf->SetAutoPageBreak(true, 15);
+            $pdf->AddPage();
+
+            $html = $this->generarHTMLFactura($factura, $conceptos, $total);
             $pdf->writeHTML($html, true, false, true, false, '');
             $pdf->Output('factura_' . str_pad($factura['id_factura'], 6, '0', STR_PAD_LEFT) . '.pdf', 'D');
 
         } catch (Exception $e) {
             header('Location: FacturaControlador.php?action=verFactura&id_factura=' . $id_factura . '&error=' . urlencode('Error al generar PDF: ' . $e->getMessage()));
             exit();
+        }
+    }
+
+    /**
+     * Enviar factura por correo electrónico
+     */
+    public function enviarFacturaPorCorreo($id_factura) {
+        try {
+            $facturaCompleta = $this->facturamodelo->obtenerFacturaCompleta($id_factura);
+            if (!$facturaCompleta) {
+                throw new Exception("Factura no encontrada");
+            }
+
+            $factura = $facturaCompleta['factura'];
+            
+            // Verificar que el residente tenga correo electrónico
+            if (empty($factura['email'])) {
+                throw new Exception("El residente no tiene un correo electrónico registrado");
+            }
+
+            // Generar PDF en memoria
+            $pdfContent = $this->generarPDFEnMemoria($id_factura);
+            
+            // Cargar modelo de correo
+            require_once '../modelo/CorreoModelo.php';
+            $correoModelo = new CorreoModelo();
+            
+            // Preparar datos del correo
+            $email = $factura['email'];
+            $nombreResidente = $factura['residente'];
+            $numeroFactura = str_pad($factura['id_factura'], 6, '0', STR_PAD_LEFT);
+            $fechaVencimiento = date('d/m/Y', strtotime($factura['fecha_vencimiento']));
+            $montoTotal = number_format($factura['monto_total'], 2, '.', ',');
+            
+            // Crear instancia de PHPMailer
+            require_once '../../includes/phpmailer/PHPMailer.php';
+            require_once '../../includes/phpmailer/SMTP.php';
+            require_once '../../includes/phpmailer/Exception.php';
+            
+            $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+            
+            // Configuración del servidor
+            $mail->isSMTP();
+            $mail->Host = 'smtp.gmail.com';
+            $mail->SMTPAuth = true;
+            $mail->Username = 'sys.codex.dev@gmail.com';
+            $mail->Password = 'uvif khxh erfq ehsa';
+            $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port = 587;
+            $mail->CharSet = 'UTF-8';
+            
+            // Remitente
+            $mail->setFrom('sys.codex.dev@gmail.com', 'Sistema de Gestión de Edificios - SEINT');
+            
+            // Destinatario
+            $mail->addAddress($email, $nombreResidente);
+            
+            // Contenido del correo
+            $mail->isHTML(true);
+            $mail->Subject = 'Factura #' . $numeroFactura . ' - SEINT';
+            
+            $mensaje = '
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #1a5276 0%, #2a7595 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .content {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 0 0 8px 8px;
+        }
+        .invoice-info {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #1a5276;
+        }
+        .footer {
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>SEINT</h1>
+            <p>Sistema de Edificio Inteligente</p>
+        </div>
+        <div class="content">
+            <p>Estimado/a <strong>' . htmlspecialchars($nombreResidente) . '</strong>,</p>
+            
+            <p>Le enviamos adjunta su factura correspondiente al período facturado.</p>
+            
+            <div class="invoice-info">
+                <h3 style="margin-top: 0; color: #1a5276;">Detalles de la Factura</h3>
+                <p><strong>Número de Factura:</strong> #' . $numeroFactura . '</p>
+                <p><strong>Fecha de Vencimiento:</strong> ' . $fechaVencimiento . '</p>
+                <p><strong>Monto Total:</strong> Bs ' . $montoTotal . '</p>
+            </div>
+            
+            <p>Por favor, revise la factura adjunta en formato PDF. Si tiene alguna consulta, no dude en contactarnos.</p>
+            
+            <p>Saludos cordiales,<br>
+            <strong>Administración SEINT</strong></p>
+        </div>
+        <div class="footer">
+            <p>Este es un correo automático, por favor no responda a este mensaje.</p>
+        </div>
+    </div>
+</body>
+</html>';
+            
+            $mail->Body = $mensaje;
+            $mail->AltBody = "Estimado/a $nombreResidente,\n\nLe enviamos adjunta su factura #$numeroFactura.\n\nFecha de Vencimiento: $fechaVencimiento\nMonto Total: Bs $montoTotal\n\nSaludos cordiales,\nAdministración SEINT";
+            
+            // Adjuntar PDF
+            $mail->addStringAttachment($pdfContent, 'factura_' . $numeroFactura . '.pdf', 'base64', 'application/pdf');
+            
+            // Enviar correo
+            $mail->send();
+            
+            return [
+                'success' => true,
+                'message' => 'Factura enviada exitosamente a ' . $email
+            ];
+            
+        } catch (Exception $e) {
+            error_log("Error enviando factura por correo: " . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'Error al enviar factura: ' . $e->getMessage()
+            ];
         }
     }
 
@@ -498,6 +681,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                         break;
             case 'descargarFactura':
                 $controlador->descargarFactura($_GET['id_factura']);
+                break;
+            case 'enviarFactura':
+                $id_factura = $_GET['id_factura'] ?? null;
+                if ($id_factura) {
+                    $resultado = $controlador->enviarFacturaPorCorreo($id_factura);
+                    if ($resultado['success']) {
+                        header('Location: FacturaControlador.php?action=verFactura&id_factura=' . $id_factura . '&success=' . urlencode($resultado['message']));
+                    } else {
+                        header('Location: FacturaControlador.php?action=verFactura&id_factura=' . $id_factura . '&error=' . urlencode($resultado['message']));
+                    }
+                    exit;
+                } else {
+                    header('Location: FacturaControlador.php?action=listarFacturas&error=' . urlencode('ID de factura no válido'));
+                    exit;
+                }
                 break;
             default:
                 header('Location: ../vista/DashboardVista.php?error=Accion no valida');

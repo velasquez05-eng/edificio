@@ -116,10 +116,17 @@
                                        class="btn btn-outline-primary btn-sm me-2">
                                         <i class="fas fa-download me-1"></i>PDF
                                     </a>
-                                <!--    <a href="FacturaControlador.php?action=enviarFactura&id_factura=<?php echo $factura['id_factura']; ?>"
-                                       class="btn btn-outline-info btn-sm">
+                                    <?php if (!empty($factura['email'])): ?>
+                                    <button type="button" 
+                                            class="btn btn-outline-info btn-sm"
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#modalEnviarFactura"
+                                            data-email="<?php echo htmlspecialchars($factura['email']); ?>"
+                                            data-residente="<?php echo htmlspecialchars($factura['residente']); ?>"
+                                            data-numero-factura="<?php echo str_pad($factura['id_factura'], 6, '0', STR_PAD_LEFT); ?>">
                                         <i class="fas fa-envelope me-1"></i>Email
-                                    </a>-->
+                                    </button>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
@@ -418,21 +425,19 @@
 
             // Función para generar QR para una factura específica
             function generarQRParaFactura(idFactura) {
-                // Obtener IP del servidor
-                let ipServidor = '<?php
-                    // Obtener IP local del servidor
-                    if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-                        $output = shell_exec('ipconfig');
-                        preg_match('/IPv4[^:]*:\s*([0-9\.]+)/', $output, $matches);
-                        echo $matches[1] ?? '127.0.0.1';
-                    } else {
-                        echo trim(shell_exec("hostname -I | awk '{print $1}'")) ?: '127.0.0.1';
-                    }
-                    ?>';
-
-                // Configuración de la base de datos
-                const dbname = 'db_edificio_v3';
-                const dbuser = 'root';
+                // Obtener configuración desde database.php
+                <?php
+                require_once '../../config/database.php';
+                $database = new Database();
+                $ipServidor = Database::getServerIP();
+                $dbname = $database->getDbName();
+                $dbuser = $database->getUsername();
+                ?>
+                
+                // Configuración de la base de datos desde config/database.php
+                const ipServidor = '<?php echo htmlspecialchars($ipServidor, ENT_QUOTES, 'UTF-8'); ?>';
+                const dbname = '<?php echo htmlspecialchars($dbname, ENT_QUOTES, 'UTF-8'); ?>';
+                const dbuser = '<?php echo htmlspecialchars($dbuser, ENT_QUOTES, 'UTF-8'); ?>';
 
                 // Datos a cifrar: IP;DBNAME;USER;ID_FACTURA
                 const datos = `${ipServidor};${dbname};${dbuser};${idFactura}`;
@@ -643,5 +648,100 @@
             }
         }
     </style>
+
+    <!-- Modal para confirmar envío de factura por correo -->
+    <div class="modal fade" id="modalEnviarFactura" tabindex="-1" aria-labelledby="modalEnviarFacturaLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="modalEnviarFacturaLabel">
+                        <i class="fas fa-envelope me-2"></i>Enviar Factura por Correo
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info d-flex align-items-center mb-3">
+                        <i class="fas fa-info-circle me-2 fa-lg"></i>
+                        <div>
+                            <strong>Confirmación de envío</strong>
+                            <p class="mb-0 small">Se enviará la factura en formato PDF al correo electrónico del residente.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card border-0 bg-light">
+                        <div class="card-body">
+                            <h6 class="card-title text-primary mb-3">
+                                <i class="fas fa-user me-2"></i>Información del Destinatario
+                            </h6>
+                            <div class="mb-2">
+                                <strong>Residente:</strong>
+                                <span id="modalResidente" class="text-dark"></span>
+                            </div>
+                            <div class="mb-2">
+                                <strong>Correo Electrónico:</strong>
+                                <span id="modalEmail" class="text-dark"></span>
+                            </div>
+                            <div>
+                                <strong>Número de Factura:</strong>
+                                <span id="modalNumeroFactura" class="text-dark"></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-warning mt-3 mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <small>¿Está seguro de que desea enviar esta factura al correo electrónico indicado?</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </button>
+                    <a href="#" id="btnConfirmarEnvio" class="btn btn-info">
+                        <i class="fas fa-paper-plane me-2"></i>Confirmar Envío
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configurar modal cuando se abre
+        document.addEventListener('DOMContentLoaded', function() {
+            const modalEnviarFactura = document.getElementById('modalEnviarFactura');
+            const btnConfirmarEnvio = document.getElementById('btnConfirmarEnvio');
+            
+            if (!modalEnviarFactura || !btnConfirmarEnvio) return;
+            
+            modalEnviarFactura.addEventListener('show.bs.modal', function (event) {
+                // Botón que activó el modal
+                const button = event.relatedTarget;
+                
+                if (!button) return;
+                
+                // Extraer información de los atributos data-*
+                const email = button.getAttribute('data-email') || '';
+                const residente = button.getAttribute('data-residente') || '';
+                const numeroFactura = button.getAttribute('data-numero-factura') || '';
+                const idFactura = <?php echo isset($facturaCompleta) && $facturaCompleta ? $factura['id_factura'] : 'null'; ?>;
+                
+                // Actualizar contenido del modal
+                const modalEmailEl = document.getElementById('modalEmail');
+                const modalResidenteEl = document.getElementById('modalResidente');
+                const modalNumeroFacturaEl = document.getElementById('modalNumeroFactura');
+                
+                if (modalEmailEl) modalEmailEl.textContent = email;
+                if (modalResidenteEl) modalResidenteEl.textContent = residente;
+                if (modalNumeroFacturaEl) modalNumeroFacturaEl.textContent = '#' + numeroFactura;
+                
+                // Configurar URL de confirmación
+                if (idFactura && btnConfirmarEnvio) {
+                    btnConfirmarEnvio.href = 'FacturaControlador.php?action=enviarFactura&id_factura=' + idFactura;
+                } else if (btnConfirmarEnvio) {
+                    btnConfirmarEnvio.href = '#';
+                }
+            });
+        });
+    </script>
 
 <?php include("../../includes/footer.php"); ?>

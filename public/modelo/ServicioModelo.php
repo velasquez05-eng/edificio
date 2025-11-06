@@ -262,7 +262,14 @@ class ServicioModelo {
                     $fecha_hora = sprintf("%04d-%02d-%02d 23:59:00", $year, $month, $day);
 
                     foreach ($medidores as $medidor) {
-                        $servicio = $medidor['servicio'];
+                        $servicio = strtolower(trim($medidor['servicio'] ?? ''));
+                        
+                        // Validar que el servicio existe en los rangos
+                        if (!isset($rangos[$servicio])) {
+                            error_log("Servicio no encontrado en rangos: " . $servicio);
+                            continue; // Saltar este medidor si el servicio no está en los rangos
+                        }
+                        
                         $rango = $rangos[$servicio];
 
                         // Generar consumo según el rango específico del servicio
@@ -316,7 +323,7 @@ class ServicioModelo {
      */
     public function obtenerMedidoresDepartamento($id_departamento) {
         try {
-            $sql = "SELECT m.id_medidor, s.nombre as servicio, s.unidad_medida 
+            $sql = "SELECT m.*, s.nombre as servicio, s.unidad_medida, s.costo_unitario
                     FROM medidor m 
                     JOIN servicio s ON m.id_servicio = s.id_servicio 
                     WHERE m.id_departamento = :id_departamento 
@@ -525,6 +532,47 @@ class ServicioModelo {
         } catch (PDOException $e) {
             error_log("Error al obtener lectura: " . $e->getMessage());
             return null;
+        }
+    }
+
+    /**
+     * Obtener último consumo de un medidor
+     */
+    public function obtenerUltimoConsumo($id_medidor) {
+        try {
+            $sql = "SELECT * FROM lector_sensor_consumo 
+                    WHERE id_medidor = :id_medidor 
+                    ORDER BY fecha_hora DESC 
+                    LIMIT 1";
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindParam(':id_medidor', $id_medidor);
+            $stmt->execute();
+
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error al obtener último consumo: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Obtener historial de consumo reciente de un medidor
+     */
+    public function obtenerHistorialConsumoReciente($id_medidor, $limite = 5) {
+        try {
+            $sql = "SELECT * FROM lector_sensor_consumo 
+                    WHERE id_medidor = :id_medidor 
+                    ORDER BY fecha_hora DESC 
+                    LIMIT :limite";
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindParam(':id_medidor', $id_medidor);
+            $stmt->bindParam(':limite', $limite, PDO::PARAM_INT);
+            $stmt->execute();
+
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error al obtener historial reciente: " . $e->getMessage());
+            return [];
         }
     }
 }

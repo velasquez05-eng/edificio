@@ -37,95 +37,169 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// Menu items toggle - MEJORADO Y CORREGIDO para modales
-document.querySelectorAll('.nav-link:not(.nav-treeview .nav-link)').forEach(link => {
-    link.addEventListener('click', function(e) {
-        // Permitir que los enlaces con data-bs-toggle (modales) funcionen normalmente
-        if (this.hasAttribute('data-bs-toggle') || this.closest('[data-bs-toggle]')) {
-            return; // Dejar que Bootstrap maneje el modal
-        }
+// Cachear elementos del DOM para mejor rendimiento
+const sidebar = document.querySelector('.sidebar');
+const mainContent = document.querySelector('.main-content');
+const sidebarToggleIcon = document.querySelector('.sidebar-toggle i');
+
+// Menu items toggle - OPTIMIZADO para mejor rendimiento
+document.addEventListener('click', function(e) {
+    const link = e.target.closest('.nav-link:not(.nav-treeview .nav-link)');
+    if (!link) return;
+    
+    // No procesar si el clic viene de un enlace dentro del submenú
+    if (e.target.closest('.nav-treeview')) {
+        return;
+    }
+    
+    // Permitir que los enlaces con data-bs-toggle (modales) funcionen normalmente
+    if (link.hasAttribute('data-bs-toggle') || link.closest('[data-bs-toggle]')) {
+        return; // Dejar que Bootstrap maneje el modal
+    }
+    
+    // Si el sidebar está colapsado, expandirlo al hacer clic en cualquier menú
+    if (sidebar && sidebar.classList.contains('collapsed')) {
+        e.preventDefault();
+        sidebar.classList.remove('collapsed');
+        if (mainContent) mainContent.classList.remove('expanded');
+        if (sidebarToggleIcon) sidebarToggleIcon.classList.replace('fa-chevron-left', 'fa-chevron-right');
         
-        // Si el sidebar está colapsado, expandirlo al hacer clic en cualquier menú
-        if (document.querySelector('.sidebar').classList.contains('collapsed')) {
-            e.preventDefault();
-            document.querySelector('.sidebar').classList.remove('collapsed');
-            document.querySelector('.main-content').classList.remove('expanded');
-            document.querySelector('.sidebar-toggle i').classList.replace('fa-chevron-left', 'fa-chevron-right');
-            
-            // Esperar a que se expanda el sidebar antes de mostrar el submenú
-            setTimeout(() => {
-                if (this.nextElementSibling && this.nextElementSibling.classList.contains('nav-treeview')) {
-                    const treeview = this.nextElementSibling;
-                    const isShowing = treeview.classList.contains('show');
+        // Reducir delay para mejor respuesta (de 300ms a 150ms)
+        setTimeout(() => {
+            const treeview = link.nextElementSibling;
+            if (treeview && treeview.classList.contains('nav-treeview')) {
+                const isShowing = treeview.classList.contains('show');
+                
+                // Solo cerrar otros treeviews si hay alguno abierto (optimización)
+                if (!isShowing) {
+                    // Cachear queries
+                    const allTreeviews = document.querySelectorAll('.nav-treeview');
+                    const allParentLinks = document.querySelectorAll('.nav-link:not(.nav-treeview .nav-link)');
                     
                     // Close all other treeviews
-                    document.querySelectorAll('.nav-treeview').forEach(tv => {
-                        tv.classList.remove('show');
+                    allTreeviews.forEach(tv => {
+                        if (tv !== treeview) {
+                            tv.classList.remove('show');
+                        }
                     });
                     
-                    // Remove active from all parent links
-                    document.querySelectorAll('.nav-link').forEach(navLink => {
-                        navLink.classList.remove('active');
+                    // Remove active from all parent links except current
+                    allParentLinks.forEach(navLink => {
+                        if (navLink !== link) {
+                            navLink.classList.remove('active');
+                        }
                     });
                     
-                    // Toggle current treeview
-                    if (!isShowing) {
-                        treeview.classList.add('show');
-                        this.classList.add('active');
-                    }
+                    // Abrir el menú actual
+                    treeview.classList.add('show');
+                    link.classList.add('active');
                     
                     // Rotate arrow
-                    const arrow = this.querySelector('.nav-arrow');
+                    const arrow = link.querySelector('.nav-arrow');
                     if (arrow) {
-                        if (!isShowing) {
-                            arrow.style.transform = 'rotate(90deg)';
-                        } else {
-                            arrow.style.transform = 'rotate(0deg)';
-                        }
+                        arrow.style.transform = 'rotate(90deg)';
                     }
                 }
-            }, 300);
-            return;
-        }
+            }
+        }, 150); // Reducido de 300ms a 150ms
+        return;
+    }
+    
+    // Comportamiento normal cuando el sidebar está expandido
+    const treeview = link.nextElementSibling;
+    if (treeview && treeview.classList.contains('nav-treeview')) {
+        e.preventDefault();
+        const isShowing = treeview.classList.contains('show');
         
-        // Comportamiento normal cuando el sidebar está expandido
-        if (this.nextElementSibling && this.nextElementSibling.classList.contains('nav-treeview')) {
-            e.preventDefault();
-            const treeview = this.nextElementSibling;
-            const isShowing = treeview.classList.contains('show');
+        // Solo hacer cambios si es necesario (optimización)
+        if (!isShowing) {
+            // Cachear queries para mejor rendimiento
+            const allTreeviews = document.querySelectorAll('.nav-treeview');
+            const allParentLinks = document.querySelectorAll('.nav-link:not(.nav-treeview .nav-link)');
             
             // Close all other treeviews
-            document.querySelectorAll('.nav-treeview').forEach(tv => {
-                tv.classList.remove('show');
+            allTreeviews.forEach(tv => {
+                if (tv !== treeview) {
+                    tv.classList.remove('show');
+                }
             });
             
-            // Remove active from all parent links
-            document.querySelectorAll('.nav-link').forEach(navLink => {
-                navLink.classList.remove('active');
+            // Remove active from all parent links except current
+            allParentLinks.forEach(navLink => {
+                if (navLink !== link) {
+                    navLink.classList.remove('active');
+                }
             });
             
-            // Toggle current treeview
-            if (!isShowing) {
-                treeview.classList.add('show');
-                this.classList.add('active');
-            }
+            // Abrir el menú actual
+            treeview.classList.add('show');
+            link.classList.add('active');
             
             // Rotate arrow
-            const arrow = this.querySelector('.nav-arrow');
+            const arrow = link.querySelector('.nav-arrow');
             if (arrow) {
-                if (!isShowing) {
+                arrow.style.transform = 'rotate(90deg)';
+            }
+        } else {
+            // Si ya está abierto, cerrarlo
+            treeview.classList.remove('show');
+            link.classList.remove('active');
+            
+            // Rotate arrow
+            const arrow = link.querySelector('.nav-arrow');
+            if (arrow) {
+                arrow.style.transform = 'rotate(0deg)';
+            }
+        }
+    }
+});
+
+// Prevenir que los enlaces del submenú cierren el menú
+// Optimizado: solo verificar si el menú necesita mantenerse abierto (ya está abierto desde PHP)
+document.addEventListener('click', function(e) {
+    const submenuLink = e.target.closest('.nav-treeview .nav-link');
+    if (!submenuLink) return;
+    
+    // Detener la propagación para evitar que cierre el menú padre
+    e.stopPropagation();
+    
+    // El menú ya está abierto desde PHP, solo asegurar que permanezca abierto
+    const treeview = submenuLink.closest('.nav-treeview');
+    if (treeview && !treeview.classList.contains('show')) {
+        // Solo si por alguna razón no está abierto, abrirlo
+        const parentNavItem = treeview.parentElement;
+        if (parentNavItem && parentNavItem.classList.contains('nav-item')) {
+            const parentLink = parentNavItem.querySelector('> .nav-link');
+            if (parentLink) {
+                treeview.classList.add('show');
+                parentLink.classList.add('active');
+                const arrow = parentLink.querySelector('.nav-arrow');
+                if (arrow) {
                     arrow.style.transform = 'rotate(90deg)';
-                } else {
-                    arrow.style.transform = 'rotate(0deg)';
                 }
             }
         }
-    });
+    }
+    
+    // Si el enlace tiene un href válido (no es #), permitir la navegación normal
+    const href = submenuLink.getAttribute('href');
+    if (href && href !== '#') {
+        return true; // Permitir navegación
+    }
+    
+    // Si es un enlace sin href o con #, prevenir el comportamiento por defecto
+    e.preventDefault();
 });
 
-// Incidents Chart
-const incidentsCtx = document.getElementById('incidentsChart').getContext('2d');
-const incidentsChart = new Chart(incidentsCtx, {
+// NOTA: La detección de página actual y activación del menú ahora se maneja desde PHP en el header
+// Esto es más rápido y eficiente ya que el menú se renderiza correctamente desde el servidor
+// El código JavaScript solo maneja los eventos de interacción del usuario
+
+// Incidents Chart - Solo crear si el elemento existe
+const incidentsCtx = document.getElementById('incidentsChart');
+let incidentsChart = null;
+if (incidentsCtx) {
+    incidentsChart = new Chart(incidentsCtx.getContext('2d'), {
     type: 'bar',
     data: {
         labels: ['Planta Baja', 'Primer Piso', 'Segundo Piso', 'Tercer Piso', 'Cuarto Piso', 'Quinto Piso'],
@@ -177,7 +251,8 @@ const incidentsChart = new Chart(incidentsCtx, {
             }
         }
     }
-});
+    });
+}
 
 // Add animation to cards on scroll
 const observerOptions = {
@@ -193,6 +268,10 @@ const observer = new IntersectionObserver((entries) => {
     });
 }, observerOptions);
 
-document.querySelectorAll('.content-box, .info-card').forEach(el => {
-    observer.observe(el);
-});
+// Solo ejecutar el observer si hay elementos (evitar trabajo innecesario)
+const animatedElements = document.querySelectorAll('.content-box, .info-card');
+if (animatedElements.length > 0) {
+    animatedElements.forEach(el => {
+        observer.observe(el);
+    });
+}

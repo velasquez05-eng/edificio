@@ -183,9 +183,9 @@ class ComunicadoModelo {
                     COUNT(*) as total,
                     SUM(CASE WHEN estado = 'publicado' THEN 1 ELSE 0 END) as publicados,
                     SUM(CASE WHEN estado = 'borrador' THEN 1 ELSE 0 END) as borradores,
-                    SUM(CASE WHEN estado = 'archivado' THEN 1 ELSE 0 END) as archivados
-                  FROM " . $this->table_name . " 
-                  WHERE estado != 'eliminado'";
+                    SUM(CASE WHEN estado = 'archivado' THEN 1 ELSE 0 END) as archivados,
+                    SUM(CASE WHEN estado = 'eliminado' THEN 1 ELSE 0 END) as eliminados
+                  FROM " . $this->table_name;
 
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
@@ -200,7 +200,7 @@ class ComunicadoModelo {
                   WHERE c.estado = 'publicado' 
                   AND (c.fecha_expiracion IS NULL OR c.fecha_expiracion >= CURDATE())
                   ORDER BY 
-                    CASE c.prioridad v
+                    CASE c.prioridad
                         WHEN 'urgente' THEN 1
                         WHEN 'alta' THEN 2
                         WHEN 'media' THEN 3
@@ -224,6 +224,76 @@ class ComunicadoModelo {
         }
 
         return $resultados;
+    }
+
+    // Obtener todos los comunicados publicados (sin límite)
+    public function listarComunicadosPublicados() {
+        $query = "SELECT c.*, p.nombre as autor_nombre, p.apellido_paterno as autor_apellido 
+                  FROM " . $this->table_name . " c 
+                  LEFT JOIN persona p ON c.id_persona = p.id_persona 
+                  WHERE c.estado = 'publicado' 
+                  AND (c.fecha_expiracion IS NULL OR c.fecha_expiracion >= CURDATE())
+                  ORDER BY 
+                    CASE c.prioridad
+                        WHEN 'urgente' THEN 1
+                        WHEN 'alta' THEN 2
+                        WHEN 'media' THEN 3
+                        WHEN 'baja' THEN 4
+                    END,
+                    c.fecha_publicacion DESC";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Desencriptar datos sensibles del autor
+        foreach ($resultados as &$comunicado) {
+            if (!empty($comunicado['autor_nombre'])) {
+                $comunicado['autor_nombre'] = $this->decrypt($comunicado['autor_nombre']);
+            }
+            if (!empty($comunicado['autor_apellido'])) {
+                $comunicado['autor_apellido'] = $this->decrypt($comunicado['autor_apellido']);
+            }
+        }
+
+        return $resultados;
+    }
+
+    // Listar comunicados eliminados
+    public function listarComunicadosEliminados() {
+        $query = "SELECT c.*, p.nombre as autor_nombre, p.apellido_paterno as autor_apellido 
+                  FROM " . $this->table_name . " c 
+                  LEFT JOIN persona p ON c.id_persona = p.id_persona 
+                  WHERE c.estado = 'eliminado'
+                  ORDER BY c.fecha_publicacion DESC";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Desencriptar datos sensibles del autor
+        foreach ($resultados as &$comunicado) {
+            if (!empty($comunicado['autor_nombre'])) {
+                $comunicado['autor_nombre'] = $this->decrypt($comunicado['autor_nombre']);
+            }
+            if (!empty($comunicado['autor_apellido'])) {
+                $comunicado['autor_apellido'] = $this->decrypt($comunicado['autor_apellido']);
+            }
+        }
+
+        return $resultados;
+    }
+
+    // Restaurar comunicado eliminado
+    public function restaurar($id_comunicado) {
+        $query = "UPDATE " . $this->table_name . " 
+                 SET estado = 'borrador' 
+                 WHERE id_comunicado = :id_comunicado";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":id_comunicado", $id_comunicado);
+
+        return $stmt->execute();
     }
 }
 ?>

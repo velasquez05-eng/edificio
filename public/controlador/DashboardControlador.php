@@ -7,6 +7,11 @@ class DashboardControlador{
     }
 
     public function mostrarDashboardAdministrador(){
+        // Verificar que la sesión esté disponible
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
         // Verificar que el usuario sea administrador
         if (!isset($_SESSION['id_rol']) || $_SESSION['id_rol'] != 1) {
             header('Location: ../vista/LoginVista.php?error=Acceso no autorizado');
@@ -48,7 +53,15 @@ class DashboardControlador{
     }
 
     public function mostrarDashboardPersonal() {
-
+        // Verificar que la sesión esté disponible
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
+        if (!isset($_SESSION['id_persona'])) {
+            header('Location: ../vista/LoginVista.php?error=Debe iniciar sesión');
+            exit;
+        }
 
         $id_personal = $_SESSION['id_persona'];
 
@@ -78,6 +91,11 @@ class DashboardControlador{
     }
 
     public function mostrarDashboardResidente() {
+        // Verificar que la sesión esté disponible
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
         // Verificar que el usuario sea residente (rol 2)
         if (!isset($_SESSION['id_rol']) || $_SESSION['id_rol'] != 2) {
             header('Location: ../vista/LoginVista.php?error=Acceso no autorizado');
@@ -112,6 +130,11 @@ class DashboardControlador{
      * Método para obtener datos específicos via AJAX
      */
     public function obtenerDatosFiltrados() {
+        // Verificar que la sesión esté disponible
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
             echo json_encode(['error' => 'Método no permitido']);
@@ -169,7 +192,12 @@ class DashboardControlador{
      * Método para obtener resumen rápido del dashboard personal
      */
     public function obtenerResumenPersonal() {
-        if (!isset($_SESSION['id_persona']) || $_SESSION['id_rol'] != 3) {
+        // Verificar que la sesión esté disponible
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
+        if (!isset($_SESSION['id_persona']) || !isset($_SESSION['id_rol']) || $_SESSION['id_rol'] != 3) {
             http_response_code(401);
             echo json_encode(['error' => 'No autorizado']);
             return;
@@ -236,9 +264,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 break;
             default:
                 // Redirigir según el rol del usuario
-                if ($_SESSION['id_rol'] == 1) {
+                $id_rol = isset($_SESSION['id_rol']) ? $_SESSION['id_rol'] : null;
+                if ($id_rol == 1) {
                     $controlador->mostrarDashboardAdministrador();
-                } elseif ($_SESSION['id_rol'] == 3) {
+                } elseif ($id_rol == 3) {
                     $controlador->mostrarDashboardPersonal();
                 } else {
                     $controlador->mostrarDashboardResidente();
@@ -247,9 +276,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         }
     } else {
         // Redirigir según el rol por defecto
-        if ($_SESSION['id_rol'] == 1) {
+        $id_rol = isset($_SESSION['id_rol']) ? $_SESSION['id_rol'] : null;
+        if ($id_rol == 1) {
             $controlador->mostrarDashboardAdministrador();
-        } elseif ($_SESSION['id_rol'] == 3) {
+        } elseif ($id_rol == 3) {
             $controlador->mostrarDashboardPersonal();
         } else {
             $controlador->mostrarDashboardResidente();
