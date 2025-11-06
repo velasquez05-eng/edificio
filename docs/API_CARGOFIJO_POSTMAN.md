@@ -633,3 +633,4 @@ La API interactúa con estas tablas:
 - Las transacciones se usan en operaciones críticas (generación de conceptos)
 
 
+

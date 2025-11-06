@@ -898,3 +898,4 @@ Cada objeto debe tener:
 - `dias_descuento` (number, 0-30, obligatorio) - Días a descontar
 
 
+
