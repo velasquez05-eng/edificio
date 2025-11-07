@@ -203,6 +203,7 @@ class PlanillaControlador {
 
     /**
      * Generar planillas múltiples usando JSON
+     * Ahora construye el JSON automáticamente desde el array de descuentos recibido
      */
     public function generarPlanillaMultiple() {
         if ($_POST['action'] == "generarPlanillaMultiple") {
@@ -213,17 +214,21 @@ class PlanillaControlador {
                 }
 
                 // Validar campos requeridos
-                $camposRequeridos = ['mes', 'anio', 'json_descuentos', 'metodo_pago'];
+                $camposRequeridos = ['mes', 'anio', 'metodo_pago'];
                 foreach($camposRequeridos as $campo) {
                     if(!isset($_POST[$campo]) || empty(trim($_POST[$campo]))) {
                         throw new Exception("El campo $campo es obligatorio");
                     }
                 }
 
+                // Validar que exista el array de descuentos
+                if (!isset($_POST['descuentos']) || !is_array($_POST['descuentos'])) {
+                    throw new Exception("Debe seleccionar al menos un empleado con días de descuento");
+                }
+
                 // Sanitizar datos de entrada
                 $mes = intval($_POST['mes']);
                 $anio = intval($_POST['anio']);
-                $json_descuentos = $_POST['json_descuentos'];
                 $metodo_pago = $_POST['metodo_pago'];
 
                 // Validar rangos
@@ -241,14 +246,28 @@ class PlanillaControlador {
                     throw new Exception("Método de pago no válido");
                 }
 
-                // Validar JSON
-                $descuentos = json_decode($json_descuentos, true);
-                if (json_last_error() !== JSON_ERROR_NONE) {
-                    throw new Exception("Formato JSON inválido");
+                // Construir array de descuentos desde $_POST['descuentos']
+                $descuentos = [];
+                foreach ($_POST['descuentos'] as $id_persona => $dias_descuento) {
+                    // Validar que el ID de persona sea numérico
+                    $id_persona = intval($id_persona);
+                    if ($id_persona <= 0) {
+                        continue; // Saltar IDs inválidos
+                    }
+
+                    // Validar y sanitizar días de descuento
+                    $dias_descuento = floatval($dias_descuento);
+                    if ($dias_descuento < 0 || $dias_descuento > 30) {
+                        throw new Exception("Los días de descuento para el empleado ID $id_persona deben estar entre 0 y 30");
+                    }
+
+                    // Agregar al array (incluir incluso si es 0.0)
+                    $descuentos[$id_persona] = $dias_descuento;
                 }
 
+                // Validar que haya al menos un empleado
                 if (empty($descuentos)) {
-                    throw new Exception("El JSON de descuentos no puede estar vacío");
+                    throw new Exception("Debe seleccionar al menos un empleado");
                 }
 
                 // Generar planillas múltiples

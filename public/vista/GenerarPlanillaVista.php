@@ -99,6 +99,11 @@
                                                     <option value="2023">2023</option>
                                                     <option value="2024">2024</option>
                                                     <option value="2025">2025</option>
+                                                    <option value="2026">2026</option>
+                                                    <option value="2027">2027</option>
+                                                    <option value="2028">2028</option>
+                                                    <option value="2029">2029</option>
+                                                    <option value="2030">2030</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -216,6 +221,11 @@
                                                     <option value="2023">2023</option>
                                                     <option value="2024">2024</option>
                                                     <option value="2025">2025</option>
+                                                    <option value="2026">2026</option>
+                                                    <option value="2027">2027</option>
+                                                    <option value="2028">2028</option>
+                                                    <option value="2029">2029</option>
+                                                    <option value="2030">2030</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -298,14 +308,14 @@
                         <!-- Pestaña Planillas Múltiples -->
                         <div class="tab-pane fade" id="multiple" role="tabpanel">
                             <div class="row">
-                                <div class="col-md-8">
+                                <div class="col-12">
                                     <form id="formPlanillaMultiple" method="POST" action="PlanillaControlador.php">
                                         <input type="hidden" name="action" value="generarPlanillaMultiple">
 
                                         <h5 class="mb-4"><i class="fas fa-list text-info me-2"></i>Generar Planillas Múltiples</h5>
 
-                                        <div class="row mb-3">
-                                            <div class="col-md-6">
+                                        <div class="row mb-4">
+                                            <div class="col-md-4">
                                                 <label for="multipleMes" class="form-label">Mes</label>
                                                 <select class="form-select" id="multipleMes" name="mes" required>
                                                     <option value="">Seleccionar mes...</option>
@@ -323,20 +333,21 @@
                                                     <option value="12">Diciembre</option>
                                                 </select>
                                             </div>
-                                            <div class="col-md-6">
+                                            <div class="col-md-4">
                                                 <label for="multipleAnio" class="form-label">Año</label>
                                                 <select class="form-select" id="multipleAnio" name="anio" required>
                                                     <option value="">Seleccionar año...</option>
                                                     <option value="2023">2023</option>
                                                     <option value="2024">2024</option>
                                                     <option value="2025">2025</option>
+                                                    <option value="2026">2026</option>
+                                                    <option value="2027">2027</option>
+                                                    <option value="2028">2028</option>
+                                                    <option value="2029">2029</option>
+                                                    <option value="2030">2030</option>
                                                 </select>
                                             </div>
-                                        </div>
-
-                                        <!-- AÑADIR MÉTODO DE PAGO -->
-                                        <div class="row mb-3">
-                                            <div class="col-md-6">
+                                            <div class="col-md-4">
                                                 <label for="multipleMetodoPago" class="form-label">Método de Pago</label>
                                                 <select class="form-select" id="multipleMetodoPago" name="metodo_pago" required>
                                                     <option value="">Seleccionar método...</option>
@@ -348,45 +359,70 @@
                                             </div>
                                         </div>
 
-                                        <div class="mb-3">
-                                            <label for="jsonDescuentos" class="form-label">Descuentos por Empleado (JSON)</label>
-                                            <textarea class="form-control" id="jsonDescuentos" name="json_descuentos" rows="8"
-                                                      placeholder='{"1": 2.5, "2": 1.0, "3": 0.5}' required></textarea>
-                                            <div class="form-text">
-                                                <strong>Formato:</strong> {"id_persona": dias_descuento, ...}<br>
-                                                <strong>Ejemplo:</strong> {"1": 2.5, "2": 1.0} - Persona 1 con 2.5 días de descuento, Persona 2 con 1 día
+                                        <div class="alert alert-info mb-4">
+                                            <h6><i class="fas fa-info-circle me-2"></i>Instrucciones</h6>
+                                            <p class="mb-0">
+                                                Selecciona los días de descuento para cada empleado. 
+                                                Usa <strong>0.0</strong> si trabajó todos los días, o el número de días que faltó.
+                                                El sistema construirá automáticamente el JSON con los descuentos.
+                                            </p>
+                                        </div>
+
+                                        <!-- Lista de Empleados con Inputs -->
+                                        <div class="card mb-4">
+                                            <div class="card-header bg-info text-white">
+                                                <h6 class="mb-0"><i class="fas fa-users me-2"></i>Empleados y Días de Descuento</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="table-responsive">
+                                                    <table class="table table-hover" id="tablaEmpleadosMultiple">
+                                                        <thead>
+                                                            <tr>
+                                                                <th width="5%">ID</th>
+                                                                <th width="35%">Empleado</th>
+                                                                <th width="20%">Rol</th>
+                                                                <th width="15%">Salario Base</th>
+                                                                <th width="25%">Días de Descuento</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="tbodyEmpleadosMultiple">
+                                                            <tr>
+                                                                <td colspan="5" class="text-center">
+                                                                    <div class="spinner-border text-info" role="status">
+                                                                        <span class="visually-hidden">Cargando empleados...</span>
+                                                                    </div>
+                                                                    <p class="text-muted mt-2">Cargando empleados...</p>
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                                
+                                                <div class="mt-3 d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="establecerTodosCero()">
+                                                            <i class="fas fa-zero me-1"></i>Establecer todos en 0.0
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="limpiarTodos()">
+                                                            <i class="fas fa-redo me-1"></i>Limpiar todos
+                                                        </button>
+                                                    </div>
+                                                    <div>
+                                                        <strong>Total empleados: <span id="totalEmpleadosCount">0</span></strong>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <div class="alert alert-info">
-                                            <h6><i class="fas fa-lightbulb me-2"></i>Ayuda Rápida</h6>
-                                            <p class="mb-2">Puede usar el generador automático para crear el JSON:</p>
-                                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="mostrarGeneradorJSON()">
-                                                <i class="fas fa-magic me-1"></i>Generador Automático
-                                            </button>
-                                        </div>
-
                                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                            <button type="button" class="btn btn-secondary" onclick="validarJSON()">
-                                                <i class="fas fa-check me-2"></i>Validar JSON
+                                            <button type="button" class="btn btn-secondary" onclick="previsualizarMultiple()">
+                                                <i class="fas fa-eye me-2"></i>Previsualizar
                                             </button>
                                             <button type="submit" class="btn btn-info">
                                                 <i class="fas fa-play-circle me-2"></i>Generar Planillas Múltiples
                                             </button>
                                         </div>
                                     </form>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="content-box">
-                                        <div class="content-box-header">
-                                            <h6><i class="fas fa-users me-2"></i>Lista de Empleados</h6>
-                                        </div>
-                                        <div class="content-box-body">
-                                            <div id="listaEmpleadosMultiple">
-                                                <p class="text-muted text-center">Cargando empleados...</p>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -466,10 +502,13 @@
             document.getElementById('personalizadaAnio').addEventListener('change', actualizarCalculoPersonalizada);
             document.getElementById('personalizadaMetodoPago').addEventListener('change', actualizarEstadoPersonalizada);
 
-            // Planillas Múltiples - Cambio de periodo
-            document.getElementById('multipleMes').addEventListener('change', actualizarListaEmpleadosMultiple);
-            document.getElementById('multipleAnio').addEventListener('change', actualizarListaEmpleadosMultiple);
-            document.getElementById('multipleMetodoPago').addEventListener('change', actualizarEstadoMultiple);
+            // Planillas Múltiples - Cargar empleados al cambiar de pestaña
+            const multipleTab = document.getElementById('multiple-tab');
+            if (multipleTab) {
+                multipleTab.addEventListener('shown.bs.tab', function() {
+                    actualizarListaEmpleadosMultiple();
+                });
+            }
         }
 
         function cargarEmpleados() {
@@ -595,31 +634,79 @@
         }
 
         function actualizarListaEmpleadosMultiple() {
-            const listaDiv = document.getElementById('listaEmpleadosMultiple');
+            const tbody = document.getElementById('tbodyEmpleadosMultiple');
+            const totalCount = document.getElementById('totalEmpleadosCount');
 
             if (empleadosData.length > 0) {
-                let html = '<div class="empleados-list">';
+                let html = '';
                 empleadosData.forEach(empleado => {
                     html += `
-                        <div class="empleado-item mb-2 p-2 border rounded">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>${empleado.nombre_completo}</strong>
-                                    <br>
-                                    <small class="text-muted">${empleado.rol} - Bs. ${formatCurrency(empleado.salario_base)}</small>
+                        <tr>
+                            <td>${empleado.id_persona}</td>
+                            <td>
+                                <strong>${empleado.nombre_completo}</strong>
+                            </td>
+                            <td>${empleado.rol}</td>
+                            <td>Bs. ${formatCurrency(empleado.salario_base)}</td>
+                            <td>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" 
+                                           class="form-control descuento-input" 
+                                           name="descuentos[${empleado.id_persona}]"
+                                           data-id="${empleado.id_persona}"
+                                           data-salario="${empleado.salario_base}"
+                                           min="0" 
+                                           max="30" 
+                                           step="0.5" 
+                                           value="0.0"
+                                           placeholder="0.0">
+                                    <span class="input-group-text">días</span>
                                 </div>
-                                <div>
-                                    <small class="text-info">ID: ${empleado.id_persona}</small>
-                                </div>
-                            </div>
-                        </div>
+                                <small class="text-muted">Trabajará: <span class="dias-trabajados-${empleado.id_persona}">30</span> días</small>
+                            </td>
+                        </tr>
                     `;
                 });
-                html += '</div>';
-                listaDiv.innerHTML = html;
+                tbody.innerHTML = html;
+                totalCount.textContent = empleadosData.length;
+
+                // Agregar event listeners a los inputs
+                document.querySelectorAll('.descuento-input').forEach(input => {
+                    input.addEventListener('input', function() {
+                        const idPersona = this.getAttribute('data-id');
+                        const diasDescuento = parseFloat(this.value) || 0;
+                        const diasTrabajados = 30 - diasDescuento;
+                        document.querySelector(`.dias-trabajados-${idPersona}`).textContent = diasTrabajados;
+                    });
+                });
             } else {
-                listaDiv.innerHTML = '<p class="text-muted text-center">No hay empleados activos</p>';
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">
+                            <p>No hay empleados activos</p>
+                        </td>
+                    </tr>
+                `;
+                totalCount.textContent = '0';
             }
+        }
+
+        function establecerTodosCero() {
+            document.querySelectorAll('.descuento-input').forEach(input => {
+                input.value = '0.0';
+                const idPersona = input.getAttribute('data-id');
+                document.querySelector(`.dias-trabajados-${idPersona}`).textContent = '30';
+            });
+            mostrarMensaje('Todos los descuentos establecidos en 0.0', 'success');
+        }
+
+        function limpiarTodos() {
+            document.querySelectorAll('.descuento-input').forEach(input => {
+                input.value = '';
+                const idPersona = input.getAttribute('data-id');
+                document.querySelector(`.dias-trabajados-${idPersona}`).textContent = '30';
+            });
+            mostrarMensaje('Todos los campos limpiados', 'info');
         }
 
         function mostrarGeneradorJSON() {
@@ -660,9 +747,9 @@
             inputs.forEach(input => {
                 const id = input.getAttribute('data-id');
                 const valor = parseFloat(input.value) || 0;
-                if (valor > 0) {
-                    descuentos[id] = valor;
-                }
+                // Incluir todos los empleados, incluso con 0 días de descuento
+                // Esto permite generar planillas para todos los empleados
+                descuentos[id] = valor;
             });
 
             document.getElementById('jsonGenerado').value = JSON.stringify(descuentos, null, 2);
@@ -717,6 +804,45 @@
 
             const empleado = empleadosData.find(e => e.id_persona == empleadoId);
             mostrarMensaje(`Previsualizando planilla para ${empleado.nombre_completo} - ${getMonthName(mes)} ${anio} (${metodoPago})...`, 'info');
+        }
+
+        function previsualizarMultiple() {
+            const mes = document.getElementById('multipleMes').value;
+            const anio = document.getElementById('multipleAnio').value;
+            const metodoPago = document.getElementById('multipleMetodoPago').value;
+
+            if (!mes || !anio || !metodoPago) {
+                mostrarMensaje('Por favor complete mes, año y método de pago', 'warning');
+                return;
+            }
+
+            // Contar cuántos empleados tienen descuentos configurados
+            const inputs = document.querySelectorAll('.descuento-input');
+            let totalEmpleados = 0;
+            let conDescuento = 0;
+            let sinDescuento = 0;
+
+            inputs.forEach(input => {
+                const valor = parseFloat(input.value) || 0;
+                if (valor >= 0) {
+                    totalEmpleados++;
+                    if (valor > 0) {
+                        conDescuento++;
+                    } else {
+                        sinDescuento++;
+                    }
+                }
+            });
+
+            if (totalEmpleados === 0) {
+                mostrarMensaje('No hay empleados configurados', 'warning');
+                return;
+            }
+
+            mostrarMensaje(
+                `Previsualizando planillas múltiples para ${getMonthName(mes)} ${anio} (${metodoPago}): ${totalEmpleados} empleados totales (${sinDescuento} sin descuento, ${conDescuento} con descuento)...`,
+                'info'
+            );
         }
 
         // Funciones auxiliares
@@ -829,6 +955,31 @@
         .alert {
             border: none;
             border-radius: 0.5rem;
+        }
+
+        /* Estilos para tabla de empleados múltiples */
+        #tablaEmpleadosMultiple tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        #tablaEmpleadosMultiple .descuento-input {
+            max-width: 120px;
+        }
+
+        #tablaEmpleadosMultiple .input-group-sm .form-control {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        #tablaEmpleadosMultiple small.text-muted {
+            display: block;
+            margin-top: 0.25rem;
+            font-size: 0.75rem;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
         }
     </style>
 
