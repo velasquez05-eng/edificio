@@ -333,6 +333,8 @@ function getParentMenuClass($menuItems) {
     
      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
+    <!-- Agente Chat CSS -->
+    <link rel="stylesheet" href="../../includes/css/agente_chat.css">
 </head>
 <body>
     <!-- Header -->

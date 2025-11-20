@@ -18,6 +18,9 @@
       <!-- Vincular el archivo JavaScript -->
   <script src="../../includes/js/dashboard.js"></script>
   
+  <!-- Agente Chat JS -->
+  <script src="../../includes/js/agente_chat.js"></script>
+  
   <!-- Script para notificaciones -->
   <script>
       (function() {
